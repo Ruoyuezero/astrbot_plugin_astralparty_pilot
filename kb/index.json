@@ -1,0 +1,1097 @@
+{
+ "generated": "2026-10-29",
+ "source": "https://wiki.biligame.com/starengine/ + 本地 STRBuff.bytes + Addressables 场景提取",
+ "counts": {
+  "cards": 71,
+  "monsters": 69,
+  "events": 32,
+  "map_events": 43,
+  "buffs": 311,
+  "states": 27,
+  "lands": 27,
+  "maps": 21,
+  "skills": 295
+ },
+ "files": {
+  "cards": "kb/cards.json",
+  "monsters": "kb/monsters.json",
+  "events": "kb/events.json",
+  "map_events": "kb/map_events.json",
+  "buffs": "kb/buffs.json",
+  "states": "kb/states.json",
+  "lands": "kb/lands.json",
+  "maps": "maps/Map_*.json",
+  "index": "maps/index.json",
+  "skills": "kb/skills.json"
+ },
+ "maps": [
+  {
+   "scene": "Map_003",
+   "name": "游乐园",
+   "kind": "标准对战",
+   "fixed": false,
+   "cells": 69,
+   "edges": 72,
+   "components": 1,
+   "automorphisms": 1,
+   "fixed_points": [
+    "类型不对称"
+   ],
+   "has_group": false,
+   "has_attr": false,
+   "y_range": [
+    -0.4,
+    0
+   ],
+   "born": [
+    0,
+    12,
+    24,
+    36
+   ],
+   "note": "PVP，赌场/冰台主题"
+  },
+  {
+   "scene": "Map_004",
+   "name": "十字路口站",
+   "kind": "标准对战",
+   "fixed": false,
+   "cells": 69,
+   "edges": 72,
+   "components": 1,
+   "automorphisms": 1,
+   "fixed_points": [
+    "类型不对称"
+   ],
+   "has_group": false,
+   "has_attr": false,
+   "y_range": [
+    2.39,
+    2.94
+   ],
+   "born": [
+    0,
+    12,
+    24,
+    36
+   ],
+   "note": "PVP，车站主题"
+  },
+  {
+   "scene": "Map_005",
+   "name": "樱花小镇",
+   "kind": "标准对战",
+   "fixed": false,
+   "cells": 81,
+   "edges": 84,
+   "components": 2,
+   "automorphisms": 1,
+   "fixed_points": [
+    "类型不对称"
+   ],
+   "has_group": false,
+   "has_attr": false,
+   "y_range": [
+    10,
+    10
+   ],
+   "born": [
+    11,
+    23,
+    35,
+    47
+   ],
+   "note": "PVP，樱花商业街；两段靠传送门相连"
+  },
+  {
+   "scene": "Map_006",
+   "name": "魅影都市",
+   "kind": "标准对战",
+   "fixed": false,
+   "cells": 62,
+   "edges": 64,
+   "components": 1,
+   "automorphisms": 1,
+   "fixed_points": [
+    "类型不对称"
+   ],
+   "has_group": false,
+   "has_attr": false,
+   "y_range": [
+    0,
+    0
+   ],
+   "born": [
+    0,
+    16,
+    32,
+    48
+   ],
+   "note": "PVP，下城区街巷"
+  },
+  {
+   "scene": "Map_007",
+   "name": "星趴·梦想号",
+   "kind": "合作挑战",
+   "fixed": true,
+   "cells": 56,
+   "edges": 60,
+   "components": 1,
+   "automorphisms": 4,
+   "fixed_points": [
+    11,
+    27,
+    32,
+    33
+   ],
+   "has_group": true,
+   "has_attr": true,
+   "y_range": [
+    2.09,
+    2.19
+   ],
+   "born": [
+    1,
+    21,
+    42,
+    47
+   ],
+   "note": "PVE，海盗船；左右镜像对称"
+  },
+  {
+   "scene": "Map_008",
+   "name": "御魂庆典",
+   "kind": "合作挑战",
+   "fixed": true,
+   "cells": 65,
+   "edges": 68,
+   "components": 1,
+   "automorphisms": 1,
+   "fixed_points": [
+    "类型不对称"
+   ],
+   "has_group": false,
+   "has_attr": true,
+   "y_range": [
+    41.7,
+    41.7
+   ],
+   "born": [
+    0,
+    16,
+    24,
+    40
+   ],
+   "note": "PVE，樱花夜 + 妖怪"
+  },
+  {
+   "scene": "Map_009",
+   "name": "礼物广场",
+   "kind": "限时",
+   "fixed": false,
+   "cells": 61,
+   "edges": 64,
+   "components": 1,
+   "automorphisms": 1,
+   "fixed_points": [
+    "类型不对称"
+   ],
+   "has_group": false,
+   "has_attr": false,
+   "y_range": [
+    74.6,
+    79.1
+   ],
+   "born": [
+    0,
+    3,
+    14,
+    62
+   ],
+   "note": "圣诞/年末庆典"
+  },
+  {
+   "scene": "Map_010",
+   "name": "水乡古镇",
+   "kind": "合作挑战",
+   "fixed": true,
+   "cells": 56,
+   "edges": 60,
+   "components": 1,
+   "automorphisms": 1,
+   "fixed_points": [
+    "类型不对称"
+   ],
+   "has_group": false,
+   "has_attr": true,
+   "y_range": [
+    42.5,
+    42.5
+   ],
+   "born": [
+    0,
+    5,
+    10,
+    15
+   ],
+   "note": "PVE，春节水乡"
+  },
+  {
+   "scene": "Map_011",
+   "name": "丛林冒险",
+   "kind": "标准对战",
+   "fixed": false,
+   "cells": 51,
+   "edges": 54,
+   "components": 1,
+   "automorphisms": 1,
+   "fixed_points": [
+    "类型不对称"
+   ],
+   "has_group": true,
+   "has_attr": false,
+   "y_range": [
+    11.3,
+    11.3
+   ],
+   "born": [
+    12,
+    14,
+    42,
+    44
+   ],
+   "note": "PVP，原始森林/废弃建筑"
+  },
+  {
+   "scene": "Map_012",
+   "name": "魔法学院",
+   "kind": "合作挑战",
+   "fixed": true,
+   "cells": 48,
+   "edges": 50,
+   "components": 1,
+   "automorphisms": 2,
+   "fixed_points": [
+    0,
+    24
+   ],
+   "has_group": false,
+   "has_attr": false,
+   "y_range": [
+    23,
+    23
+   ],
+   "born": [
+    100,
+    101,
+    102,
+    103
+   ],
+   "note": "PVE 第 1 张"
+  },
+  {
+   "scene": "Map_013",
+   "name": "学院食堂",
+   "kind": "合作挑战",
+   "fixed": false,
+   "cells": 48,
+   "edges": 50,
+   "components": 1,
+   "automorphisms": 8,
+   "fixed_points": [
+    0,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    40
+   ],
+   "has_group": false,
+   "has_attr": false,
+   "y_range": [
+    30.3,
+    30.3
+   ],
+   "born": [
+    100,
+    101,
+    102,
+    103
+   ],
+   "note": "魔法学院第 2 张（不是龙宫！）"
+  },
+  {
+   "scene": "Map_014",
+   "name": "甜点空间",
+   "kind": "合作挑战",
+   "fixed": false,
+   "cells": 42,
+   "edges": 44,
+   "components": 1,
+   "automorphisms": 8,
+   "fixed_points": [
+    0,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    40
+   ],
+   "has_group": false,
+   "has_attr": false,
+   "y_range": [
+    30.3,
+    30.3
+   ],
+   "born": [
+    100,
+    101,
+    102,
+    103
+   ],
+   "note": "魔法学院第 3 张"
+  },
+  {
+   "scene": "Map_015",
+   "name": "龙宫游乐园",
+   "kind": "合作挑战",
+   "fixed": true,
+   "cells": 54,
+   "edges": 56,
+   "components": 1,
+   "automorphisms": 1,
+   "fixed_points": [
+    "类型不对称"
+   ],
+   "has_group": false,
+   "has_attr": false,
+   "y_range": [
+    0,
+    0
+   ],
+   "born": [
+    0,
+    3,
+    9,
+    12
+   ],
+   "note": "PVE，水上乐园"
+  },
+  {
+   "scene": "Map_016",
+   "name": "幽魂暗巷",
+   "kind": "合作挑战",
+   "fixed": true,
+   "cells": 42,
+   "edges": 44,
+   "components": 1,
+   "automorphisms": 1,
+   "fixed_points": [
+    "类型不对称"
+   ],
+   "has_group": false,
+   "has_attr": true,
+   "y_range": [
+    -0.5,
+    -0.5
+   ],
+   "born": [
+    0,
+    10,
+    16,
+    28
+   ],
+   "note": "PVE，运河区后巷演唱会"
+  },
+  {
+   "scene": "Map_017",
+   "name": "园林中庭",
+   "kind": "合作挑战",
+   "fixed": true,
+   "cells": 44,
+   "edges": 46,
+   "components": 1,
+   "automorphisms": 0,
+   "fixed_points": [],
+   "has_group": false,
+   "has_attr": true,
+   "y_range": [
+    12.7,
+    12.7
+   ],
+   "born": [
+    2,
+    8,
+    26,
+    27
+   ],
+   "note": "PVE，隆兴饭店中庭，荷花池/凤凰"
+  },
+  {
+   "scene": "Map_019",
+   "name": "海选赛运动场",
+   "kind": "限时",
+   "fixed": true,
+   "cells": 39,
+   "edges": 40,
+   "components": 1,
+   "automorphisms": 1,
+   "fixed_points": [
+    "类型不对称"
+   ],
+   "has_group": false,
+   "has_attr": true,
+   "y_range": [
+    13.05,
+    13.05
+   ],
+   "born": [
+    0,
+    16,
+    35
+   ],
+   "note": "人机大战运动会，3 人起"
+  },
+  {
+   "scene": "Map_020",
+   "name": "决赛大赛场",
+   "kind": "限时",
+   "fixed": true,
+   "cells": 40,
+   "edges": 42,
+   "components": 1,
+   "automorphisms": 1,
+   "fixed_points": [
+    "类型不对称"
+   ],
+   "has_group": false,
+   "has_attr": true,
+   "y_range": [
+    12.55,
+    12.55
+   ],
+   "born": [
+    30,
+    34,
+    37
+   ],
+   "note": "人机大战运动会决赛，3 人起"
+  },
+  {
+   "scene": "Map_021",
+   "name": "梦想号-上层甲板",
+   "kind": "限时",
+   "fixed": true,
+   "cells": 41,
+   "edges": 43,
+   "components": 1,
+   "automorphisms": 1,
+   "fixed_points": [
+    "类型不对称"
+   ],
+   "has_group": false,
+   "has_attr": false,
+   "y_range": [
+    3,
+    3
+   ],
+   "born": [
+    0,
+    6,
+    17,
+    21
+   ],
+   "note": "梦想号上层"
+  },
+  {
+   "scene": "Map_022",
+   "name": "淘汰赛运动场",
+   "kind": "限时",
+   "fixed": true,
+   "cells": 40,
+   "edges": 42,
+   "components": 1,
+   "automorphisms": 1,
+   "fixed_points": [
+    "类型不对称"
+   ],
+   "has_group": false,
+   "has_attr": true,
+   "y_range": [
+    13.9,
+    13.9
+   ],
+   "born": [
+    8,
+    24,
+    29
+   ],
+   "note": "人机大战运动会淘汰赛，3 人起"
+  },
+  {
+   "scene": "Map_023",
+   "name": "异变图书馆",
+   "kind": "限时",
+   "fixed": true,
+   "cells": 42,
+   "edges": 44,
+   "components": 1,
+   "automorphisms": 1,
+   "fixed_points": [
+    "类型不对称"
+   ],
+   "has_group": false,
+   "has_attr": true,
+   "y_range": [
+    2.5,
+    2.5
+   ],
+   "born": [
+    0,
+    5,
+    18,
+    23
+   ],
+   "note": "魔法少女的魔女审判联动；罪证/线索双图机制"
+  },
+  {
+   "scene": "Map_024",
+   "name": "森秋幻境",
+   "kind": "合作挑战",
+   "fixed": true,
+   "cells": 56,
+   "edges": 58,
+   "components": 1,
+   "automorphisms": 1,
+   "fixed_points": [
+    "类型不对称"
+   ],
+   "has_group": false,
+   "has_attr": true,
+   "y_range": [
+    7.31,
+    7.31
+   ],
+   "born": [
+    0,
+    8,
+    18,
+    28
+   ],
+   "note": "S9「幻境骑士」新图；植物建筑卡牌改造地块"
+  }
+ ],
+ "fixed_maps": [
+  "星趴·梦想号",
+  "御魂庆典",
+  "水乡古镇",
+  "魔法学院",
+  "龙宫游乐园",
+  "幽魂暗巷",
+  "园林中庭",
+  "梦想号-上层甲板",
+  "海选赛运动场",
+  "淘汰赛运动场",
+  "决赛大赛场",
+  "异变图书馆",
+  "森秋幻境"
+ ],
+ "cross": {
+  "by_map": {
+   "游乐园": {
+    "monsters": [],
+    "events": [],
+    "cards": []
+   },
+   "十字路口站": {
+    "monsters": [],
+    "events": [],
+    "cards": []
+   },
+   "樱花小镇": {
+    "monsters": [],
+    "events": [],
+    "cards": []
+   },
+   "魅影都市": {
+    "monsters": [],
+    "events": [],
+    "cards": []
+   },
+   "星趴·梦想号": {
+    "monsters": [
+     "小浣熊",
+     "海盗鲨鱼",
+     "天王寺雅央",
+     "海盗精锐",
+     "海王鲨",
+     "智械海盗鲨",
+     "智械海王鲨",
+     "智械中枢",
+     "宝藏桶"
+    ],
+    "events": [
+     "休眠终止",
+     "大逃鲨",
+     "恐怖追击",
+     "鲨手降临"
+    ],
+    "cards": []
+   },
+   "御魂庆典": {
+    "monsters": [
+     "小浣熊",
+     "冰冷蓝灵",
+     "狂躁红灵",
+     "刀剑灵体",
+     "长戟灵体",
+     "天王寺雅央",
+     "武魂灵体-戮",
+     "武魂灵体-怨"
+    ],
+    "events": [
+     "天王寺登场",
+     "灵体入侵",
+     "精英出场",
+     "强化精英出场",
+     "人人为我！",
+     "来我身边！"
+    ],
+    "cards": [
+     "古怪的附灵物",
+     "释放青魂",
+     "释放赤魂"
+    ]
+   },
+   "礼物广场": {
+    "monsters": [],
+    "events": [],
+    "cards": [
+     "雪球攻击",
+     "定向加速"
+    ]
+   },
+   "水乡古镇": {
+    "monsters": [
+     "小浣熊",
+     "舞狮嘎呜",
+     "指挥平台",
+     "氛围机器人",
+     "爆竹呱呱",
+     "机械蛇龙",
+     "三联爆竹呱",
+     "天王寺雅央"
+    ],
+    "events": [
+     "准备就绪",
+     "好戏开场",
+     "热闹非凡",
+     "蛇龙降临",
+     "锣鼓喧天"
+    ],
+    "cards": [
+     "高升炮",
+     "吉星高照"
+    ]
+   },
+   "丛林冒险": {
+    "monsters": [],
+    "events": [],
+    "cards": []
+   },
+   "魔法学院": {
+    "monsters": [
+     "小浣熊",
+     "天王寺雅央",
+     "天王寺雅央",
+     "果冻战士",
+     "果冻护卫",
+     "果冻巫师",
+     "魔法茶壶",
+     "变异茶壶"
+    ],
+    "events": [
+     "学院戒严！",
+     "明胶追击",
+     "原罪现身",
+     "检举揭发",
+     "茶话会",
+     "严阵以待"
+    ],
+    "cards": [
+     "是他干的"
+    ]
+   },
+   "学院食堂": {
+    "monsters": [],
+    "events": [],
+    "cards": []
+   },
+   "甜点空间": {
+    "monsters": [],
+    "events": [],
+    "cards": []
+   },
+   "龙宫游乐园": {
+    "monsters": [
+     "小浣熊",
+     "海盗鲨鱼",
+     "天川真梦梓",
+     "天川真梦梓",
+     "天川苍鲤",
+     "天川苍鲤",
+     "蟹布罗",
+     "虾布罗",
+     "金小鱼",
+     "大嗓门",
+     "练家子"
+    ],
+    "events": [
+     "水上乐园",
+     "真梦梓出击！",
+     "苍鲤登场！",
+     "独木难支",
+     "酩酊丑态",
+     "蟹之狂欢"
+    ],
+    "cards": [
+     "毒牙"
+    ]
+   },
+   "幽魂暗巷": {
+    "monsters": [
+     "小浣熊",
+     "天王寺雅央",
+     "惊喜猴子盒",
+     "圆锯猴助手",
+     "科学怪猿",
+     "人工生命体-天崩",
+     "人工生命体-噩兆",
+     "人工生命体-混乱",
+     "糖果皮纳塔"
+    ],
+    "events": [
+     "舞会开始！",
+     "身体检查",
+     "强力帮手",
+     "全体集结！",
+     "圆月之夜"
+    ],
+    "cards": [
+     "支援口香糖",
+     "能量补充棒",
+     "大聪明软糖"
+    ]
+   },
+   "园林中庭": {
+    "monsters": [
+     "小浣熊",
+     "爆竹呱呱",
+     "迎宾燕",
+     "家禽服务员",
+     "铜盏仙鹤",
+     "铜盏孔雀",
+     "铜盏鸳鸯",
+     "姬梦枫（孔雀意识）",
+     "姬梦枫（鸳鸯意识）",
+     "失控凤凰"
+    ],
+    "events": [
+     "百鸟与凤",
+     "与凤争风",
+     "鸳鸯比翼",
+     "全面失控",
+     "孔雀之舞",
+     "鸳之绊",
+     "百鸟冲击",
+     "绚烂华彩",
+     "无彩",
+     "华彩",
+     "最终试炼"
+    ],
+    "cards": [
+     "彩羽",
+     "振作起来",
+     "灰烬之羽"
+    ]
+   },
+   "海选赛运动场": {
+    "monsters": [
+     "小浣熊",
+     "天王寺雅央",
+     "天王寺雅央",
+     "果冻战士",
+     "果冻护卫",
+     "果冻巫师",
+     "魔法茶壶",
+     "变异茶壶",
+     "糖果皮纳塔",
+     "宝藏桶",
+     "裁判艾米"
+    ],
+    "events": [],
+    "cards": []
+   },
+   "决赛大赛场": {
+    "monsters": [
+     "小浣熊",
+     "智械海盗鲨",
+     "宝藏桶",
+     "裁判艾米",
+     "机械投手",
+     "机械四分卫",
+     "机械监控师",
+     "天王寺雅央",
+     "思维飞艇"
+    ],
+    "events": [],
+    "cards": [
+     "人机交融"
+    ]
+   },
+   "梦想号-上层甲板": {
+    "monsters": [
+     "小浣熊",
+     "海盗鲨鱼"
+    ],
+    "events": [],
+    "cards": []
+   },
+   "淘汰赛运动场": {
+    "monsters": [
+     "小浣熊",
+     "海盗鲨鱼",
+     "海王鲨",
+     "天川真梦梓",
+     "天川苍鲤",
+     "蟹布罗",
+     "虾布罗",
+     "金小鱼",
+     "大嗓门",
+     "练家子",
+     "宝藏桶",
+     "裁判艾米"
+    ],
+    "events": [],
+    "cards": []
+   },
+   "异变图书馆": {
+    "monsters": [
+     "小浣熊",
+     "果冻巫师",
+     "魔法茶壶",
+     "变异茶壶",
+     "典狱长",
+     "看守",
+     "罪恶茶壶",
+     "大盗"
+    ],
+    "events": [],
+    "cards": [
+     "罪证嫌疑"
+    ]
+   },
+   "森秋幻境": {
+    "monsters": [
+     "小浣熊",
+     "孩子王嘎呜",
+     "玩具恐龙",
+     "采集小熊",
+     "闹钟猫头鹰"
+    ],
+    "events": [],
+    "cards": [
+     "疾行菇",
+     "仙品杨桃",
+     "芳香蜜桃",
+     "招财树"
+    ]
+   }
+  },
+  "card_source": {
+   "龙宫游乐园": [
+    "毒牙"
+   ],
+   "礼物广场": [
+    "雪球攻击",
+    "定向加速"
+   ],
+   "水乡古镇": [
+    "高升炮",
+    "吉星高照"
+   ],
+   "魔法学院": [
+    "是他干的"
+   ],
+   "幽魂暗巷": [
+    "支援口香糖",
+    "能量补充棒",
+    "大聪明软糖"
+   ],
+   "御魂庆典": [
+    "古怪的附灵物",
+    "释放青魂",
+    "释放赤魂"
+   ],
+   "园林中庭": [
+    "彩羽",
+    "振作起来",
+    "灰烬之羽"
+   ],
+   "决赛大赛场": [
+    "人机交融"
+   ],
+   "异变图书馆": [
+    "罪证嫌疑"
+   ],
+   "森秋幻境": [
+    "疾行菇",
+    "仙品杨桃",
+    "芳香蜜桃",
+    "招财树"
+   ]
+  },
+  "monster_by_map": {
+   "星趴·梦想号": [
+    "小浣熊",
+    "海盗鲨鱼",
+    "天王寺雅央",
+    "海盗精锐",
+    "海王鲨",
+    "智械海盗鲨",
+    "智械海王鲨",
+    "智械中枢",
+    "宝藏桶"
+   ],
+   "御魂庆典": [
+    "小浣熊",
+    "冰冷蓝灵",
+    "狂躁红灵",
+    "刀剑灵体",
+    "长戟灵体",
+    "天王寺雅央",
+    "武魂灵体-戮",
+    "武魂灵体-怨"
+   ],
+   "水乡古镇": [
+    "小浣熊",
+    "舞狮嘎呜",
+    "指挥平台",
+    "氛围机器人",
+    "爆竹呱呱",
+    "机械蛇龙",
+    "三联爆竹呱",
+    "天王寺雅央"
+   ],
+   "魔法学院": [
+    "小浣熊",
+    "天王寺雅央",
+    "天王寺雅央",
+    "果冻战士",
+    "果冻护卫",
+    "果冻巫师",
+    "魔法茶壶",
+    "变异茶壶"
+   ],
+   "龙宫游乐园": [
+    "小浣熊",
+    "海盗鲨鱼",
+    "天川真梦梓",
+    "天川真梦梓",
+    "天川苍鲤",
+    "天川苍鲤",
+    "蟹布罗",
+    "虾布罗",
+    "金小鱼",
+    "大嗓门",
+    "练家子"
+   ],
+   "幽魂暗巷": [
+    "小浣熊",
+    "天王寺雅央",
+    "惊喜猴子盒",
+    "圆锯猴助手",
+    "科学怪猿",
+    "人工生命体-天崩",
+    "人工生命体-噩兆",
+    "人工生命体-混乱",
+    "糖果皮纳塔"
+   ],
+   "园林中庭": [
+    "小浣熊",
+    "爆竹呱呱",
+    "迎宾燕",
+    "家禽服务员",
+    "铜盏仙鹤",
+    "铜盏孔雀",
+    "铜盏鸳鸯",
+    "姬梦枫（孔雀意识）",
+    "姬梦枫（鸳鸯意识）",
+    "失控凤凰"
+   ],
+   "梦想号-上层甲板": [
+    "小浣熊",
+    "海盗鲨鱼"
+   ],
+   "海选赛运动场": [
+    "小浣熊",
+    "天王寺雅央",
+    "天王寺雅央",
+    "果冻战士",
+    "果冻护卫",
+    "果冻巫师",
+    "魔法茶壶",
+    "变异茶壶",
+    "糖果皮纳塔",
+    "宝藏桶",
+    "裁判艾米"
+   ],
+   "淘汰赛运动场": [
+    "小浣熊",
+    "海盗鲨鱼",
+    "海王鲨",
+    "天川真梦梓",
+    "天川苍鲤",
+    "蟹布罗",
+    "虾布罗",
+    "金小鱼",
+    "大嗓门",
+    "练家子",
+    "宝藏桶",
+    "裁判艾米"
+   ],
+   "决赛大赛场": [
+    "小浣熊",
+    "智械海盗鲨",
+    "宝藏桶",
+    "裁判艾米",
+    "机械投手",
+    "机械四分卫",
+    "机械监控师",
+    "天王寺雅央",
+    "思维飞艇"
+   ],
+   "异变图书馆": [
+    "小浣熊",
+    "果冻巫师",
+    "魔法茶壶",
+    "变异茶壶",
+    "典狱长",
+    "看守",
+    "罪恶茶壶",
+    "大盗"
+   ],
+   "森秋幻境": [
+    "小浣熊",
+    "孩子王嘎呜",
+    "玩具恐龙",
+    "采集小熊",
+    "闹钟猫头鹰"
+   ]
+  }
+ }
+}

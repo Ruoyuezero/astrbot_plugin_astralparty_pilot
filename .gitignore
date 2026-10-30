@@ -1,0 +1,25 @@
+# ---- Python ----
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# ---- 运行时产物 ----
+logs/
+*.log
+data/temp/
+data/t2i_templates/
+
+# ---- 本机配置与缓存（含本机路径、密钥，不入库）----
+config.json
+data/config/*.json
+data/config/
+data/cmd_config.json
+data/*_config.json
+
+# ---- 编辑器 / 系统 ----
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

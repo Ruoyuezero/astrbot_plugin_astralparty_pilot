@@ -1,0 +1,272 @@
+[
+ {
+  "type": 1,
+  "name": "起始点",
+  "en": "P1",
+  "desc": "停留在起始点回复 2 点生命，星币达标自动获得一颗星星",
+  "wiki_name": "起始点",
+  "color": "#FE0001",
+  "img": "https://patchwiki.biligame.com/images/starengine/4/49/fpj07e09bcps0qbg0m1x7q69muuftmi.png",
+  "variants": 4
+ },
+ {
+  "type": 2,
+  "name": "保障点",
+  "en": "Start",
+  "desc": "停留在保障点回复 2 点生命，星币达标自动获得一颗星星",
+  "wiki_name": "保障点",
+  "color": null,
+  "img": "https://patchwiki.biligame.com/images/starengine/d/d0/othfsr4yfeydy5xo9cudft6uktm94zy.png",
+  "variants": 1
+ },
+ {
+  "type": 3,
+  "name": "传送门",
+  "en": "Teleport",
+  "desc": "随机传送到其他传送门",
+  "wiki_name": "传送门",
+  "color": null,
+  "img": "https://patchwiki.biligame.com/images/starengine/c/c3/d94ae1aflfuqy1214ttglb5miy1uonv.png",
+  "variants": 1
+ },
+ {
+  "type": 4,
+  "name": "突击门",
+  "en": "TeleportPoint",
+  "desc": "可以选择是否对敌对玩家进行突击战斗",
+  "wiki_name": "突击门",
+  "color": null,
+  "img": "https://patchwiki.biligame.com/images/starengine/6/6a/7e9ppkcxj2bwrvzoea6f1wpnqgci5wq.png",
+  "variants": 1
+ },
+ {
+  "type": 5,
+  "name": "悬赏",
+  "en": "?",
+  "desc": "名称表里该类型无数据（本批地图未出现）",
+  "wiki_name": "?",
+  "color": null,
+  "img": "?",
+  "variants": 1
+ },
+ {
+  "type": 6,
+  "name": "占卜",
+  "en": "Divine",
+  "desc": "玩家选择效果，系统判定目标",
+  "wiki_name": "占卜",
+  "color": null,
+  "img": "https://patchwiki.biligame.com/images/starengine/7/77/p3qkcpd2dezenvlqq6cuadnhhi1wzlg.png",
+  "variants": 1
+ },
+ {
+  "type": 7,
+  "name": "商店",
+  "en": "Shop",
+  "desc": "路过或者踩到此地块可以购买卡牌",
+  "wiki_name": "商店",
+  "color": null,
+  "img": "https://patchwiki.biligame.com/images/starengine/b/b7/hlxgmlk5fmyxbo27gj6fm7l2pebcs5r.png",
+  "variants": 1
+ },
+ {
+  "type": 8,
+  "name": "全员事件",
+  "en": "Event",
+  "desc": "系统随机触发全员事件",
+  "wiki_name": "全员事件",
+  "color": null,
+  "img": "https://patchwiki.biligame.com/images/starengine/b/bb/jm4jrvwpyhk3aswplx2jji8emvw7t5j.png",
+  "variants": 1
+ },
+ {
+  "type": 9,
+  "name": "彩票",
+  "en": "Lottery",
+  "desc": "自选 1-12 内不可重复的数字，开奖后清空",
+  "wiki_name": "彩票",
+  "color": null,
+  "img": "https://patchwiki.biligame.com/images/starengine/5/55/7obl8l1g7q2264bsezl59w5t6sie6e6.png",
+  "variants": 1
+ },
+ {
+  "type": 10,
+  "name": "猜猜乐",
+  "en": "Gamble",
+  "desc": "押注后每个角色猜奇偶数，赢的人拿奖金",
+  "wiki_name": "猜猜乐",
+  "color": null,
+  "img": "https://patchwiki.biligame.com/images/starengine/5/56/ngaf6eryox5j7c7vdwm2742a69em5yd.png",
+  "variants": 1
+ },
+ {
+  "type": 11,
+  "name": "炮台",
+  "en": "Fire",
+  "desc": "可指定一名敌对角色，对其造成 2 点伤害",
+  "wiki_name": "炮台",
+  "color": null,
+  "img": "https://patchwiki.biligame.com/images/starengine/b/ba/eh0v8y5utskyqbngrv12go9p245mnqq.png",
+  "variants": 1
+ },
+ {
+  "type": 12,
+  "name": "疾行",
+  "en": "MoveAgain",
+  "desc": "可以投点再次进行移动",
+  "wiki_name": "疾行",
+  "color": null,
+  "img": "https://patchwiki.biligame.com/images/starengine/2/2d/1sn8ybub1vb479tb77puf5m923epan9.png",
+  "variants": 1
+ },
+ {
+  "type": 13,
+  "name": "医院",
+  "en": "Hospital",
+  "desc": "判定生病则住院并恢复 2 点生命；此格免疫一切伤害",
+  "wiki_name": "医院",
+  "color": null,
+  "img": "https://patchwiki.biligame.com/images/starengine/0/07/qzwitz36z4nvsrn3swml6aswwe0vm5j.png",
+  "variants": 1
+ },
+ {
+  "type": 14,
+  "name": "卡牌奖励",
+  "en": "Card",
+  "desc": "获得 2 张卡牌",
+  "wiki_name": "卡牌奖励",
+  "color": null,
+  "img": "https://patchwiki.biligame.com/images/starengine/6/6e/dqhq70wphxt3z1oqbllzmpbny6iql9x.png",
+  "variants": 1
+ },
+ {
+  "type": 15,
+  "name": "天降横财",
+  "en": "Gold",
+  "desc": "获得随机数量的星币",
+  "wiki_name": "天降横财",
+  "color": null,
+  "img": "https://patchwiki.biligame.com/images/starengine/2/2b/mt6eshd2ysu5z3cdz8erq19x800k1zk.png",
+  "variants": 1
+ },
+ {
+  "type": 16,
+  "name": "个人命运",
+  "en": "Destiny",
+  "desc": "触发自己角色的随机事件",
+  "wiki_name": "个人命运",
+  "color": null,
+  "img": "https://patchwiki.biligame.com/images/starengine/3/3a/ebuovu8laj36m0ma0dw0vjfmenogem2.png",
+  "variants": 1
+ },
+ {
+  "type": 17,
+  "name": "天降横祸",
+  "en": "Damage",
+  "desc": "受到 2 点伤害",
+  "wiki_name": "天降横祸",
+  "color": null,
+  "img": "https://patchwiki.biligame.com/images/starengine/1/14/bo5ldwd1sastvr5ap6s56vpbzxb9hbx.png",
+  "variants": 1
+ },
+ {
+  "type": 18,
+  "name": "跳跃",
+  "en": "Jump",
+  "desc": "传送至对应的跳跃格",
+  "wiki_name": "跳跃",
+  "color": null,
+  "img": "https://patchwiki.biligame.com/images/starengine/4/4b/pipn1pmmwye5ugl3h005cmy3y0w3b5t.png",
+  "variants": 1
+ },
+ {
+  "type": 19,
+  "name": "怪物",
+  "en": "Monster",
+  "desc": "刷新 1 只怪物",
+  "wiki_name": "怪物",
+  "color": null,
+  "img": "https://patchwiki.biligame.com/images/starengine/b/b7/ajhhek5tscfqmvz5nxi3kq47uk9fq6m.png",
+  "variants": 1
+ },
+ {
+  "type": 20,
+  "name": "恢复",
+  "en": "Heal",
+  "desc": "恢复 2 点生命",
+  "wiki_name": "恢复",
+  "color": null,
+  "img": "https://patchwiki.biligame.com/images/starengine/e/ec/f6l5y46vnnf2qu5dz1aq6cvw52ceaxo.png",
+  "variants": 1
+ },
+ {
+  "type": 21,
+  "name": "怪物突击门",
+  "en": "TeleportPoint",
+  "desc": "可以选择是否对一只怪物进行突击战斗",
+  "wiki_name": "怪物突击门",
+  "color": null,
+  "img": "https://patchwiki.biligame.com/images/starengine/6/6a/7e9ppkcxj2bwrvzoea6f1wpnqgci5wq.png",
+  "variants": 1
+ },
+ {
+  "type": 22,
+  "name": "商店",
+  "en": "Shop",
+  "desc": "同 7 号，PVE 图里的商店",
+  "wiki_name": "商店",
+  "color": null,
+  "img": "https://patchwiki.biligame.com/images/starengine/b/b7/hlxgmlk5fmyxbo27gj6fm7l2pebcs5r.png",
+  "variants": 1
+ },
+ {
+  "type": 23,
+  "name": "礼物",
+  "en": "Gift",
+  "desc": "踩到或停留可以获得或归还一个礼物",
+  "wiki_name": "礼物",
+  "color": null,
+  "img": "https://patchwiki.biligame.com/images/starengine/4/4a/osipg20cktkza5y6w976e55xgh0sc8f.png",
+  "variants": 1
+ },
+ {
+  "type": 24,
+  "name": "筹码商店",
+  "en": "Relic",
+  "desc": "可以在此格购买额外的筹码",
+  "wiki_name": "筹码商店",
+  "color": null,
+  "img": "https://patchwiki.biligame.com/images/starengine/6/66/04m5xutnbazsh0b78lhzcm7u0wg9f9c.png",
+  "variants": 1
+ },
+ {
+  "type": 25,
+  "name": "机关控制台",
+  "en": "Gimmick",
+  "desc": "控制场景的机关",
+  "wiki_name": "机关控制台",
+  "color": null,
+  "img": "https://patchwiki.biligame.com/images/starengine/8/88/74ewz61iimcmcd5zdmt7a6ndb5a4qq2.png",
+  "variants": 1
+ },
+ {
+  "type": 26,
+  "name": "惊奇糖果机",
+  "en": "CandyGhost",
+  "desc": "使用星币可随机获得糖果",
+  "wiki_name": "惊奇糖果机",
+  "color": null,
+  "img": "https://patchwiki.biligame.com/images/starengine/c/cf/5c8cwh6wi07kzkltqhava8u72agqoio.png",
+  "variants": 1
+ },
+ {
+  "type": 27,
+  "name": "思维强化",
+  "en": "MindTraining",
+  "desc": "主动技能冷却 -2，获得一层【心智】",
+  "wiki_name": "思维强化",
+  "color": null,
+  "img": "https://patchwiki.biligame.com/images/starengine/7/70/couyuatw9fxibkci6pe46wogvri9jgq.png",
+  "variants": 1
+ }
+]

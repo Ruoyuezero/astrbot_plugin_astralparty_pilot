@@ -1,0 +1,7 @@
+name: astrbot_plugin_astralparty_pilot
+display_name: 星趴助手（Astral Party Pilot）
+desc: 把本地 AstralPartyPilot 项目的地图拓扑、知识库、决策函数与陪玩引擎搬进 QQ：查卡牌 / 怪物 / 英雄 / 地块 / 地图 / 格子，看立绘、战斗CG、表情包与地块圆片，算威胁排序、寻路与手牌建议，还能按 UID 查号与陪玩提示。美术素材走外部图库（game asset 图库，37 类子目录），插件本体约 2.5MB。
+help: 发送 /app help 查看图鉴指令（card / map / land / buff / monster / monsterCG / hero / heroskins / heroCG / heroemoji），发送 /星趴 帮助 查看对局向子命令。
+version: 1.7.1
+author: AstralPartyPilot
+repo: ""

@@ -1,0 +1,1337 @@
+[
+ {
+  "name": "“8面”骰子计数",
+  "aka": [],
+  "ids": [
+   "50036011"
+  ],
+  "icon": "relic/UT_Relic_50036.png",
+  "icon_kind": "relic",
+  "desc": "每累计8点移动点数，获得1星光",
+  "desc_src": "id",
+  "srcs": []
+ },
+ {
+  "name": "丧心病狂",
+  "aka": [],
+  "ids": [
+   "20020011"
+  ],
+  "icon": "buff/UT_Buff_SangXinBingKuang.png",
+  "icon_kind": "buff",
+  "desc": "对自身使用，攻击力+5，持续1次攻击\n下次攻击时敌方角色无法选择闪避，如果没有击倒敌方角色，则自己被击倒",
+  "desc_src": "id",
+  "srcs": []
+ },
+ {
+  "name": "人偶制作",
+  "aka": [],
+  "ids": [
+   "30512011"
+  ],
+  "icon": "buff/UT_Buff_305_1.png",
+  "icon_kind": "buff",
+  "desc": "到达7层时，转变为【人偶完成】",
+  "desc_src": "wiki",
+  "srcs": []
+ },
+ {
+  "name": "人偶完成",
+  "aka": [],
+  "ids": [
+   "30512021"
+  ],
+  "icon": "buff/UT_Buff_305_Awake.png",
+  "icon_kind": "buff",
+  "desc": "汉娜的人偶最终形态：精心制作的玩偶。",
+  "desc_src": "manual",
+  "srcs": []
+ },
+ {
+  "name": "以毒攻毒",
+  "aka": [],
+  "ids": [
+   "20006011"
+  ],
+  "icon": "buff/UT_Buff_FWF.png",
+  "icon_kind": "buff",
+  "desc": "回合开始时，恢复3点生命值",
+  "desc_src": "id",
+  "srcs": []
+ },
+ {
+  "name": "优雅之羽",
+  "aka": [],
+  "ids": [
+   "50065011"
+  ],
+  "icon": "relic/UT_Relic_50065.png",
+  "icon_kind": "relic",
+  "desc": "每层使自身攻击力+1",
+  "desc_src": "id",
+  "srcs": []
+ },
+ {
+  "name": "位面体",
+  "aka": [],
+  "ids": [
+   "105811011"
+  ],
+  "icon": "buff/UT_Buff_Polyhedron.png",
+  "icon_kind": "buff",
+  "desc": "经过时不会触发战斗。",
+  "desc_src": "skill:智械中枢",
+  "srcs": []
+ },
+ {
+  "name": "充能",
+  "aka": [],
+  "ids": [
+   "100141"
+  ],
+  "icon": "buff/UT_Buff_Charge.png",
+  "icon_kind": "buff",
+  "desc": "每累计13点移动点数，交替使自身攻击力永久+1、防御力永久+1。",
+  "desc_src": "skill:茉莉",
+  "srcs": []
+ },
+ {
+  "name": "养精蓄锐",
+  "aka": [],
+  "ids": [
+   "11312021"
+  ],
+  "icon": "buff/UT_Buff_113_Passive.png",
+  "icon_kind": "buff",
+  "desc": "攻击力+2，防御力+2",
+  "desc_src": "wiki",
+  "srcs": []
+ },
+ {
+  "name": "剑气",
+  "aka": [],
+  "ids": [
+   "11501011"
+  ],
+  "icon": "buff/UT_Buff_115.png",
+  "icon_kind": "buff",
+  "desc": "每层使自身攻击力+1，满3层时攻击力额外+2",
+  "desc_src": "wiki",
+  "srcs": []
+ },
+ {
+  "name": "加急加快",
+  "aka": [],
+  "ids": [
+   "30002011"
+  ],
+  "icon": "buff/UT_Buff_DiceX2.png",
+  "icon_kind": "buff",
+  "desc": "移动时投掷2枚骰子，生效一次。不可叠加",
+  "desc_src": "id",
+  "srcs": []
+ },
+ {
+  "name": "勿扰",
+  "aka": [],
+  "ids": [
+   "101413011"
+  ],
+  "icon": "buff/UT_Buff_DoNotDisturb.png",
+  "icon_kind": "buff",
+  "desc": "经过其它单位和被其它单位经过时不会触发战斗",
+  "desc_src": "id",
+  "srcs": []
+ },
+ {
+  "name": "反击",
+  "aka": [],
+  "ids": [
+   "10008",
+   "100081"
+  ],
+  "icon": "buff/UT_Buff_Counter.png",
+  "icon_kind": "buff",
+  "desc": "被攻击时会进行反击：用防御骰与攻击方比拼，防守方骰点更大或为 6 则闪避，否则以防御力抵挡伤害。部分卡牌/筹码（如高升炮）可使其无法反击。",
+  "desc_src": "manual",
+  "srcs": []
+ },
+ {
+  "name": "钱袋漏了",
+  "aka": [
+   "口袋漏了"
+  ],
+  "ids": [
+   "30018011"
+  ],
+  "icon": "buff/UT_Buff_GoldDrop.png",
+  "icon_kind": "buff",
+  "desc": "所有角色下次移动后，会掉落等同于移动步数的星币。",
+  "desc_src": "manual",
+  "srcs": []
+ },
+ {
+  "name": "嘲讽",
+  "aka": [],
+  "ids": [
+   "100111"
+  ],
+  "icon": "buff/UT_Buff_10011.png",
+  "icon_kind": "buff",
+  "desc": "会转向嘲讽自身的角色移动，无法攻击其他角色",
+  "desc_src": "id",
+  "srcs": []
+ },
+ {
+  "name": "复制忍者",
+  "aka": [],
+  "ids": [
+   "10411011"
+  ],
+  "icon": "buff/UT_Buff_104_Passive.png",
+  "icon_kind": "buff",
+  "desc": "每使用3张效果牌，复制最后使用的那张效果牌并加入手牌。",
+  "desc_src": "skill:小町",
+  "srcs": []
+ },
+ {
+  "name": "大铁锚",
+  "aka": [
+   "大船锚-攻击加成"
+  ],
+  "ids": [
+   "5005301",
+   "50053011"
+  ],
+  "icon": "relic/UT_Relic_50053.png",
+  "icon_kind": "relic",
+  "desc": "",
+  "desc_src": "",
+  "srcs": []
+ },
+ {
+  "name": "大铜锣",
+  "aka": [],
+  "ids": [
+   "50070021"
+  ],
+  "icon": "relic/UT_Relic_50070.png",
+  "icon_kind": "relic",
+  "desc": "攻击力+1、受到伤害-1",
+  "desc_src": "id",
+  "srcs": []
+ },
+ {
+  "name": "好运",
+  "aka": [],
+  "ids": [
+   "40003011"
+  ],
+  "icon": "buff/UT_Buff_DamagedDown.png",
+  "icon_kind": "buff",
+  "desc": "下次受到伤害-2",
+  "desc_src": "id",
+  "srcs": []
+ },
+ {
+  "name": "孔雀开屏",
+  "aka": [],
+  "ids": [
+   "104601011"
+  ],
+  "icon": "buff/UT_Buff_1046.png",
+  "icon_kind": "buff",
+  "desc": "受到治疗时如果铜盏孔雀在场，则增加1层【孔雀开屏】\n拥有【孔雀开屏】的角色与铜盏孔雀交战时，每比铜盏孔雀多1层【孔雀开屏】，攻击力+2，防御力+2",
+  "desc_src": "id",
+  "srcs": []
+ },
+ {
+  "name": "守护宝珠",
+  "aka": [],
+  "ids": [
+   "101701011"
+  ],
+  "icon": "buff/UT_Buff_GuardianOrb.png",
+  "icon_kind": "buff",
+  "desc": "防御力+9，受伤后移除",
+  "desc_src": "id",
+  "srcs": []
+ },
+ {
+  "name": "小猪存钱罐计数",
+  "aka": [],
+  "ids": [
+   "50035011"
+  ],
+  "icon": "relic/UT_Relic_50035.png",
+  "icon_kind": "relic",
+  "desc": "每使用2张效果牌，获得3星币",
+  "desc_src": "id",
+  "srcs": []
+ },
+ {
+  "name": "岿然不动",
+  "aka": [],
+  "ids": [
+   "21005011"
+  ],
+  "icon": "buff/UT_Buff_DefUp.png",
+  "icon_kind": "buff",
+  "desc": "防御力+6",
+  "desc_src": "id",
+  "srcs": []
+ },
+ {
+  "name": "循环往复",
+  "aka": [
+   "获得筹码剩余回合数"
+  ],
+  "ids": [
+   "5008301",
+   "50083011"
+  ],
+  "icon": "relic/UT_Relic_50083.png",
+  "icon_kind": "relic",
+  "desc": "",
+  "desc_src": "",
+  "srcs": []
+ },
+ {
+  "name": "心智",
+  "aka": [],
+  "ids": [
+   "100121"
+  ],
+  "icon": "buff/UT_Buff_Mind.png",
+  "icon_kind": "buff",
+  "desc": "指定一个角色，使目标获得1层【心智】；卡牌中的【心智】效果是一个施加给角色的效果，其效果为：；在海选赛运动场与淘汰赛运动场中，虽然击倒裁判艾米会获得该卡牌，但地图中没有可以触发【心智】效果的怪物或筹码，这使得该卡牌的实际作用仅有“自身本回合出牌数+1”；目标角色未拥有【心智】时，额外造成1点伤害；攻击时，如果防御方未拥有【心智】，攻击骰点必定为6",
+  "desc_src": "context",
+  "srcs": [
+   "人机交融",
+   "机械投手",
+   "机械四分卫",
+   "机械监控师",
+   "天王寺雅央",
+   "思维飞艇"
+  ]
+ },
+ {
+  "name": "悬赏",
+  "aka": [],
+  "ids": [
+   "10000"
+  ],
+  "icon": "buff/UT_Buff_10000.png",
+  "icon_kind": "buff",
+  "desc": "",
+  "desc_src": "",
+  "srcs": []
+ },
+ {
+  "name": "意外之财",
+  "aka": [],
+  "ids": [
+   "107011021"
+  ],
+  "icon": "buff/UT_Buff_1070.png",
+  "icon_kind": "buff",
+  "desc": "",
+  "desc_src": "",
+  "srcs": []
+ },
+ {
+  "name": "战缚之咒",
+  "aka": [],
+  "ids": [
+   "104101011"
+  ],
+  "icon": "buff/UT_Buff_1041.png",
+  "icon_kind": "buff",
+  "desc": "随后，获得X层【战缚之咒】；随后，若【战缚之咒】大于4层，使雅央恢复 10% 生命值；交战后，移除1层【战缚之咒】",
+  "desc_src": "context",
+  "srcs": [
+   "武魂灵体-戮"
+  ]
+ },
+ {
+  "name": "护盾",
+  "aka": [],
+  "ids": [
+   "10711011"
+  ],
+  "icon": "buff/UT_Buff_Shield.png",
+  "icon_kind": "buff",
+  "desc": "下次受到的伤害-99",
+  "desc_src": "id",
+  "srcs": []
+ },
+ {
+  "name": "拦截者",
+  "aka": [],
+  "ids": [
+   "12811021"
+  ],
+  "icon": "buff/UT_Buff_128_Skill.png",
+  "icon_kind": "buff",
+  "desc": "轮次奖励额外获得1张路障。经过路障后，主动技能冷却时间-2，下次移动速度+2。",
+  "desc_src": "skill:玲玲",
+  "srcs": []
+ },
+ {
+  "name": "指示",
+  "aka": [],
+  "ids": [
+   "101811011"
+  ],
+  "icon": "buff/UT_Buff_1018_Passive.png",
+  "icon_kind": "buff",
+  "desc": "场上角色每打出3张【是他干的】，自身攻击力永久+1，并召唤一个果冻护卫",
+  "desc_src": "id",
+  "srcs": []
+ },
+ {
+  "name": "振作",
+  "aka": [],
+  "ids": [
+   "21021011"
+  ],
+  "icon": "buff/UT_Buff_S7_02.png",
+  "icon_kind": "buff",
+  "desc": "齐心协力，共克难关。",
+  "desc_src": "manual",
+  "srcs": []
+ },
+ {
+  "name": "推理时间",
+  "aka": [],
+  "ids": [
+   "30611011"
+  ],
+  "icon": "buff/UT_Buff_306.png",
+  "icon_kind": "buff",
+  "desc": "每层使自身攻击力+1。回合结束时减少1层。",
+  "desc_src": "wiki",
+  "srcs": []
+ },
+ {
+  "name": "改造",
+  "aka": [],
+  "ids": [
+   "100091"
+  ],
+  "icon": "buff/UT_Buff_Gaizao.png",
+  "icon_kind": "buff",
+  "desc": "指定一个角色，恢复2点生命值，并移除【改造】；指定一名拥有【改造】的角色，攻击力+2，移动速度+2，持续2回合；随后对目标施加2层【改造】；指定一名角色获得3张卡牌，并移除【改造】；4. 会在地块上召唤毒雾，停留在毒雾上的角色受到2点伤害，但如果该角色已拥有【改造】，则改为恢复2点生命值",
+  "desc_src": "context",
+  "srcs": [
+   "支援口香糖",
+   "能量补充棒",
+   "大聪明软糖",
+   "天王寺雅央",
+   "圆锯猴助手",
+   "科学怪猿"
+  ]
+ },
+ {
+  "name": "高升炮",
+  "aka": [
+   "无法反击"
+  ],
+  "ids": [
+   "2100901",
+   "21009011"
+  ],
+  "icon": "buff/UT_Buff_boom.png",
+  "icon_kind": "buff",
+  "desc": "经过时不会触发战斗；被击倒时，给予击倒者一张【高升炮】。",
+  "desc_src": "manual",
+  "srcs": [
+   "爆竹呱呱",
+   "机械蛇龙"
+  ]
+ },
+ {
+  "name": "星光",
+  "aka": [],
+  "ids": [
+   "100051"
+  ],
+  "icon": "buff/UT_Buff_StarLight.png",
+  "icon_kind": "buff",
+  "desc": "等量增加轮次奖励时获得的星币数",
+  "desc_src": "id",
+  "srcs": []
+ },
+ {
+  "name": "标记",
+  "aka": [],
+  "ids": [
+   "100061"
+  ],
+  "icon": "buff/UT_Buff_Lock.png",
+  "icon_kind": "buff",
+  "desc": "受到伤害+1",
+  "desc_src": "wiki",
+  "srcs": [
+   "活体书页"
+  ]
+ },
+ {
+  "name": "梦想号模型计数",
+  "aka": [
+   "累计移动点数"
+  ],
+  "ids": [
+   "1171101",
+   "5005401",
+   "50054011"
+  ],
+  "icon": "relic/UT_Relic_50054.png",
+  "icon_kind": "relic",
+  "desc": "游戏内数值计数器：显示在角色立绘上，用于记录累计数值，本身没有单独的效果说明。",
+  "desc_src": "counter",
+  "srcs": []
+ },
+ {
+  "name": "汲取",
+  "aka": [],
+  "ids": [
+   "10601011"
+  ],
+  "icon": "buff/UT_Buff_Drain.png",
+  "icon_kind": "buff",
+  "desc": "战斗造成伤害后，回复伤害量50%的生命值",
+  "desc_src": "id",
+  "srcs": []
+ },
+ {
+  "name": "治愈",
+  "aka": [],
+  "ids": [
+   "100041"
+  ],
+  "icon": "buff/UT_Buff_Heal.png",
+  "icon_kind": "buff",
+  "desc": "回合开始时恢复治愈层数的生命值，回合结束时层数减半",
+  "desc_src": "id",
+  "srcs": []
+ },
+ {
+  "name": "海王祝福",
+  "aka": [],
+  "ids": [
+   "102501011"
+  ],
+  "icon": "buff/UT_Buff_1025.png",
+  "icon_kind": "buff",
+  "desc": "攻击力+1，防御力+1",
+  "desc_src": "id",
+  "srcs": []
+ },
+ {
+  "name": "深度改造",
+  "aka": [],
+  "ids": [
+   "103311011"
+  ],
+  "icon": "buff/UT_Buff_1033.png",
+  "icon_kind": "buff",
+  "desc": "3. 当自身拥有【深度改造】时，无法被攻击或选中；初始拥有3层【深度改造】，当【深度改造】层数不为0时无法被攻击和选中，且受到伤害降低为0；人造生命体被击倒后，移除1层【深度改造】；被击倒后，移除科学怪人1层【深度改造】",
+  "desc_src": "context",
+  "srcs": [
+   "天王寺雅央",
+   "人工生命体-天崩",
+   "人工生命体-噩兆",
+   "人工生命体-混乱"
+  ]
+ },
+ {
+  "name": "渊蚀印记",
+  "aka": [],
+  "ids": [
+   "12912021"
+  ],
+  "icon": "buff/UT_Buff_129_Skill.png",
+  "icon_kind": "buff",
+  "desc": "每层使自身受到来自魔渊触须和赛克斯的伤害+1",
+  "desc_src": "wiki",
+  "srcs": []
+ },
+ {
+  "name": "温暖",
+  "aka": [],
+  "ids": [
+   "30411011",
+   "30412011"
+  ],
+  "icon": "buff/UT_Buff_304.png",
+  "icon_kind": "buff",
+  "desc": "每层使自身防御力+1",
+  "desc_src": "wiki",
+  "srcs": []
+ },
+ {
+  "name": "温焰",
+  "aka": [],
+  "ids": [
+   "104901011"
+  ],
+  "icon": "buff/UT_Buff_1049.png",
+  "icon_kind": "buff",
+  "desc": "获得1层【温焰】；移除4层【温焰】：此卡转变为【彩羽】",
+  "desc_src": "context",
+  "srcs": [
+   "灰烬之羽"
+  ]
+ },
+ {
+  "name": "湖沼之王",
+  "aka": [],
+  "ids": [
+   "12611011",
+   "202711011"
+  ],
+  "icon": "buff/UT_Buff_LifeLink.png",
+  "icon_kind": "buff",
+  "desc": "受到伤害时本轮获得 1 层【逆鳞】，每层使自身 +2 点攻击力，并使受到伤害降低 2 。如果单次受到大于 20 点伤害，则移除所有【逆鳞】层数，且本轮无法使用主动技能。",
+  "desc_src": "skill:天川真梦梓",
+  "srcs": []
+ },
+ {
+  "name": "灰烬",
+  "aka": [],
+  "ids": [
+   "105311021"
+  ],
+  "icon": "buff/UT_Buff_1053_Passive.png",
+  "icon_kind": "buff",
+  "desc": "初始拥有6层灰烬，每层灰烬使自身受到伤害 -1 \n角色使用彩羽时，移除1层灰烬。",
+  "desc_src": "skill:失控凤凰",
+  "srcs": []
+ },
+ {
+  "name": "灵魂链接",
+  "aka": [],
+  "ids": [
+   "20007011"
+  ],
+  "icon": "buff/UT_Buff_LingHunLianJie.png",
+  "icon_kind": "buff",
+  "desc": "指定两个角色相连\n当其中一个角色受到伤害时另一个角色承受同等伤害\n持续3回合",
+  "desc_src": "id",
+  "srcs": []
+ },
+ {
+  "name": "炒热气氛",
+  "aka": [],
+  "ids": [
+   "101501011"
+  ],
+  "icon": "buff/UT_Buff_10150101.png",
+  "icon_kind": "buff",
+  "desc": "攻击力+1，防御力+1",
+  "desc_src": "id",
+  "srcs": []
+ },
+ {
+  "name": "爱",
+  "aka": [],
+  "ids": [
+   "30211011"
+  ],
+  "icon": "buff/UT_Buff_302_Passive.png",
+  "icon_kind": "buff",
+  "desc": "每层使自身攻击力+1、防御力-1",
+  "desc_src": "wiki",
+  "srcs": []
+ },
+ {
+  "name": "狂暴",
+  "aka": [],
+  "ids": [
+   "20008011"
+  ],
+  "icon": "buff/UT_Buff_KuangBao.png",
+  "icon_kind": "buff",
+  "desc": "攻击力+3，受到伤害+1",
+  "desc_src": "id",
+  "srcs": []
+ },
+ {
+  "name": "狐火",
+  "aka": [
+   "狐光",
+   "降神"
+  ],
+  "ids": [
+   "1241101",
+   "12401021",
+   "12402021",
+   "12411011",
+   "12412011"
+  ],
+  "icon": "buff/UT_Buff_124.png",
+  "icon_kind": "buff",
+  "desc": "使用主动技能时，夺取目标狐火的星币。自身或拥有降神的目标使用费用2及以上的攻击牌时，自身获得1层狐火。\n每层使自身追击攻击力+1\n指定一个角色施加降神，本轮自身增加降神目标的攻击力与防御力。降神持续1回合。",
+  "desc_src": "skill:照",
+  "srcs": []
+ },
+ {
+  "name": "王之力",
+  "aka": [],
+  "ids": [
+   "21004011"
+  ],
+  "icon": "buff/UT_Buff_KuangBao.png",
+  "icon_kind": "buff",
+  "desc": "攻击力+5",
+  "desc_src": "id",
+  "srcs": []
+ },
+ {
+  "name": "疾驰",
+  "aka": [],
+  "ids": [
+   "104301011"
+  ],
+  "icon": "buff/UT_Buff_MoveUp.png",
+  "icon_kind": "buff",
+  "desc": "移动速度+2",
+  "desc_src": "id",
+  "srcs": []
+ },
+ {
+  "name": "白泽赐福",
+  "aka": [
+   "白泽祝福"
+  ],
+  "ids": [
+   "12301011",
+   "12302011"
+  ],
+  "icon": "buff/UT_Buff_123.png",
+  "icon_kind": "buff",
+  "desc": "增加由治疗溢出量转化而来的攻击力。\n自身获得治疗溢出量的星币，持续1回合。获得1张符卡-福并将手牌中所有的符卡-祸转化为符卡-福。",
+  "desc_src": "manual",
+  "srcs": []
+ },
+ {
+  "name": "相互照应",
+  "aka": [],
+  "ids": [
+   "30402011",
+   "30402021"
+  ],
+  "icon": "buff/UT_Buff_MutualSupport.png",
+  "icon_kind": "buff",
+  "desc": "攻击力+1",
+  "desc_src": "id",
+  "srcs": []
+ },
+ {
+  "name": "真凶",
+  "aka": [],
+  "ids": [
+   "106713021"
+  ],
+  "icon": "buff/UT_Buff_Crime.png",
+  "icon_kind": "buff",
+  "desc": "攻击力+2，移动速度+2，出牌数+1，受到伤害+2",
+  "desc_src": "wiki",
+  "srcs": []
+ },
+ {
+  "name": "真龙形态",
+  "aka": [],
+  "ids": [
+   "12612041",
+   "60106031"
+  ],
+  "icon": "buff/UT_Buff_1261204.png",
+  "icon_kind": "buff",
+  "desc": "攻击力+4，主动技能不再拥有范围限制",
+  "desc_src": "wiki",
+  "srcs": []
+ },
+ {
+  "name": "破绽",
+  "aka": [],
+  "ids": [
+   "12501011"
+  ],
+  "icon": "buff/UT_Buff_125_Skill.png",
+  "icon_kind": "buff",
+  "desc": "下一次交战时，攻击和防御骰点最大为3",
+  "desc_src": "wiki",
+  "srcs": []
+ },
+ {
+  "name": "神秘的蛋",
+  "aka": [],
+  "ids": [
+   "2600021"
+  ],
+  "icon": "buff/UT_Buff_S7_01.png",
+  "icon_kind": "buff",
+  "desc": "神秘的蛋，蕴含有微弱的凤凰之力",
+  "desc_src": "id",
+  "srcs": []
+ },
+ {
+  "name": "移动充能",
+  "aka": [],
+  "ids": [
+   "11711011"
+  ],
+  "icon": "buff/UT_Buff_117_Passive.png",
+  "icon_kind": "buff",
+  "desc": "每累计13点移动点数，交替使自身攻击力永久+1、防御力永久+1。",
+  "desc_src": "skill:茉莉",
+  "srcs": []
+ },
+ {
+  "name": "稳定中枢",
+  "aka": [],
+  "ids": [
+   "105511011"
+  ],
+  "icon": "buff/UT_Buff_1055.png",
+  "icon_kind": "buff",
+  "desc": "每层使自身受到伤害-1",
+  "desc_src": "id",
+  "srcs": []
+ },
+ {
+  "name": "精准打击",
+  "aka": [],
+  "ids": [
+   "12212021"
+  ],
+  "icon": "buff/UT_Buff_122_Passive.png",
+  "icon_kind": "buff",
+  "desc": "受到【轨道轰炸】伤害+1",
+  "desc_src": "wiki",
+  "srcs": []
+ },
+ {
+  "name": "精密技巧",
+  "aka": [],
+  "ids": [
+   "12512011"
+  ],
+  "icon": "buff/UT_Buff_125_Passive.png",
+  "icon_kind": "buff",
+  "desc": "每层使自身攻击力+2、闪避最小骰点+1。回合结束时减少1层",
+  "desc_src": "wiki",
+  "srcs": []
+ },
+ {
+  "name": "红包",
+  "aka": [
+   "节日红包计数"
+  ],
+  "ids": [
+   "50071011",
+   "50071021"
+  ],
+  "icon": "relic/UT_Relic_50071.png",
+  "icon_kind": "relic",
+  "desc": "攻击力+2，移动速度+2\n每使用3张高升炮，所有角色随机获得最多3种新春祝福",
+  "desc_src": "id",
+  "srcs": []
+ },
+ {
+  "name": "红温",
+  "aka": [],
+  "ids": [
+   "30202011"
+  ],
+  "icon": "buff/UT_Buff_AttackUp.png",
+  "icon_kind": "buff",
+  "desc": "攻击力+5",
+  "desc_src": "id",
+  "srcs": []
+ },
+ {
+  "name": "罪证",
+  "aka": [],
+  "ids": [
+   "100131"
+  ],
+  "icon": "buff/UT_Buff_1067.png",
+  "icon_kind": "buff",
+  "desc": "真的有罪吗？<br>角色被击倒后，失去1层【罪证】",
+  "desc_src": "wiki",
+  "srcs": [
+   "罪证嫌疑",
+   "典狱长",
+   "看守",
+   "罪恶茶壶"
+  ]
+ },
+ {
+  "name": "能量回收",
+  "aka": [],
+  "ids": [
+   "50084011"
+  ],
+  "icon": "relic/UT_Relic_50084.png",
+  "icon_kind": "relic",
+  "desc": "每累计 5 点移动点数获得 2 层充能；充能层数大于 5 时，移动速度 +1。",
+  "desc_src": "manual",
+  "srcs": []
+ },
+ {
+  "name": "脆弱中枢",
+  "aka": [],
+  "ids": [
+   "101411011"
+  ],
+  "icon": "buff/UT_Buff_10141101.png",
+  "icon_kind": "buff",
+  "desc": "经过时不会触发战斗,受到伤害会,本轮受到伤害 +1 。",
+  "desc_src": "skill:指挥平台",
+  "srcs": []
+ },
+ {
+  "name": "腾飞",
+  "aka": [],
+  "ids": [
+   "101711011"
+  ],
+  "icon": "buff/UT_Buff_Soaring.png",
+  "icon_kind": "buff",
+  "desc": "经过时不会触发战斗，被击倒时，给予击倒者一张【高升炮】。",
+  "desc_src": "skill:机械蛇龙",
+  "srcs": []
+ },
+ {
+  "name": "毒外卖",
+  "aka": [
+   "致命病毒"
+  ],
+  "ids": [
+   "30006011"
+  ],
+  "icon": "buff/UT_Buff_Poisoned.png",
+  "icon_kind": "buff",
+  "desc": "轮次开始时，受到1点伤害",
+  "desc_src": "id",
+  "srcs": []
+ },
+ {
+  "name": "虚弱印记",
+  "aka": [],
+  "ids": [
+   "11401021"
+  ],
+  "icon": "buff/UT_Buff_114_Max.png",
+  "icon_kind": "buff",
+  "desc": "受到的伤害+1，如果被击倒则蓝海晴获得3星币",
+  "desc_src": "wiki",
+  "srcs": []
+ },
+ {
+  "name": "觉醒",
+  "aka": [],
+  "ids": [
+   "12612011"
+  ],
+  "icon": "buff/UT_Buff_1026.png",
+  "icon_kind": "buff",
+  "desc": "到达8层时，转变为【真龙形态】",
+  "desc_src": "wiki",
+  "srcs": [
+   "撕咬"
+  ]
+ },
+ {
+  "name": "诅咒之剑计数",
+  "aka": [
+   "诅咒之剑-击倒数量"
+  ],
+  "ids": [
+   "5003701",
+   "50037011"
+  ],
+  "icon": "relic/UT_Relic_50037.png",
+  "icon_kind": "relic",
+  "desc": "游戏内数值计数器：显示在角色立绘上，用于记录累计数值，本身没有单独的效果说明。",
+  "desc_src": "counter",
+  "srcs": []
+ },
+ {
+  "name": "调制饮料",
+  "aka": [],
+  "ids": [
+   "30301011"
+  ],
+  "icon": "buff/UT_Buff_303_piano.png",
+  "icon_kind": "buff",
+  "desc": "选择3张手牌，根据所选手牌类型对自身依次发动效果：\n\n效果牌或诅咒牌：恢复1点生命值。\n\n\n攻击牌：攻击力+1，持续1回合。\n\n防御牌：防御力+1，持续1回合。\n\n随后丢弃这3张手牌并获得等量卡牌。",
+  "desc_src": "skill:吉尔·斯汀雷",
+  "srcs": []
+ },
+ {
+  "name": "调查目标",
+  "aka": [
+   "秘密调查"
+  ],
+  "ids": [
+   "12701011",
+   "12702011"
+  ],
+  "icon": "buff/UT_Buff_127_Skill.png",
+  "icon_kind": "buff",
+  "desc": "被击倒时，触发【秘密调查】，并将其推进至下一阶段。\n【秘密调查】共 3 层：调查目标每被击倒一次推进 1 层，最高推进至第 3 层。\nPVP：对所有角色施加 2 层标记，击倒者获得 5 星币。",
+  "desc_src": "manual",
+  "srcs": []
+ },
+ {
+  "name": "赤红之毒",
+  "aka": [],
+  "ids": [
+   "100811021"
+  ],
+  "icon": "buff/UT_Buff_RedDot.png",
+  "icon_kind": "buff",
+  "desc": "移除自身的【青之诅咒】与【赤红之毒】，每移除一个，额外造成一次伤害；移动的最终点数固定为 3 点，移动中如果经过角色，则立刻自爆，对3格内的角色施加【赤红之毒】，持续3轮；对 7 格范围内最高生命值的角色，造成 2 点伤害，并附带【赤红之毒】；对场上生命值最高的角色造成 2 点伤害，并附带【赤红之毒】；随后对场上所有【赤红之毒】的角色造成 1 点伤害",
+  "desc_src": "context",
+  "srcs": [
+   "释放赤魂",
+   "狂躁红灵",
+   "长戟灵体",
+   "武魂灵体-怨"
+  ]
+ },
+ {
+  "name": "超量解析",
+  "aka": [],
+  "ids": [
+   "106511011"
+  ],
+  "icon": "buff/UT_Buff_1065_01.png",
+  "icon_kind": "buff",
+  "desc": "角色的【心智】每被移除1层，自身获得1层【超量解析】；召唤思维飞艇时，其生命值上限额外增加【超量解析】层数 ×2；【超量解析】达到3层时，自身和思维飞艇获得攻击力+1，防御力+1；【超量解析】达到6层时，自身和思维飞艇获得攻击力+1，防御力+1；【超量解析】达到9层时，自身和思维飞艇获得攻击力+2，防御力+2，移动速度+2",
+  "desc_src": "context",
+  "srcs": [
+   "天王寺雅央"
+  ]
+ },
+ {
+  "name": "超频",
+  "aka": [],
+  "ids": [
+   "105701011"
+  ],
+  "icon": "buff/UT_Buff_Overclock.png",
+  "icon_kind": "buff",
+  "desc": "每层使自身攻击力+1、防御力+1",
+  "desc_src": "id",
+  "srcs": []
+ },
+ {
+  "name": "越战越勇",
+  "aka": [],
+  "ids": [
+   "101311011"
+  ],
+  "icon": "buff/UT_Buff_10131101.png",
+  "icon_kind": "buff",
+  "desc": "攻击命中，攻击力 +2 。",
+  "desc_src": "skill:舞狮嘎呜",
+  "srcs": []
+ },
+ {
+  "name": "跃迁引擎",
+  "aka": [],
+  "ids": [
+   "50088021"
+  ],
+  "icon": "relic/UT_Relic_50088.png",
+  "icon_kind": "relic",
+  "desc": "下次移动速度+3",
+  "desc_src": "id",
+  "srcs": []
+ },
+ {
+  "name": "过期便当",
+  "aka": [],
+  "ids": [
+   "20019011"
+  ],
+  "icon": "buff/UT_Buff_Bentou.png",
+  "icon_kind": "buff",
+  "desc": "回合开始时，受到2点伤害",
+  "desc_src": "id",
+  "srcs": []
+ },
+ {
+  "name": "过期回收",
+  "aka": [],
+  "ids": [
+   "10812011"
+  ],
+  "icon": "buff/UT_Buff_108_break.png",
+  "icon_kind": "buff",
+  "desc": "每丢弃1张战斗牌，获得1星币。",
+  "desc_src": "skill:米米",
+  "srcs": []
+ },
+ {
+  "name": "过来吧你",
+  "aka": [],
+  "ids": [
+   "10901011"
+  ],
+  "icon": "buff/UT_Buff_109_Break.png",
+  "icon_kind": "buff",
+  "desc": "拉取7格内的一个角色到自身所在格，造成1点伤害，并使其移动速度-2，持续1次移动。",
+  "desc_src": "skill:Z3000",
+  "srcs": []
+ },
+ {
+  "name": "逆鳞",
+  "aka": [],
+  "ids": [
+   "102611011"
+  ],
+  "icon": "buff/UT_Buff_1026.png",
+  "icon_kind": "buff",
+  "desc": "受到伤害时本轮获得 1 层【逆鳞】，每层使自身 +2 点攻击力，并使受到伤害降低 2；如果单次受到大于 20 点伤害，则移除所有【逆鳞】层数，且本轮无法使用主动技能",
+  "desc_src": "context",
+  "srcs": [
+   "天川真梦梓"
+  ]
+ },
+ {
+  "name": "遗落彩羽",
+  "aka": [],
+  "ids": [
+   "104401011"
+  ],
+  "icon": "buff/UT_Buff_10441101.png",
+  "icon_kind": "buff",
+  "desc": "被击倒后，给予击倒者1张彩羽。",
+  "desc_src": "skill:家禽服务员",
+  "srcs": []
+ },
+ {
+  "name": "重生人偶",
+  "aka": [],
+  "ids": [
+   "50063011"
+  ],
+  "icon": "relic/UT_Relic_50063.png",
+  "icon_kind": "relic",
+  "desc": "每层使自身攻击力+1、防御力+1、生命值上限+1",
+  "desc_src": "id",
+  "srcs": []
+ },
+ {
+  "name": "金鳞",
+  "aka": [],
+  "ids": [
+   "102711011"
+  ],
+  "icon": "buff/UT_Buff_1027.png",
+  "icon_kind": "buff",
+  "desc": "移除目标2层【金鳞】，本次攻击无法被反击；反击时，获得 2 层【金鳞】，每层使自身攻击力 +1 ，防御力 +1；为天川苍鲤施加 1 层【金鳞】",
+  "desc_src": "context",
+  "srcs": [
+   "毒牙",
+   "天川苍鲤",
+   "金小鱼"
+  ]
+ },
+ {
+  "name": "铁壁",
+  "aka": [],
+  "ids": [
+   "10301011"
+  ],
+  "icon": "buff/UT_Buff_IronWall.png",
+  "icon_kind": "buff",
+  "desc": "无法被挑战，并免疫陷阱。",
+  "desc_src": "manual",
+  "srcs": []
+ },
+ {
+  "name": "问题学生",
+  "aka": [],
+  "ids": [
+   "21010011"
+  ],
+  "icon": "buff/UT_Buff_1018_Passive.png",
+  "icon_kind": "buff",
+  "desc": "选择一个友方角色，造成1点伤害并施加【问题学生】，随后自身获得3星币；学院安全官攻击拥有 【问题学生】 的角色时，攻击力额外 +2 ，交战后移除目标的 【问题学生】 状态",
+  "desc_src": "context",
+  "srcs": [
+   "是他干的",
+   "天王寺雅央"
+  ]
+ },
+ {
+  "name": "防火墙",
+  "aka": [],
+  "ids": [
+   "12012021"
+  ],
+  "icon": "buff/UT_Buff_120.png",
+  "icon_kind": "buff",
+  "desc": "攻击力+2，防御力+2",
+  "desc_src": "wiki",
+  "srcs": []
+ },
+ {
+  "name": "隐匿",
+  "aka": [],
+  "ids": [
+   "12702021"
+  ],
+  "icon": "buff/UT_Buff_ConcealedPresence.png",
+  "icon_kind": "buff",
+  "desc": "指定一个敌方角色施加调查目标与2层标记。\n拥有调查目标的角色被击倒后，获得5星币。",
+  "desc_src": "skill:邦妮",
+  "srcs": []
+ },
+ {
+  "name": "雪地",
+  "aka": [],
+  "ids": [
+   "20025011"
+  ],
+  "icon": "buff/UT_Buff_MoveDown.png",
+  "icon_kind": "buff",
+  "desc": "移动速度-4",
+  "desc_src": "id",
+  "srcs": []
+ },
+ {
+  "name": "霉运",
+  "aka": [],
+  "ids": [
+   "40004011"
+  ],
+  "icon": "buff/UT_Buff_DamagedUp.png",
+  "icon_kind": "buff",
+  "desc": "下次受到伤害+2",
+  "desc_src": "id",
+  "srcs": []
+ },
+ {
+  "name": "青之诅咒",
+  "aka": [],
+  "ids": [
+   "100912021"
+  ],
+  "icon": "buff/UT_Buff_AoiDefDown.png",
+  "icon_kind": "buff",
+  "desc": "移除自身的【青之诅咒】与【赤红之毒】，每移除一个，额外造成一次伤害；攻击命中后，施加【青之诅咒】；对未获得【青之诅咒】的一名角色施加【青之诅咒】；（X为场上有【青之诅咒】角色数）",
+  "desc_src": "context",
+  "srcs": [
+   "释放赤魂",
+   "刀剑灵体",
+   "武魂灵体-戮"
+  ]
+ },
+ {
+  "name": "飘浮",
+  "aka": [],
+  "ids": [
+   "30501011"
+  ],
+  "icon": "buff/UT_Buff_305_2.png",
+  "icon_kind": "buff",
+  "desc": "移动速度+2，不会触发陷阱和路障。被其它单位经过时不会触发战斗",
+  "desc_src": "wiki",
+  "srcs": []
+ },
+ {
+  "name": "飞羽手环计数",
+  "aka": [
+   "飞羽手环-彩羽使用次数"
+  ],
+  "ids": [
+   "5006701",
+   "50067011"
+  ],
+  "icon": "relic/UT_Relic_50067.png",
+  "icon_kind": "relic",
+  "desc": "游戏内数值计数器：显示在角色立绘上，用于记录累计数值，本身没有单独的效果说明。",
+  "desc_src": "counter",
+  "srcs": []
+ },
+ {
+  "name": "骰点充能",
+  "aka": [],
+  "ids": [
+   "1051201"
+  ],
+  "icon": "buff/UT_Buff_105_Break.png",
+  "icon_kind": "buff",
+  "desc": "",
+  "desc_src": "",
+  "srcs": []
+ },
+ {
+  "name": "魔法秘典计数",
+  "aka": [],
+  "ids": [
+   "50029011"
+  ],
+  "icon": "relic/UT_Relic_50029.png",
+  "icon_kind": "relic",
+  "desc": "每使用3张效果牌，复制最后使用的那张效果牌并加入手牌",
+  "desc_src": "id",
+  "srcs": []
+ },
+ {
+  "name": "鸳鸯玉佩",
+  "aka": [],
+  "ids": [
+   "50068011"
+  ],
+  "icon": "buff/UT_Buff_50068.png",
+  "icon_kind": "buff",
+  "desc": "每层使自身攻击力+1、防御力+1",
+  "desc_src": "id",
+  "srcs": []
+ },
+ {
+  "name": "鸳鸯连理",
+  "aka": [],
+  "ids": [
+   "104701011"
+  ],
+  "icon": "buff/UT_Buff_1047.png",
+  "icon_kind": "buff",
+  "desc": "回合开始时，攻击力和防御力-1\n与其他拥有【鸳鸯连理】的角色接触（经过、传送）时，移除【鸳鸯连理】并恢复2点生命",
+  "desc_src": "id",
+  "srcs": []
+ },
+ {
+  "name": "鼓起勇气",
+  "aka": [],
+  "ids": [
+   "10311011"
+  ],
+  "icon": "buff/UT_Buff_CourageUp.png",
+  "icon_kind": "buff",
+  "desc": "若上个回合没有受到伤害，则攻击力+3（不叠加，受伤后清除）。",
+  "desc_src": "skill:阿兰娜",
+  "srcs": []
+ },
+ {
+  "name": "龙之咆哮",
+  "aka": [],
+  "ids": [
+   "12612031"
+  ],
+  "icon": "buff/UT_Buff_1261203.png",
+  "icon_kind": "buff",
+  "desc": "防御力-3，移动速度-9",
+  "desc_src": "id",
+  "srcs": []
+ }
+]

@@ -1,0 +1,67 @@
+{
+  "art_source": {
+    "type": "string",
+    "description": "素材来源：external=读下面的 art_root 外部素材库（默认；插件已不再内置图片）/ bundled=优先用插件内 images/（老版本兼容用）",
+    "default": "external"
+  },
+  "art_root": {
+    "type": "string",
+    "description": "星趴素材库根目录，下面要有 chibi / portrait / cg / emoji / land / buff / relic / card 八个子目录（旧的中文目录名仍能识别）",
+    "default": "F:\\pictures\\Astral Party"
+  },
+  "card_font": {
+    "type": "string",
+    "description": "卡面字体族（地图卡不受影响，单独走自己的字体栈）：simhei=黑体（默认，单字重靠描边加粗）/ yahei=微软雅黑 / msuigothic_cn=MS UI Gothic+雅黑补字（插件自带）/ msuigothic=MS UI Gothic 原样（缺简体字形，会出方块）/ msgothic=MS Gothic / yugothic=Yu Gothic / meiryo / dengxian=等线 / harmony=HarmonyOS Sans / misans=MiSans",
+    "default": "simhei"
+  },
+  "chibi_dir": {
+    "type": "string",
+    "description": "局内小人子目录名（默认 chibi，相对图库根目录，也可写绝对路径）",
+    "default": "chibi"
+  },
+  "portrait_dir": {
+    "type": "string",
+    "description": "角色立绘子目录名（默认 portrait，相对图库根目录，也可写绝对路径）",
+    "default": "portrait"
+  },
+  "cg_dir": {
+    "type": "string",
+    "description": "战斗CG子目录名（默认 cg，相对图库根目录，也可写绝对路径）",
+    "default": "cg"
+  },
+  "emoji_dir": {
+    "type": "string",
+    "description": "表情包子目录名（默认 emoji，相对图库根目录，也可写绝对路径）",
+    "default": "emoji"
+  },
+  "live_client_ver": {
+    "type": "string",
+    "description": "查号用的客户端版本号（例如 3.3.0）。游戏大更新后登录会被判 10012，把这里改成新版本号即可；留空则自动探测",
+    "default": ""
+  },
+  "live_host": {
+    "type": "string",
+    "description": "查号用的游戏服地址（可留空，默认国服 101.132.186.71、海外服 8.211.150.179）",
+    "default": ""
+  },
+  "live_port": {
+    "type": "int",
+    "description": "查号用的游戏服端口（留空/0 用默认 8800）",
+    "default": 0
+  },
+  "pilot_home": {
+    "type": "string",
+    "description": "陪玩引擎目录（留空＝用插件自带的 pilot/ 子目录；想跑外部 AstralPartyPilot 工程时填它根目录）",
+    "default": ""
+  },
+  "pilot_game_dir": {
+    "type": "string",
+    "description": "陪玩/查号用的游戏数据目录（留空＝用内置默认路径，一般不用改）",
+    "default": ""
+  },
+  "pilot_prefer": {
+    "type": "string",
+    "description": "陪玩默认倾向：eco=发育 / atk=进攻 / def=防守",
+    "default": "eco"
+  }
+}

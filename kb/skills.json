@@ -1,0 +1,7179 @@
+{
+ "count": 295,
+ "named": 281,
+ "active": 163,
+ "passive": 132,
+ "heroes": 37,
+ "entities": 105,
+ "playerSkillActive": 86,
+ "by_hero": {
+  "1001": [
+   "100111",
+   "100112"
+  ],
+  "1003": [
+   "100301",
+   "100311",
+   "100312"
+  ],
+  "1004": [
+   "100401",
+   "100411"
+  ],
+  "1005": [
+   "100501",
+   "100511"
+  ],
+  "1008": [
+   "100811"
+  ],
+  "1009": [
+   "100911",
+   "100912",
+   "100913"
+  ],
+  "101": [
+   "10101",
+   "10111",
+   "10112"
+  ],
+  "1010": [
+   "101001",
+   "101011"
+  ],
+  "1011": [
+   "101101",
+   "101102",
+   "101111",
+   "101112"
+  ],
+  "1013": [
+   "101301",
+   "101311",
+   "101312",
+   "101313"
+  ],
+  "1014": [
+   "101401",
+   "101411",
+   "101412",
+   "101413",
+   "101414",
+   "101415"
+  ],
+  "1015": [
+   "101501"
+  ],
+  "1016": [
+   "101601",
+   "101611"
+  ],
+  "1017": [
+   "101701",
+   "101711"
+  ],
+  "1018": [
+   "101801",
+   "101811"
+  ],
+  "1019": [
+   "101901",
+   "101911"
+  ],
+  "102": [
+   "10201",
+   "10202",
+   "10211"
+  ],
+  "1020": [
+   "102011"
+  ],
+  "1021": [
+   "102111"
+  ],
+  "1022": [
+   "102201"
+  ],
+  "1023": [
+   "102311"
+  ],
+  "1024": [
+   "102411"
+  ],
+  "1025": [
+   "102501"
+  ],
+  "1026": [
+   "102601",
+   "102611"
+  ],
+  "1027": [
+   "102701",
+   "102711"
+  ],
+  "1028": [
+   "102811"
+  ],
+  "1029": [
+   "102911"
+  ],
+  "103": [
+   "10301",
+   "10302",
+   "10311"
+  ],
+  "1030": [
+   "103001",
+   "103011"
+  ],
+  "1031": [
+   "103101",
+   "103111"
+  ],
+  "1032": [
+   "103211"
+  ],
+  "1033": [
+   "103301",
+   "103311"
+  ],
+  "1034": [
+   "103411"
+  ],
+  "1035": [
+   "103501",
+   "103511"
+  ],
+  "1036": [
+   "103611"
+  ],
+  "1037": [
+   "103701",
+   "103711"
+  ],
+  "104": [
+   "10401",
+   "10411",
+   "10412"
+  ],
+  "1040": [
+   "104001",
+   "104011"
+  ],
+  "1041": [
+   "104101",
+   "104111"
+  ],
+  "1042": [
+   "104201",
+   "104211"
+  ],
+  "1043": [
+   "104301"
+  ],
+  "1044": [
+   "104411"
+  ],
+  "1045": [
+   "104501"
+  ],
+  "1046": [
+   "104601",
+   "104611"
+  ],
+  "1047": [
+   "104701",
+   "104711"
+  ],
+  "1048": [
+   "104801",
+   "104811"
+  ],
+  "1049": [
+   "104901",
+   "104911"
+  ],
+  "105": [
+   "10501",
+   "10511",
+   "10512"
+  ],
+  "1050": [
+   "105011"
+  ],
+  "1053": [
+   "105301",
+   "105311",
+   "105312"
+  ],
+  "1054": [
+   "105401"
+  ],
+  "1055": [
+   "105501",
+   "105511"
+  ],
+  "1057": [
+   "105701"
+  ],
+  "1058": [
+   "105801",
+   "105811"
+  ],
+  "106": [
+   "10601",
+   "10602",
+   "10611"
+  ],
+  "1061": [
+   "106101",
+   "106102",
+   "106111",
+   "106112",
+   "106113"
+  ],
+  "1062": [
+   "106201",
+   "106211"
+  ],
+  "1063": [
+   "106311"
+  ],
+  "1064": [
+   "106401"
+  ],
+  "1065": [
+   "106501",
+   "106511",
+   "106512"
+  ],
+  "1066": [
+   "106601"
+  ],
+  "1067": [
+   "106701",
+   "106702",
+   "106711",
+   "106712",
+   "106713"
+  ],
+  "1068": [
+   "106811",
+   "106812"
+  ],
+  "1069": [
+   "106911",
+   "106912"
+  ],
+  "107": [
+   "10701",
+   "10702",
+   "10703",
+   "10711",
+   "10712"
+  ],
+  "1070": [
+   "107001",
+   "107011"
+  ],
+  "1071": [
+   "107101",
+   "107111",
+   "107112"
+  ],
+  "1072": [
+   "107201",
+   "107211"
+  ],
+  "1073": [
+   "107301",
+   "107311"
+  ],
+  "1074": [
+   "107411"
+  ],
+  "108": [
+   "10801",
+   "10811",
+   "10812",
+   "10850"
+  ],
+  "109": [
+   "10901",
+   "10902",
+   "10903",
+   "10911",
+   "10912",
+   "10913"
+  ],
+  "110": [
+   "11001",
+   "11002",
+   "11011",
+   "11012",
+   "11013"
+  ],
+  "111": [
+   "11101",
+   "11102",
+   "11111"
+  ],
+  "112": [
+   "11201",
+   "11202",
+   "11203",
+   "11211",
+   "11212",
+   "11213",
+   "11214"
+  ],
+  "113": [
+   "11301",
+   "11302",
+   "11311",
+   "11312",
+   "11313",
+   "11314"
+  ],
+  "114": [
+   "11401",
+   "11402",
+   "11403",
+   "11411"
+  ],
+  "115": [
+   "11501",
+   "11502",
+   "11503",
+   "11511",
+   "11512"
+  ],
+  "116": [
+   "11601",
+   "11611"
+  ],
+  "117": [
+   "11701",
+   "11702",
+   "11711",
+   "11712"
+  ],
+  "118": [
+   "11801",
+   "11802",
+   "11811",
+   "11812"
+  ],
+  "119": [
+   "11901",
+   "11902",
+   "11903",
+   "11911",
+   "11912",
+   "11913"
+  ],
+  "120": [
+   "12001",
+   "12002",
+   "12003",
+   "12011",
+   "12012",
+   "12013"
+  ],
+  "121": [
+   "12101",
+   "12102",
+   "12111",
+   "12112"
+  ],
+  "122": [
+   "12201",
+   "12202",
+   "12203",
+   "12211",
+   "12212"
+  ],
+  "123": [
+   "12301",
+   "12302",
+   "12311",
+   "12312",
+   "12313"
+  ],
+  "124": [
+   "12401",
+   "12402",
+   "12411",
+   "12412"
+  ],
+  "125": [
+   "12501",
+   "12502",
+   "12511",
+   "12512"
+  ],
+  "126": [
+   "12601",
+   "12602",
+   "12611",
+   "12612"
+  ],
+  "127": [
+   "12701",
+   "12702",
+   "12711",
+   "12712"
+  ],
+  "128": [
+   "12801",
+   "12802",
+   "12811",
+   "12812"
+  ],
+  "129": [
+   "12901",
+   "12902",
+   "12903",
+   "12904",
+   "12911",
+   "12912"
+  ],
+  "2026": [
+   "202601",
+   "202611"
+  ],
+  "2027": [
+   "202701",
+   "202711"
+  ],
+  "3001": [
+   "300101"
+  ],
+  "3004": [
+   "300401",
+   "300411"
+  ],
+  "301": [
+   "30101",
+   "30102",
+   "30103",
+   "30111",
+   "30112",
+   "30113",
+   "30114"
+  ],
+  "302": [
+   "30201",
+   "30211",
+   "30213",
+   "30214"
+  ],
+  "303": [
+   "30301",
+   "30302",
+   "30311"
+  ],
+  "304": [
+   "30401",
+   "30402",
+   "30411",
+   "30412"
+  ],
+  "305": [
+   "30501",
+   "30502",
+   "30511",
+   "30512",
+   "30513"
+  ],
+  "3051": [
+   "305101"
+  ],
+  "306": [
+   "30601",
+   "30602",
+   "30611",
+   "30612",
+   "30613"
+  ],
+  "307": [
+   "30701",
+   "30702",
+   "30711",
+   "30712",
+   "30713",
+   "30714",
+   "30715"
+  ],
+  "308": [
+   "30801",
+   "30802",
+   "30811",
+   "30812",
+   "30813"
+  ]
+ },
+ "skills": {
+  "100111": {
+   "id": "100111",
+   "hero": "1001",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 2,
+   "kind": "active",
+   "name": "偷窃",
+   "desc": "经过角色时，夺取[color=#91e1ff]4[/color]星币，不挑战角色。",
+   "round": 0,
+   "buffs": [
+    10011101,
+    10701102
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    4
+   ]
+  },
+  "100112": {
+   "id": "100112",
+   "hero": "1001",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 2,
+   "kind": "active",
+   "name": "健步如飞",
+   "desc": "6格内没有角色时，移动点数[color=#94FF46]+3[/color]。",
+   "round": 0,
+   "buffs": [
+    10011201
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    6,
+    3
+   ]
+  },
+  "100301": {
+   "id": "100301",
+   "hero": "1003",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 1,
+   "kind": "passive",
+   "name": "吐息",
+   "desc": "对仇恨最多的角色造成[color=#91e1ff]3[/color]点伤害  。",
+   "round": 3,
+   "buffs": [],
+   "targets": [
+    100302
+   ],
+   "self": [
+    100301
+   ],
+   "params": [
+    -3
+   ]
+  },
+  "100311": {
+   "id": "100311",
+   "hero": "1003",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 2,
+   "kind": "active",
+   "name": "刁难",
+   "desc": "每回合可自由选择移动方向追击目标角色，且移动速度[color=#94FF46]+1[/color]。",
+   "round": 0,
+   "buffs": [
+    10031101
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    1
+   ]
+  },
+  "100312": {
+   "id": "100312",
+   "hero": "1003",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 2,
+   "kind": "active",
+   "name": "留一线",
+   "desc": "攻击目标角色时，至少保留其[color=#91e1ff]1[/color]点生命值。",
+   "round": 0,
+   "buffs": [
+    10031201
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    1
+   ]
+  },
+  "100401": {
+   "id": "100401",
+   "hero": "1004",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 1,
+   "kind": "passive",
+   "name": "火枪打击",
+   "desc": "对生命值最多的角色造成[color=#91e1ff]4[/color]点伤害  。",
+   "round": 3,
+   "buffs": [],
+   "targets": [
+    100302
+   ],
+   "self": [
+    100401
+   ],
+   "params": [
+    -4
+   ]
+  },
+  "100411": {
+   "id": "100411",
+   "hero": "1004",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 2,
+   "kind": "active",
+   "name": "刁难",
+   "desc": "每回合可自由选择移动方向追击目标角色，且移动速度[color=#94FF46]+1[/color]。",
+   "round": 0,
+   "buffs": [
+    10041101
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    -4
+   ]
+  },
+  "100501": {
+   "id": "100501",
+   "hero": "1005",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 1,
+   "kind": "passive",
+   "name": "召唤鲨鱼",
+   "desc": "每3回合，在附近召唤一只鲨鱼海盗  。",
+   "round": 3,
+   "buffs": [],
+   "targets": [],
+   "self": [
+    100501
+   ],
+   "params": [
+    1002,
+    1,
+    4
+   ]
+  },
+  "100511": {
+   "id": "100511",
+   "hero": "1005",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 2,
+   "kind": "active",
+   "name": "愤怒",
+   "desc": "被挑战后，自身攻击力[color=#94FF46]+1[/color]，最多叠加[color=#91e1ff]3[/color]层。",
+   "round": 0,
+   "buffs": [
+    10051101
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    1,
+    3
+   ]
+  },
+  "100811": {
+   "id": "100811",
+   "hero": "1008",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 2,
+   "kind": "active",
+   "name": "崩解",
+   "desc": "移动的最终点数固定为[color=#91e1ff]3[/color]，移动中如果经过角色，则立刻自爆，对3格内的角色施加[Astral=Buff:10081102][/Astral]，持续[color=#91e1ff]3[/color]轮。",
+   "round": 0,
+   "buffs": [
+    10081101
+   ],
+   "targets": [
+    100802
+   ],
+   "self": [
+    100801
+   ],
+   "params": [
+    10081102,
+    3,
+    3,
+    -1
+   ]
+  },
+  "100911": {
+   "id": "100911",
+   "hero": "1009",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 2,
+   "kind": "active",
+   "name": "灵体辅助（刀剑）",
+   "desc": "场上每存在一个刀剑灵体，为天王寺雅央提供防御力[color=#94FF46]+2[/color]。被击倒后，天王寺雅央失去[color=#91e1ff]10%[/color][Astral=Blood:1011*0.1][/Astral]生命值上限的生命值。",
+   "round": 0,
+   "buffs": [
+    10091101
+   ],
+   "targets": [
+    3000600
+   ],
+   "self": [],
+   "params": [
+    10091102,
+    2,
+    -10
+   ]
+  },
+  "100912": {
+   "id": "100912",
+   "hero": "1009",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 2,
+   "kind": "active",
+   "name": "冰冷触摸",
+   "desc": "攻击命中后，施加[Astral=Buff:10091202][/Astral]。",
+   "round": 0,
+   "buffs": [
+    10091201
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    10091202,
+    -2
+   ]
+  },
+  "100913": {
+   "id": "100913",
+   "hero": "1009",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 2,
+   "kind": "active",
+   "name": "奇异灵物",
+   "desc": "被击倒后，给予击倒者[color=#91e1ff]1[/color]张[Astral=Card:21017][/Astral]。",
+   "round": 0,
+   "buffs": [
+    10091301
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    21017
+   ]
+  },
+  "101001": {
+   "id": "101001",
+   "hero": "1010",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 1,
+   "kind": "passive",
+   "name": "毒性攻击",
+   "desc": "指定7格内生命值最高的一个角色，造成[color=#91e1ff]2[/color]点伤害，并施加[Astral=Buff:10081102][/Astral]。",
+   "round": 1,
+   "buffs": [
+    10081102
+   ],
+   "targets": [
+    101001
+   ],
+   "self": [
+    100501
+   ],
+   "params": [
+    7,
+    -2,
+    -1
+   ]
+  },
+  "10101": {
+   "id": "10101",
+   "hero": "101",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "网络购物",
+   "desc": "远程打开商店，购买卡牌。",
+   "round": 2,
+   "buffs": [],
+   "targets": [],
+   "self": [],
+   "params": [
+    1,
+    1
+   ]
+  },
+  "101011": {
+   "id": "101011",
+   "hero": "1010",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 2,
+   "kind": "active",
+   "name": "灵体辅助（长戟）",
+   "desc": "场上每存在一个长戟灵体，为天王寺雅央提供攻击力[color=#94FF46]+2[/color]。被击倒后，天王寺雅央失去[color=#91e1ff]10%[/color][Astral=Blood:1011*0.1][/Astral]生命值上限的生命值。",
+   "round": 0,
+   "buffs": [
+    10101101
+   ],
+   "targets": [
+    3000600
+   ],
+   "self": [],
+   "params": [
+    10101102,
+    2,
+    -10
+   ]
+  },
+  "101101": {
+   "id": "101101",
+   "hero": "1011",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 1,
+   "kind": "passive",
+   "name": "灵体降临",
+   "desc": "随机召唤一只刀剑或长戟灵体。",
+   "round": 4,
+   "buffs": [],
+   "targets": [],
+   "self": [
+    100501
+   ],
+   "params": [
+    1009,
+    1010,
+    6
+   ]
+  },
+  "101102": {
+   "id": "101102",
+   "hero": "1011",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 1,
+   "kind": "passive",
+   "name": "灵体降临",
+   "desc": "随机召唤一只刀剑或长戟灵体。",
+   "round": 3,
+   "buffs": [],
+   "targets": [],
+   "self": [
+    100501
+   ],
+   "params": [
+    1009,
+    1010,
+    6
+   ]
+  },
+  "10111": {
+   "id": "10111",
+   "hero": "101",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "传奇商人",
+   "desc": "商店可购买的战斗牌数量[color=#94FF46]+1[/color]，每次进入商店可获得[color=#91e1ff]1[/color]星币。",
+   "round": 0,
+   "buffs": [
+    1011101
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    2,
+    2,
+    3,
+    2,
+    1
+   ]
+  },
+  "101111": {
+   "id": "101111",
+   "hero": "1011",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 2,
+   "kind": "active",
+   "name": "万灵合一",
+   "desc": "场上每存在一个长戟灵体，为自身提供攻击力[color=#94FF46]+2[/color]。 场上每存在一个刀剑灵体，为自身提供防御力[color=#94FF46]+2[/color]。 灵体被击倒时，自身失去[color=#91e1ff]10%[/color]生命值上限的生命值。",
+   "round": 0,
+   "buffs": [],
+   "targets": [],
+   "self": [],
+   "params": []
+  },
+  "101112": {
+   "id": "101112",
+   "hero": "1011",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 2,
+   "kind": "active",
+   "name": "御魂召来",
+   "desc": "刀剑灵体被击倒后，获得【灵体执念：刀剑】。 长戟灵体被击倒后，获得【灵体执念：长戟】。 最多拥有[color=#91e1ff]3[/color]层灵体执念。 回合开始时，如果【灵体执念】达到[color=#91e1ff]3[/color]层，则会消耗所有【灵体执念】层数，并根据消耗层数类型的不同召唤【武魂灵体-戮】或【武魂灵体-怨】。",
+   "round": 0,
+   "buffs": [
+    10111201,
+    10111202
+   ],
+   "targets": [],
+   "self": [
+    101112
+   ],
+   "params": [
+    3,
+    3,
+    1041,
+    1042
+   ]
+  },
+  "10112": {
+   "id": "10112",
+   "hero": "101",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "传奇商人",
+   "desc": "商店可购买的战斗牌数量[color=#94FF46]+1[/color]，每次进入商店可获得[color=#91e1ff]1[/color]星币。",
+   "round": 0,
+   "buffs": [
+    1011201,
+    1011202
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    2,
+    2,
+    3,
+    2,
+    10,
+    1
+   ]
+  },
+  "101301": {
+   "id": "101301",
+   "hero": "1013",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 1,
+   "kind": "passive",
+   "name": "步步高升",
+   "desc": "指定6格内距离最近的一个爆竹呱呱或三联爆竹呱，使其获得[color=#91e1ff]2[/color]层[Astral=Buff:10131101][/Astral]。",
+   "round": 2,
+   "buffs": [
+    10131101
+   ],
+   "targets": [
+    101701
+   ],
+   "self": [
+    100501
+   ],
+   "params": [
+    6,
+    2,
+    1016,
+    1054,
+    1,
+    21009
+   ]
+  },
+  "101311": {
+   "id": "101311",
+   "hero": "1013",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 2,
+   "kind": "active",
+   "name": "越战越勇",
+   "desc": "每次攻击命中，获得[color=#91e1ff]2[/color]层[Astral=Buff:10131101][/Astral]。",
+   "round": 0,
+   "buffs": [
+    10131101
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    2,
+    21009
+   ]
+  },
+  "101312": {
+   "id": "101312",
+   "hero": "1013",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 2,
+   "kind": "active",
+   "name": "生命共享",
+   "desc": "",
+   "round": 0,
+   "buffs": [
+    10131102
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    1014
+   ]
+  },
+  "101313": {
+   "id": "101313",
+   "hero": "1013",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 2,
+   "kind": "active",
+   "name": "气氛高潮！",
+   "desc": "生命值最多降低至[color=#91e1ff]188[/color]。 轮次开始时，如果生命值达到[color=#91e1ff]188[/color]或轮次达到[color=#91e1ff]8[/color]，和指挥平台进行一次超乎想象的合体。",
+   "round": 0,
+   "buffs": [
+    10131103
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    188,
+    8,
+    15,
+    1055
+   ]
+  },
+  "101401": {
+   "id": "101401",
+   "hero": "1014",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 1,
+   "kind": "passive",
+   "name": "过节就是要放烟花！",
+   "desc": "召唤一只爆竹呱呱。",
+   "round": 1,
+   "buffs": [],
+   "targets": [],
+   "self": [
+    100501
+   ],
+   "params": [
+    1016,
+    3
+   ]
+  },
+  "101411": {
+   "id": "101411",
+   "hero": "1014",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 2,
+   "kind": "active",
+   "name": "脆弱中枢",
+   "desc": "经过其它单位和被其它单位经过时不会触发战斗。受到伤害后，本轮受到伤害[color=#FF4646]+1[/color]。",
+   "round": 0,
+   "buffs": [
+    10141101
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    1
+   ]
+  },
+  "101412": {
+   "id": "101412",
+   "hero": "1014",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 2,
+   "kind": "active",
+   "name": "生命共享",
+   "desc": "",
+   "round": 0,
+   "buffs": [
+    10141201
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    1013
+   ]
+  },
+  "101413": {
+   "id": "101413",
+   "hero": "1014",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 2,
+   "kind": "active",
+   "name": "勿扰",
+   "desc": "",
+   "round": 0,
+   "buffs": [
+    10141301
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    3
+   ]
+  },
+  "101414": {
+   "id": "101414",
+   "hero": "1014",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 2,
+   "kind": "active",
+   "name": "气氛高潮！",
+   "desc": "生命值最多降低至[color=#91e1ff]188[/color]。 轮次开始时，如果生命值达到[color=#91e1ff]188[/color]或轮次达到[color=#91e1ff]8[/color]，和舞狮噶唔进行一次超乎想象的合体。",
+   "round": 0,
+   "buffs": [
+    10141401
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    188
+   ]
+  },
+  "101415": {
+   "id": "101415",
+   "hero": "1014",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 2,
+   "kind": "active",
+   "name": "合成呱呱",
+   "desc": "回合开始时，如果4格范围内有[color=#91e1ff]2[/color]个爆竹呱呱，则将它们合成为[color=#91e1ff]1[/color]个三联爆竹呱。",
+   "round": 0,
+   "buffs": [
+    10141501
+   ],
+   "targets": [],
+   "self": [
+    101401
+   ],
+   "params": [
+    4,
+    2,
+    1016,
+    1054
+   ]
+  },
+  "101501": {
+   "id": "101501",
+   "hero": "1015",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 1,
+   "kind": "passive",
+   "name": "炒热气氛",
+   "desc": "使4格内的所有怪物，攻击力[color=#94FF46]+1[/color]，防御力[color=#94FF46]+1[/color]。",
+   "round": 1,
+   "buffs": [
+    10150101
+   ],
+   "targets": [],
+   "self": [
+    100501
+   ],
+   "params": [
+    4,
+    1,
+    1,
+    21009
+   ]
+  },
+  "101601": {
+   "id": "101601",
+   "hero": "1016",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 1,
+   "kind": "passive",
+   "name": "不安全燃放",
+   "desc": "指定4格内生命值最高的一个角色，造成自身攻击力的伤害。",
+   "round": 1,
+   "buffs": [],
+   "targets": [
+    2100900
+   ],
+   "self": [
+    100501
+   ],
+   "params": [
+    4
+   ]
+  },
+  "101611": {
+   "id": "101611",
+   "hero": "1016",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 2,
+   "kind": "active",
+   "name": "未燃放爆竹",
+   "desc": "被击倒后，击倒者获得[color=#91e1ff]1[/color]张[Astral=Card:21009][/Astral]。",
+   "round": 0,
+   "buffs": [
+    10161101
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    21009
+   ]
+  },
+  "101701": {
+   "id": "101701",
+   "hero": "1017",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 1,
+   "kind": "passive",
+   "name": "守护宝珠",
+   "desc": "指定5格内随机一个怪物，防御力[color=#94FF46]+9[/color]，持续至目标下次受到伤害。",
+   "round": 1,
+   "buffs": [
+    10170101
+   ],
+   "targets": [
+    101701
+   ],
+   "self": [
+    100001
+   ],
+   "params": [
+    5,
+    9
+   ]
+  },
+  "101711": {
+   "id": "101711",
+   "hero": "1017",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 2,
+   "kind": "active",
+   "name": "腾飞",
+   "desc": "经过其它单位和被其它单位经过时不会触发战斗。",
+   "round": 0,
+   "buffs": [
+    10171101
+   ],
+   "targets": [],
+   "self": [],
+   "params": []
+  },
+  "101801": {
+   "id": "101801",
+   "hero": "1018",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 1,
+   "kind": "passive",
+   "name": "指示",
+   "desc": "指定距离最近的一个角色获得[color=#91e1ff]1[/color]张[Astral=Card:21010][/Astral]。如果当前生命值不超过生命值上限的[color=#91e1ff]50%[/color][Astral=Blood:1018*0.5][/Astral]，则改为指定两个角色。",
+   "round": 1,
+   "buffs": [],
+   "targets": [
+    8001400
+   ],
+   "self": [
+    100501
+   ],
+   "params": [
+    21010,
+    50,
+    1,
+    2
+   ]
+  },
+  "101811": {
+   "id": "101811",
+   "hero": "1018",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 2,
+   "kind": "active",
+   "name": "怒火",
+   "desc": "场上角色每打出3张[Astral=Card:21010][/Astral]，学院安全官攻击力永久[color=#94FF46]+1[/color]并立即召唤[color=#91e1ff]1[/color]个果冻护卫。 学院安全官攻击拥有[Astral=Buff:2101001][/Astral]的角色时，攻击力额外[color=#94FF46]+2[/color]，交战后移除目标的[Astral=Buff:2101001][/Astral]状态。",
+   "round": 0,
+   "buffs": [
+    10181101
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    3,
+    1021,
+    1,
+    2101001,
+    2
+   ]
+  },
+  "101901": {
+   "id": "101901",
+   "hero": "1019",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 1,
+   "kind": "passive",
+   "name": "下午茶时间",
+   "desc": "5格内有任意茶壶，则吸收茶壶，攻击力和防御力永久[color=#94FF46]+1[/color]。5格内没有茶壶则召唤[color=#91e1ff]1[/color]个魔法茶壶，生命值低于[color=#91e1ff]50%[/color][Astral=Blood:1019*0.5][/Astral]时，将额外召唤一个变异茶壶。",
+   "round": 1,
+   "buffs": [],
+   "targets": [],
+   "self": [
+    100501,
+    2000200
+   ],
+   "params": [
+    5,
+    1023,
+    50,
+    1024,
+    1,
+    1,
+    1,
+    10191101
+   ]
+  },
+  "101911": {
+   "id": "101911",
+   "hero": "1019",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 2,
+   "kind": "active",
+   "name": "糖分缺失",
+   "desc": "如果本回合没有吸收茶壶，代理院长回合结束时失去[color=#91e1ff]10%[/color][Astral=Blood:1019*0.1][/Astral]生命值上限的生命值。",
+   "round": 0,
+   "buffs": [
+    10191101
+   ],
+   "targets": [],
+   "self": [
+    3000600
+   ],
+   "params": [
+    -10
+   ]
+  },
+  "10201": {
+   "id": "10201",
+   "hero": "102",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "麻烦制造者",
+   "desc": "本回合停留后，额外触发[color=#91e1ff]1[/color]次事件。",
+   "round": 3,
+   "buffs": [],
+   "targets": [],
+   "self": [
+    10201
+   ],
+   "params": []
+  },
+  "102011": {
+   "id": "102011",
+   "hero": "1020",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 2,
+   "kind": "active",
+   "name": "不稳定护甲",
+   "desc": "受到伤害时防御力永久[color=#FF4646]-2[/color]（最低降到[color=#91e1ff]0[/color]）。回合开始时，如果本轮未受到伤害，则攻击力永久[color=#94FF46]+1[/color]。",
+   "round": 0,
+   "buffs": [
+    10201101
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    -2,
+    1
+   ]
+  },
+  "10202": {
+   "id": "10202",
+   "hero": "102",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "麻烦制造者",
+   "desc": "从[color=#91e1ff]2[/color]个随机事件中选择一个立刻发动。",
+   "round": 3,
+   "buffs": [],
+   "targets": [],
+   "self": [
+    10201
+   ],
+   "params": [
+    2
+   ]
+  },
+  "10211": {
+   "id": "10211",
+   "hero": "102",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "华点发现！",
+   "desc": "芬妮触发事件后，获得[color=#91e1ff]3[/color]星币。",
+   "round": 0,
+   "buffs": [
+    1021101
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    3,
+    0
+   ]
+  },
+  "102111": {
+   "id": "102111",
+   "hero": "1021",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 2,
+   "kind": "active",
+   "name": "脆弱护甲",
+   "desc": "受到伤害时防御力永久[color=#FF4646]-2[/color]（最低降到[color=#91e1ff]0[/color]）。",
+   "round": 0,
+   "buffs": [
+    10211101
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    -2,
+    0
+   ]
+  },
+  "102201": {
+   "id": "102201",
+   "hero": "1022",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 1,
+   "kind": "passive",
+   "name": "远程飞弹",
+   "desc": "指定5格外生命值最高的一个角色，造成[color=#91e1ff]3[/color]点伤害。",
+   "round": 1,
+   "buffs": [],
+   "targets": [
+    102201
+   ],
+   "self": [
+    100501
+   ],
+   "params": [
+    5,
+    -3
+   ]
+  },
+  "102311": {
+   "id": "102311",
+   "hero": "1023",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 2,
+   "kind": "active",
+   "name": "热茶饮品",
+   "desc": "被击倒后，恢复击倒者[color=#91e1ff]2[/color]点生命值。",
+   "round": 0,
+   "buffs": [
+    10231101
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    2
+   ]
+  },
+  "102411": {
+   "id": "102411",
+   "hero": "1024",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 2,
+   "kind": "active",
+   "name": "变质的饮品",
+   "desc": "被击倒后，给予击倒者[color=#91e1ff]1[/color]张卡牌。代理院长吸收此茶壶无法获得增益。",
+   "round": 0,
+   "buffs": [
+    10241101
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    1
+   ]
+  },
+  "102501": {
+   "id": "102501",
+   "hero": "1025",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 1,
+   "kind": "passive",
+   "name": "海王祝福",
+   "desc": "使1个未被强化的怪物攻击力[color=#94FF46]+1[/color]，防御力[color=#94FF46]+1[/color]。",
+   "round": 1,
+   "buffs": [
+    10250101
+   ],
+   "targets": [
+    101701
+   ],
+   "self": [
+    100501
+   ],
+   "params": [
+    1,
+    1
+   ]
+  },
+  "102601": {
+   "id": "102601",
+   "hero": "1026",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 1,
+   "kind": "passive",
+   "name": "连锁反应",
+   "desc": "丢弃5格内所有角色的[color=#91e1ff]1[/color]张效果牌。使用主动技能时，如果目标的手牌数少于4张，额外造成[color=#91e1ff]3[/color]点伤害。",
+   "round": 1,
+   "buffs": [],
+   "targets": [
+    102602
+   ],
+   "self": [
+    102601
+   ],
+   "params": [
+    5,
+    1,
+    4,
+    -3
+   ]
+  },
+  "102611": {
+   "id": "102611",
+   "hero": "1026",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 2,
+   "kind": "active",
+   "name": "湖沼之王",
+   "desc": "受到伤害时本轮获得[color=#91e1ff]1[/color]层[Astral=Buff:10261101][/Astral]。如果单次受到大于20点伤害，则移除所有[Astral=Buff:10261101][/Astral]层数，且本轮无法使用主动技能。",
+   "round": 0,
+   "buffs": [
+    10261101
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    -2,
+    2,
+    20
+   ]
+  },
+  "102701": {
+   "id": "102701",
+   "hero": "1027",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 1,
+   "kind": "passive",
+   "name": "召唤眷属",
+   "desc": "召唤[color=#91e1ff]1[/color]只金小鱼。",
+   "round": 2,
+   "buffs": [],
+   "targets": [],
+   "self": [
+    10701
+   ],
+   "params": [
+    1030,
+    1
+   ]
+  },
+  "102711": {
+   "id": "102711",
+   "hero": "1027",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 2,
+   "kind": "active",
+   "name": "川流之主",
+   "desc": "反击时，获得[color=#91e1ff]2[/color]层[Astral=Buff:10271101][/Astral]。",
+   "round": 0,
+   "buffs": [
+    10271101
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    2,
+    1,
+    1
+   ]
+  },
+  "102811": {
+   "id": "102811",
+   "hero": "1028",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 2,
+   "kind": "active",
+   "name": "逆势而上",
+   "desc": "受到伤害后，攻击力永久[color=#94FF46]+1[/color]。",
+   "round": 0,
+   "buffs": [
+    10281101
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    1
+   ]
+  },
+  "102911": {
+   "id": "102911",
+   "hero": "1029",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 2,
+   "kind": "active",
+   "name": "碾压打击",
+   "desc": "攻击手牌数低于4的角色时，攻击力[color=#94FF46]+3[/color]。",
+   "round": 0,
+   "buffs": [
+    10291101
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    4,
+    3
+   ]
+  },
+  "103001": {
+   "id": "103001",
+   "hero": "1030",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 1,
+   "kind": "passive",
+   "name": "眷族支援",
+   "desc": "为天川苍鲤施加[color=#91e1ff]1[/color]层[Astral=Buff:10271101][/Astral]。",
+   "round": 1,
+   "buffs": [],
+   "targets": [
+    101701
+   ],
+   "self": [
+    100501
+   ],
+   "params": [
+    1027,
+    1,
+    10271101,
+    1,
+    1
+   ]
+  },
+  "10301": {
+   "id": "10301",
+   "hero": "103",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "铁处女",
+   "desc": "使用主动技能后，无法被挑战并免疫陷阱，持续[color=#91e1ff]1[/color]轮。自身没有触发被动时，额外获得被动效果。",
+   "round": 3,
+   "buffs": [
+    1030101
+   ],
+   "targets": [],
+   "self": [
+    10301
+   ],
+   "params": [
+    10311
+   ]
+  },
+  "103011": {
+   "id": "103011",
+   "hero": "1030",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 2,
+   "kind": "active",
+   "name": "",
+   "desc": "",
+   "round": 0,
+   "buffs": [
+    10301101
+   ],
+   "targets": [],
+   "self": [],
+   "params": []
+  },
+  "10302": {
+   "id": "10302",
+   "hero": "103",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "铁处女",
+   "desc": "使用主动技能后，无法被挑战并免疫陷阱，持续[color=#91e1ff]1[/color]轮。自身没有触发被动时，额外获得被动效果。",
+   "round": 3,
+   "buffs": [
+    1030201
+   ],
+   "targets": [],
+   "self": [
+    10301
+   ],
+   "params": [
+    10311
+   ]
+  },
+  "103101": {
+   "id": "103101",
+   "hero": "1031",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 1,
+   "kind": "passive",
+   "name": "尖刺风暴",
+   "desc": "对4格内所有角色造成[color=#91e1ff]2[/color]点伤害。",
+   "round": 1,
+   "buffs": [],
+   "targets": [
+    3000900
+   ],
+   "self": [
+    103101
+   ],
+   "params": [
+    4,
+    -2
+   ]
+  },
+  "10311": {
+   "id": "10311",
+   "hero": "103",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "鼓起勇气！",
+   "desc": "如果上个回合没有受到伤害，则攻击力[color=#94FF46]+3[/color]（不叠加，受伤后清除）。",
+   "round": 0,
+   "buffs": [
+    1031101
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    3
+   ]
+  },
+  "103111": {
+   "id": "103111",
+   "hero": "1031",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 2,
+   "kind": "active",
+   "name": "我搭档呢！",
+   "desc": "如果练家子被击倒，则攻击力[color=#94FF46]+2[/color]，防御力[color=#94FF46]+2[/color]并可以反击。",
+   "round": 0,
+   "buffs": [
+    10311101,
+    10311102
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    3,
+    1032
+   ]
+  },
+  "103211": {
+   "id": "103211",
+   "hero": "1032",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 2,
+   "kind": "active",
+   "name": "我兄弟呢！",
+   "desc": "如果大嗓门被击倒，则攻击力[color=#94FF46]+3[/color]并开始移动。",
+   "round": 0,
+   "buffs": [
+    10321101,
+    10311102
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    2,
+    2,
+    1031
+   ]
+  },
+  "103301": {
+   "id": "103301",
+   "hero": "1033",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 1,
+   "kind": "passive",
+   "name": "身体改造",
+   "desc": "指定未拥有[Astral=Buff:10009][/Astral]且距离最近的一个角色施加[color=#91e1ff]3[/color]层[Astral=Buff:10009][/Astral]，并使自身[color=#91e1ff]2[/color]格内的地块覆盖毒雾。",
+   "round": 3,
+   "buffs": [],
+   "targets": [
+    103302
+   ],
+   "self": [
+    100501
+   ],
+   "params": [
+    3,
+    2400,
+    2,
+    2
+   ]
+  },
+  "103311": {
+   "id": "103311",
+   "hero": "1033",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 2,
+   "kind": "active",
+   "name": "深度改造",
+   "desc": "初始拥有[color=#91e1ff]3[/color]层[Astral=Buff:10331101][/Astral]。 人造生命体被击倒后，移除[color=#91e1ff]1[/color]层[Astral=Buff:10331101][/Astral]。",
+   "round": 0,
+   "buffs": [
+    10331101
+   ],
+   "targets": [],
+   "self": [
+    103301
+   ],
+   "params": [
+    3,
+    2500,
+    250001,
+    2,
+    -1
+   ]
+  },
+  "103411": {
+   "id": "103411",
+   "hero": "1034",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 2,
+   "kind": "active",
+   "name": "惊吓攻击",
+   "desc": "攻击拥有[Astral=Buff:10009][/Astral]的角色时，攻击力[color=#FF4646]-2[/color]。",
+   "round": 0,
+   "buffs": [
+    10341101
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    -2
+   ]
+  },
+  "103501": {
+   "id": "103501",
+   "hero": "1035",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 1,
+   "kind": "passive",
+   "name": "妙手神医",
+   "desc": "指定6格内未拥有[Astral=Buff:10009][/Astral]的一个角色恢复其[color=#91e1ff]1[/color]点生命，并施加[color=#91e1ff]3[/color]层[Astral=Buff:10009][/Astral]。",
+   "round": 3,
+   "buffs": [],
+   "targets": [
+    103302
+   ],
+   "self": [
+    100501
+   ],
+   "params": [
+    6,
+    1,
+    3
+   ]
+  },
+  "103511": {
+   "id": "103511",
+   "hero": "1035",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 2,
+   "kind": "active",
+   "name": "安抚糖果",
+   "desc": "被击倒后，给予击倒者[color=#91e1ff]1[/color]张随机糖果卡牌。",
+   "round": 0,
+   "buffs": [
+    10351101
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    21014,
+    500,
+    21015,
+    1,
+    21016,
+    400
+   ]
+  },
+  "103611": {
+   "id": "103611",
+   "hero": "1036",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 2,
+   "kind": "active",
+   "name": "不稳定改造",
+   "desc": "攻击拥有[Astral=Buff:10009][/Astral]的角色时，攻击力[color=#94FF46]+3[/color]，此次攻击命中后恢复自身[color=#91e1ff]3[/color]点生命值。",
+   "round": 0,
+   "buffs": [
+    10361101
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    3,
+    3
+   ]
+  },
+  "103701": {
+   "id": "103701",
+   "hero": "1037",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 1,
+   "kind": "passive",
+   "name": "连锁反应",
+   "desc": "使所有被[Astral=Buff:10009][/Astral]的角色失去[color=#91e1ff]2[/color]点生命值，自己恢复等量生命值。",
+   "round": 2,
+   "buffs": [],
+   "targets": [
+    2001901
+   ],
+   "self": [
+    103701
+   ],
+   "params": [
+    -2
+   ]
+  },
+  "103711": {
+   "id": "103711",
+   "hero": "1037",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 2,
+   "kind": "active",
+   "name": "保护机制",
+   "desc": "被击倒后，移除科学怪人[color=#91e1ff]1[/color]层[Astral=Buff:10331101][/Astral]。",
+   "round": 0,
+   "buffs": [
+    10371101
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    2500,
+    1033,
+    10331101
+   ]
+  },
+  "104001": {
+   "id": "104001",
+   "hero": "1040",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 1,
+   "kind": "passive",
+   "name": "强制改造",
+   "desc": "使自身获得[color=#91e1ff]4[/color]层[Astral=Buff:10009][/Astral]",
+   "round": 99,
+   "buffs": [],
+   "targets": [],
+   "self": [
+    100501
+   ],
+   "params": [
+    4
+   ]
+  },
+  "10401": {
+   "id": "10401",
+   "hero": "104",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "忍术连击",
+   "desc": "本回合出牌数[color=#94FF46]+1[/color]。",
+   "round": 3,
+   "buffs": [],
+   "targets": [],
+   "self": [
+    10401
+   ],
+   "params": [
+    1
+   ]
+  },
+  "104011": {
+   "id": "104011",
+   "hero": "1040",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 2,
+   "kind": "active",
+   "name": "特殊装备",
+   "desc": "移动与闪避的最终点数固定为[color=#91e1ff]4[/color]，且移动时对经过的角色造成[color=#91e1ff]2[/color]点伤害。 被击倒后，给予击倒者[color=#91e1ff]1[/color]张随机糖果卡牌。",
+   "round": 0,
+   "buffs": [
+    10401101
+   ],
+   "targets": [
+    11902
+   ],
+   "self": [],
+   "params": [
+    4,
+    4,
+    -2,
+    21014,
+    400,
+    21015,
+    300,
+    21016,
+    300
+   ]
+  },
+  "104101": {
+   "id": "104101",
+   "hero": "1041",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 1,
+   "kind": "passive",
+   "name": "战缚魂契",
+   "desc": "指定未拥有[Astral=Buff:10091202][/Astral]的一个角色，施加[Astral=Buff:10091202][/Astral]。随后，获得X层[Astral=Buff:10410101][/Astral]。X为场上有[Astral=Buff:10091202][/Astral]角色数。",
+   "round": 1,
+   "buffs": [
+    10091202,
+    10410101
+   ],
+   "targets": [
+    104103,
+    104102
+   ],
+   "self": [
+    104101
+   ],
+   "params": [
+    -2,
+    5,
+    10
+   ]
+  },
+  "10411": {
+   "id": "10411",
+   "hero": "104",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "复制忍者",
+   "desc": "每使用3张效果牌，复制最后使用的那张效果牌并加入手牌。",
+   "round": 0,
+   "buffs": [
+    1041101
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    3
+   ]
+  },
+  "104111": {
+   "id": "104111",
+   "hero": "1041",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 2,
+   "kind": "active",
+   "name": "高阶御魂（武魂灵体-戮）",
+   "desc": "交战后，移除自身[color=#91e1ff]1[/color]层[Astral=Buff:10410101][/Astral]。 被挑战时，本次交战攻击力[color=#94FF46]+3[/color]、防御力[color=#94FF46]+3[/color]。 被击倒后，天王寺雅央失去[color=#91e1ff]10%[/color][Astral=Blood:1011*0.1][/Astral]生命值上限的生命值。",
+   "round": 0,
+   "buffs": [
+    10411101,
+    10410101
+   ],
+   "targets": [
+    3000600
+   ],
+   "self": [],
+   "params": [
+    1,
+    3,
+    3,
+    -10
+   ]
+  },
+  "10412": {
+   "id": "10412",
+   "hero": "104",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "复制忍者",
+   "desc": "每使用3张效果牌，复制最后使用的那张效果牌并加入手牌。",
+   "round": 0,
+   "buffs": [
+    1041201
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    3,
+    -1,
+    1
+   ]
+  },
+  "104201": {
+   "id": "104201",
+   "hero": "1042",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 1,
+   "kind": "passive",
+   "name": "怨毒噬骨",
+   "desc": "指定生命值最高的一个角色，造成[color=#91e1ff]2[/color]点伤害，并施加[Astral=Buff:10081102][/Astral]。随后对场上所有拥有[Astral=Buff:10081102][/Astral]的角色造成[color=#91e1ff]1[/color]点伤害。",
+   "round": 1,
+   "buffs": [
+    10081102
+   ],
+   "targets": [
+    104201,
+    104202
+   ],
+   "self": [
+    100501
+   ],
+   "params": [
+    -2,
+    -1,
+    10081102,
+    -1
+   ]
+  },
+  "104211": {
+   "id": "104211",
+   "hero": "1042",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 2,
+   "kind": "active",
+   "name": "高阶御魂（武魂灵体-怨）",
+   "desc": "回合开始时，对3格内的所有角色施加[Astral=Buff:10081102][/Astral]。 被击倒后，天王寺雅央失去[color=#91e1ff]10%[/color][Astral=Blood:1011*0.1][/Astral]生命值上限的生命值。",
+   "round": 0,
+   "buffs": [
+    10421101
+   ],
+   "targets": [
+    3000600
+   ],
+   "self": [],
+   "params": [
+    10081102,
+    -1,
+    3,
+    -10
+   ]
+  },
+  "104301": {
+   "id": "104301",
+   "hero": "1043",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 1,
+   "kind": "passive",
+   "name": "疾驰",
+   "desc": "5格内的所有怪物移动速度[color=#94FF46]+2[/color]，持续[color=#91e1ff]2[/color]轮。",
+   "round": 3,
+   "buffs": [
+    10430101
+   ],
+   "targets": [],
+   "self": [
+    100501
+   ],
+   "params": [
+    4,
+    2
+   ]
+  },
+  "104411": {
+   "id": "104411",
+   "hero": "1044",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 2,
+   "kind": "active",
+   "name": "遗落彩羽",
+   "desc": "被击倒后，给予击倒者[color=#91e1ff]1[/color]张[Astral=Card:21020][/Astral]。",
+   "round": 0,
+   "buffs": [
+    10441101
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    21020
+   ]
+  },
+  "104501": {
+   "id": "104501",
+   "hero": "1045",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 1,
+   "kind": "passive",
+   "name": "仙力反噬",
+   "desc": "对3格内的所有角色造成[color=#91e1ff]2[/color]点伤害，并传送至其起始点。",
+   "round": 2,
+   "buffs": [],
+   "targets": [
+    2102001,
+    2102002
+   ],
+   "self": [
+    100501
+   ],
+   "params": [
+    3,
+    -2
+   ]
+  },
+  "104601": {
+   "id": "104601",
+   "hero": "1046",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 1,
+   "kind": "passive",
+   "name": "斗艳",
+   "desc": "指定场上生命值最高的一个角色与自身施加[Astral=Buff:10460101][/Astral]。",
+   "round": 3,
+   "buffs": [
+    10460101
+   ],
+   "targets": [
+    104601
+   ],
+   "self": [
+    104602
+   ],
+   "params": [
+    1046,
+    2,
+    2,
+    1
+   ]
+  },
+  "104611": {
+   "id": "104611",
+   "hero": "1046",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 2,
+   "kind": "active",
+   "name": "百鸟之姿",
+   "desc": "回合结束时，恢复[color=#91e1ff]2[/color]点生命值。",
+   "round": 0,
+   "buffs": [
+    10461101
+   ],
+   "targets": [],
+   "self": [
+    104102
+   ],
+   "params": [
+    2
+   ]
+  },
+  "104701": {
+   "id": "104701",
+   "hero": "1047",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 1,
+   "kind": "passive",
+   "name": "鸳鸯连理",
+   "desc": "指定最近且未拥有[Astral=Buff:10470101][/Astral]的一个角色施加[Astral=Buff:10470101][/Astral]，持续[color=#91e1ff]3[/color]轮。",
+   "round": 2,
+   "buffs": [
+    10470101
+   ],
+   "targets": [
+    104103
+   ],
+   "self": [
+    100501
+   ],
+   "params": [
+    -1,
+    -1,
+    2
+   ]
+  },
+  "104711": {
+   "id": "104711",
+   "hero": "1047",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 2,
+   "kind": "active",
+   "name": "连理之绊",
+   "desc": "与拥有[Astral=Buff:10470101][/Astral]的角色交战时，攻击力[color=#94FF46]+2[/color]、防御力[color=#94FF46]+2[/color]。场上有拥有[Astral=Buff:10470101][/Astral]的角色时，可以自由选择移动方向，且会朝距离最近且拥有[Astral=Buff:10470101][/Astral]的角色移动。",
+   "round": 0,
+   "buffs": [
+    10471101
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    2,
+    2,
+    10470101
+   ]
+  },
+  "104801": {
+   "id": "104801",
+   "hero": "1048",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 1,
+   "kind": "passive",
+   "name": "连理试炼",
+   "desc": "随机指定未拥有[Astral=Buff:10470101][/Astral]的[color=#91e1ff]2[/color]个角色施加[Astral=Buff:10470101][/Astral]，持续[color=#91e1ff]3[/color]轮。",
+   "round": 2,
+   "buffs": [
+    10470101
+   ],
+   "targets": [
+    104103
+   ],
+   "self": [
+    104801
+   ],
+   "params": [
+    -1,
+    -1,
+    2,
+    2
+   ]
+  },
+  "104811": {
+   "id": "104811",
+   "hero": "1048",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 2,
+   "kind": "active",
+   "name": "孤寂",
+   "desc": "回合开始时，如果4格内没有其他角色，移动[color=#94FF46]+2[/color]，防御力[color=#94FF46]+2[/color]，持续[color=#91e1ff]1[/color]回合。 攻击命中后，对目标施加[Astral=Buff:10470101][/Astral]，持续[color=#91e1ff]3[/color]轮。 攻击拥有[Astral=Buff:10470101][/Astral]的目标时攻击[color=#94FF46]+3[/color]。",
+   "round": 0,
+   "buffs": [
+    10481101,
+    10481102
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    4,
+    2,
+    2,
+    10470101,
+    4,
+    104801
+   ]
+  },
+  "104901": {
+   "id": "104901",
+   "hero": "1049",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 1,
+   "kind": "passive",
+   "name": "百鸟试炼",
+   "desc": "对5格内的所有角色施加[color=#91e1ff]2[/color]层[Astral=Buff:10490101][/Astral] 。",
+   "round": 2,
+   "buffs": [
+    10490101,
+    10490102
+   ],
+   "targets": [
+    104103
+   ],
+   "self": [
+    104901
+   ],
+   "params": [
+    5,
+    2,
+    2,
+    1,
+    1
+   ]
+  },
+  "104911": {
+   "id": "104911",
+   "hero": "1049",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 2,
+   "kind": "active",
+   "name": "扩散之焰",
+   "desc": "攻击命中时，施加[color=#91e1ff]2[/color]层[Astral=Buff:10490101][/Astral] 。",
+   "round": 0,
+   "buffs": [
+    10491101
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    2,
+    10490101,
+    104901
+   ]
+  },
+  "10501": {
+   "id": "10501",
+   "hero": "105",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "真的生气了",
+   "desc": "被动技能全取最大值增加，持续[color=#91e1ff]1[/color]轮。",
+   "round": 3,
+   "buffs": [
+    1050101
+   ],
+   "targets": [],
+   "self": [
+    10501
+   ],
+   "params": [
+    10511
+   ]
+  },
+  "105011": {
+   "id": "105011",
+   "hero": "1050",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 2,
+   "kind": "active",
+   "name": "扩散之焰",
+   "desc": "攻击命中时，施加[color=#91e1ff]2[/color]层[Astral=Buff:10490101][/Astral] 。",
+   "round": 0,
+   "buffs": [
+    10501101
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    2102101
+   ]
+  },
+  "10511": {
+   "id": "10511",
+   "hero": "105",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "毫无主见",
+   "desc": "在原有的基础上每个回合浮动增加或减少属性；攻击力[color=#FF4646]-2[/color]~[color=#94FF46]+2[/color]，防御力[color=#FF4646]-2[/color]~[color=#94FF46]+2[/color]，移动速度[color=#FF4646]-2[/color]~[color=#94FF46]+2[/color]。",
+   "round": 0,
+   "buffs": [
+    1051101
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    2,
+    2,
+    2
+   ]
+  },
+  "10512": {
+   "id": "10512",
+   "hero": "105",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "毫无主见",
+   "desc": "在原有的基础上每个回合浮动增加或减少属性；攻击力[color=#FF4646]-2[/color]~[color=#94FF46]+2[/color]，防御力[color=#FF4646]-2[/color]~[color=#94FF46]+2[/color]，移动速度[color=#FF4646]-2[/color]~[color=#94FF46]+2[/color]。",
+   "round": 0,
+   "buffs": [
+    1051201
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    6,
+    2
+   ]
+  },
+  "105301": {
+   "id": "105301",
+   "hero": "1053",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 1,
+   "kind": "passive",
+   "name": "灼翼",
+   "desc": "使6格范围外角色的[color=#91e1ff]1[/color]张随机手牌转变为[Astral=Card:21022][/Astral]。 对所有角色施加[Astral=Buff:10470101][/Astral]，持续[color=#91e1ff]3[/color]轮。",
+   "round": 2,
+   "buffs": [
+    10470101
+   ],
+   "targets": [
+    104103
+   ],
+   "self": [
+    100501
+   ],
+   "params": [
+    -1,
+    -1,
+    2,
+    21022,
+    1,
+    6
+   ]
+  },
+  "105311": {
+   "id": "105311",
+   "hero": "1053",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 2,
+   "kind": "active",
+   "name": "浴火",
+   "desc": "回合开始时，对5格内的角色施加[color=#91e1ff]1[/color]层[Astral=Buff:10490101][/Astral]，随后使自身失去[color=#91e1ff]10%[/color]的当前生命值。     每失去30点生命值，自身攻击力[color=#94FF46]+1[/color]，当前生命值不超过生命值上限50%时，移动速度[color=#94FF46]+2[/color]，攻击力[color=#94FF46]+2[/color]。",
+   "round": 0,
+   "buffs": [
+    10531101
+   ],
+   "targets": [],
+   "self": [
+    105301
+   ],
+   "params": [
+    5,
+    10490101,
+    104901,
+    10,
+    30,
+    1,
+    50,
+    2,
+    2
+   ]
+  },
+  "105312": {
+   "id": "105312",
+   "hero": "1053",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 2,
+   "kind": "active",
+   "name": "灰烬",
+   "desc": "初始拥有6层[Astral=Buff:10531201][/Astral]。 角色使用[Astral=Card:21020][/Astral]时，移除1层[Astral=Buff:10531201][/Astral]。",
+   "round": 0,
+   "buffs": [
+    10531201
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    6,
+    1,
+    -1
+   ]
+  },
+  "105401": {
+   "id": "105401",
+   "hero": "1054",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 1,
+   "kind": "passive",
+   "name": "大烟花不安全燃放",
+   "desc": "指定5格内生命值最高的一个角色，对目标及附近2格内的所有角色造成自身攻击力的伤害。",
+   "round": 1,
+   "buffs": [],
+   "targets": [
+    105401
+   ],
+   "self": [
+    100501
+   ],
+   "params": [
+    5,
+    2
+   ]
+  },
+  "105501": {
+   "id": "105501",
+   "hero": "1055",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 1,
+   "kind": "passive",
+   "name": "过节就是要放更多烟花！",
+   "desc": "如果5格范围内有2只爆竹呱呱，则将它们合成为[color=#91e1ff]1[/color]个三联爆竹呱。 随后，召唤[color=#91e1ff]2[/color]只爆竹呱呱。 随后，6格内每有一个怪物，使自身获得[color=#91e1ff]1[/color]层[Astral=Buff:10131101][/Astral]。",
+   "round": 1,
+   "buffs": [
+    10131101
+   ],
+   "targets": [],
+   "self": [
+    105501
+   ],
+   "params": [
+    1016,
+    2,
+    1054,
+    0,
+    6,
+    1,
+    5,
+    2,
+    1
+   ]
+  },
+  "105511": {
+   "id": "105511",
+   "hero": "1055",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 2,
+   "kind": "active",
+   "name": "稳定中枢",
+   "desc": "每次受到伤害后，本轮受到伤害-1。",
+   "round": 0,
+   "buffs": [
+    10551101
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    -1
+   ]
+  },
+  "105701": {
+   "id": "105701",
+   "hero": "1057",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 1,
+   "kind": "passive",
+   "name": "超频",
+   "desc": "使所有智械怪物攻击力[color=#94FF46]+1[/color]、防御力[color=#94FF46]+1[/color]。",
+   "round": 3,
+   "buffs": [
+    10570101
+   ],
+   "targets": [],
+   "self": [
+    105701
+   ],
+   "params": [
+    1,
+    1
+   ]
+  },
+  "105801": {
+   "id": "105801",
+   "hero": "1058",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 1,
+   "kind": "passive",
+   "name": "无机演算",
+   "desc": "指定距离最近的一个受伤的普通怪物，如果是非智械怪物将其转化为智械海盗鲨，如果是智械怪物恢复其生命值至生命值上限。",
+   "round": 2,
+   "buffs": [],
+   "targets": [
+    101701
+   ],
+   "self": [
+    100501
+   ],
+   "params": [
+    1056
+   ]
+  },
+  "105811": {
+   "id": "105811",
+   "hero": "1058",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 2,
+   "kind": "active",
+   "name": "位面体",
+   "desc": "经过其它单位和被其它单位经过时不会触发战斗。",
+   "round": 0,
+   "buffs": [
+    10581101
+   ],
+   "targets": [],
+   "self": [],
+   "params": []
+  },
+  "10601": {
+   "id": "10601",
+   "hero": "106",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "嘬你一口",
+   "desc": "使用主动技能时，如果当前生命值超过生命值上限的50%则受到[color=#91e1ff]3[/color]点伤害。战斗造成伤害后，回复[color=#91e1ff]伤害量50%[/color]的生命值，持续[color=#91e1ff]1[/color]轮。",
+   "round": 3,
+   "buffs": [
+    1060101
+   ],
+   "targets": [],
+   "self": [
+    10602
+   ],
+   "params": [
+    50,
+    -3
+   ]
+  },
+  "10602": {
+   "id": "10602",
+   "hero": "106",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "嘬你一口",
+   "desc": "战斗造成伤害后，回复伤害量[color=#91e1ff]50%[/color]的生命值，持续[color=#91e1ff]1[/color]轮。",
+   "round": 3,
+   "buffs": [
+    1060101,
+    1060102
+   ],
+   "targets": [],
+   "self": [
+    10602
+   ],
+   "params": [
+    50,
+    0
+   ]
+  },
+  "106101": {
+   "id": "106101",
+   "hero": "1061",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 1,
+   "kind": "passive",
+   "name": "黄牌警告",
+   "desc": "指定距离最远的一个角色判罚，使其下次移动速度[color=#FF4646]-2[/color]。",
+   "round": 3,
+   "buffs": [
+    6015102
+   ],
+   "targets": [
+    106103
+   ],
+   "self": [
+    106101
+   ],
+   "params": [
+    -2
+   ]
+  },
+  "106102": {
+   "id": "106102",
+   "hero": "1061",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 1,
+   "kind": "passive",
+   "name": "红牌惩罚",
+   "desc": "指定距离最远的一个角色判罚，使其下次移动速度[color=#FF4646]-2[/color]。",
+   "round": 3,
+   "buffs": [
+    6015202,
+    6015203,
+    6015204,
+    6015205
+   ],
+   "targets": [
+    106104
+   ],
+   "self": [
+    106102
+   ],
+   "params": [
+    1000,
+    1000,
+    2
+   ]
+  },
+  "10611": {
+   "id": "10611",
+   "hero": "106",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "可爱即正义",
+   "desc": "当前生命值不超过生命值上限的50%时，攻击力[color=#94FF46]+3[/color]。",
+   "round": 0,
+   "buffs": [
+    1061101
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    50,
+    3,
+    1060102
+   ]
+  },
+  "106111": {
+   "id": "106111",
+   "hero": "1061",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 2,
+   "kind": "active",
+   "name": "主持解说",
+   "desc": "受到伤害为0，移动的最终点数固定为[color=#91e1ff]2[/color]，持续解说比赛. 被角色主动挑战时，受到伤害为0效果移除，移动的最终点数固定为[color=#91e1ff]6[/color]，[color=#91e1ff]加入战斗[/color]。",
+   "round": 0,
+   "buffs": [
+    10611101
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    2,
+    6
+   ]
+  },
+  "106112": {
+   "id": "106112",
+   "hero": "1061",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 2,
+   "kind": "active",
+   "name": "赛事主持",
+   "desc": "轮次5开始时，随机为本局游戏增加[color=#91e1ff]1[/color]个畸变组件。",
+   "round": 0,
+   "buffs": [
+    10611201
+   ],
+   "targets": [],
+   "self": [
+    100501
+   ],
+   "params": [
+    5,
+    300,
+    1200,
+    1000,
+    1000,
+    1000
+   ]
+  },
+  "106113": {
+   "id": "106113",
+   "hero": "1061",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 2,
+   "kind": "active",
+   "name": "高级人工智能",
+   "desc": "被击倒后，给予击倒者[color=#91e1ff]1[/color]张[Astral=Card:21024][/Astral]。",
+   "round": 0,
+   "buffs": [
+    10611301
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    21024
+   ]
+  },
+  "106201": {
+   "id": "106201",
+   "hero": "1062",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 1,
+   "kind": "passive",
+   "name": "标枪投掷",
+   "desc": "4格内没有角色才能使用主动技能，指定生命值最高的一个角色，造成[color=#91e1ff]2[/color]点伤害。 目标角色未拥有[Astral=Buff:10012][/Astral]时，额外造成[color=#91e1ff]1[/color]点伤害。",
+   "round": 3,
+   "buffs": [],
+   "targets": [
+    106202
+   ],
+   "self": [
+    106201
+   ],
+   "params": [
+    -2,
+    -1
+   ]
+  },
+  "106211": {
+   "id": "106211",
+   "hero": "1062",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 2,
+   "kind": "active",
+   "name": "标枪投掷",
+   "desc": "4格内没有角色才能使用主动技能，指定生命值最高的一个角色，造成[color=#91e1ff]2[/color]点伤害。 目标角色未拥有[Astral=Buff:10012][/Astral]时，额外造成[color=#91e1ff]1[/color]点伤害。",
+   "round": 0,
+   "buffs": [
+    10621101
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    4
+   ]
+  },
+  "106311": {
+   "id": "106311",
+   "hero": "1063",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 2,
+   "kind": "active",
+   "name": "自适应计算",
+   "desc": "攻击骰点只会是[color=#91e1ff]3~6[/color]。攻击时，如果防御方未拥有[Astral=Buff:10012][/Astral]，攻击骰点必定为[color=#91e1ff]6[/color]。  自身主动挑战发起的战斗中，如果造成的伤害大于1点，移除被挑战方[color=#91e1ff]1[/color]层[Astral=Buff:10012][/Astral]， 否则，增加被挑战方[color=#91e1ff]1[/color]层[Astral=Buff:10012][/Astral]。",
+   "round": 0,
+   "buffs": [
+    10631101
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    6,
+    1,
+    -1,
+    1
+   ]
+  },
+  "106401": {
+   "id": "106401",
+   "hero": "1064",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 1,
+   "kind": "passive",
+   "name": "大数据分析",
+   "desc": "指定5格内[Astral=Buff:10012][/Astral]层数最高的角色，移除[color=#91e1ff]1[/color]层[Astral=Buff:10012][/Astral]。 使用主动技能时，如果目标未拥有[Astral=Buff:10012][/Astral]，使其防御力[color=#FF4646]-2[/color]，持续[color=#91e1ff]2[/color]轮。",
+   "round": 3,
+   "buffs": [
+    10640101
+   ],
+   "targets": [
+    106402
+   ],
+   "self": [
+    106401
+   ],
+   "params": [
+    5,
+    -1,
+    -2
+   ]
+  },
+  "106501": {
+   "id": "106501",
+   "hero": "1065",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 1,
+   "kind": "passive",
+   "name": "物理主义者",
+   "desc": "指定[Astral=Buff:10012][/Astral]层数最高的一个角色，移除[color=#91e1ff]1[/color]层[Astral=Buff:10012][/Astral]。 使用主动技能时，如果场上所有角色都未拥有[Astral=Buff:10012][/Astral]，则对所有角色造成[color=#91e1ff]3[/color]点伤害。",
+   "round": 2,
+   "buffs": [],
+   "targets": [
+    106502,
+    106504
+   ],
+   "self": [
+    106501
+   ],
+   "params": [
+    -1,
+    -3
+   ]
+  },
+  "106511": {
+   "id": "106511",
+   "hero": "1065",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 2,
+   "kind": "active",
+   "name": "外置主脑",
+   "desc": "角色的[Astral=Buff:10012][/Astral]每被移除1层，自身获得[color=#91e1ff]1[/color]层[Astral=Buff:10651101][/Astral]。 回合开始时，如果轮次为3的倍数，召唤[color=#91e1ff]1[/color]个思维飞艇。召唤思维飞艇时，其生命值上限额外增加[Astral=Buff:10651101][/Astral]层数 [color=#91e1ff]*2[/color]。",
+   "round": 0,
+   "buffs": [
+    10651101,
+    10651102,
+    10651103,
+    10651104,
+    10651105
+   ],
+   "targets": [],
+   "self": [
+    106503
+   ],
+   "params": [
+    1,
+    3,
+    1066,
+    2,
+    3,
+    6,
+    9,
+    1,
+    1,
+    -1,
+    1,
+    1,
+    -2,
+    2,
+    2,
+    2,
+    1061,
+    6011301
+   ]
+  },
+  "106512": {
+   "id": "106512",
+   "hero": "1065",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 2,
+   "kind": "active",
+   "name": "硅基信仰",
+   "desc": "角色与本单位交战时，每拥有1层[Astral=Buff:10012][/Astral]，角色攻击力[color=#94FF46]+2[/color]",
+   "round": 0,
+   "buffs": [
+    10651201
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    2
+   ]
+  },
+  "106601": {
+   "id": "106601",
+   "hero": "1066",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 1,
+   "kind": "passive",
+   "name": "洞悉射线",
+   "desc": "指定6格内距离最近的一个角色，造成[color=#91e1ff]4[/color]点伤害，目标角色每拥有1层[Astral=Buff:10012][/Astral]，伤害降低[color=#91e1ff]1[/color]（伤害最低为[color=#91e1ff]1[/color]）。",
+   "round": 2,
+   "buffs": [
+    10651102,
+    10651103
+   ],
+   "targets": [
+    106602
+   ],
+   "self": [
+    106601
+   ],
+   "params": [
+    6,
+    -4,
+    0,
+    1,
+    -1
+   ]
+  },
+  "106701": {
+   "id": "106701",
+   "hero": "1067",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 1,
+   "kind": "passive",
+   "name": "罪证质疑",
+   "desc": "指定一个最近的角色，使其获得[color=#91e1ff]1[/color]张[Astral=Card:21025][/Astral]。 本技能轮次2及以后可用，在真凶揭露后不可用。",
+   "round": 3,
+   "buffs": [],
+   "targets": [
+    106702
+   ],
+   "self": [
+    106701
+   ],
+   "params": [
+    21025,
+    1,
+    2
+   ]
+  },
+  "106702": {
+   "id": "106702",
+   "hero": "1067",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 1,
+   "kind": "passive",
+   "name": "全员有罪",
+   "desc": "使所有角色获得[color=#91e1ff]1[/color]层[Astral=Buff:10013][/Astral]。 本技能真凶揭露后可用。",
+   "round": 3,
+   "buffs": [],
+   "targets": [
+    106704
+   ],
+   "self": [
+    106703
+   ],
+   "params": [
+    1
+   ]
+  },
+  "106711": {
+   "id": "106711",
+   "hero": "1067",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 2,
+   "kind": "active",
+   "name": "无限备用躯体",
+   "desc": "被击倒后，立即复活。(真凶揭露后不再复活) 每次复活后，生命值上限、攻击力、防御力，永久[color=#94FF46]+1[/color]。 击倒典狱长的角色，获得[color=#91e1ff]1[/color]层[Astral=Buff:10013][/Astral]。 真凶揭露后，本技能的复活效果失效。",
+   "round": 0,
+   "buffs": [
+    10671101
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    1,
+    1,
+    1,
+    1
+   ]
+  },
+  "106712": {
+   "id": "106712",
+   "hero": "1067",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 2,
+   "kind": "active",
+   "name": "罪人审判",
+   "desc": "仅会主动挑战拥有[Astral=Buff:10013][/Astral]的角色。(真凶揭露后，不再有目标限制，改为会主动挑战所有角色) 攻击时，目标每拥有1层[Astral=Buff:10013][/Astral]，攻击力[color=#94FF46]+1[/color]。",
+   "round": 0,
+   "buffs": [
+    10671201
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    1
+   ]
+  },
+  "106713": {
+   "id": "106713",
+   "hero": "1067",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 2,
+   "kind": "active",
+   "name": "真凶揭露",
+   "desc": "轮次开始时，如果轮次达到8或角色收集了4个线索，揭露真凶，以下所有效果生效： 揭露真凶时，场上拥有[Astral=Buff:10013][/Astral]且层数最高的所有角色，获得[Astral=Buff:10671302][/Astral]。 典狱长不再复活，不再有目标限制，会主动挑战所有角色。 典狱长生命值上限[color=#94FF46]+220[/color]、攻击力[color=#94FF46]+3[/color]、防御力[color=#94FF46]+10[/color]、移动速度[color=#94FF46]+5[/color]。 角色每收集一个线索，这个状态下的典狱长受到[color=#91e1ff]20[/color]点伤害、防御力[color=#FF4646]-2[/color]、移动速度[color=#FF4646]-1[/color]。 主动技能【全员有罪】解锁，不再使用主动技能【罪证质疑】。",
+   "round": 0,
+   "buffs": [
+    10671301,
+    10671302,
+    10671303
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    8,
+    4,
+    2,
+    2,
+    1,
+    2,
+    220,
+    3,
+    10,
+    5,
+    -20,
+    0,
+    -2,
+    -1,
+    5
+   ]
+  },
+  "106811": {
+   "id": "106811",
+   "hero": "1068",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 2,
+   "kind": "active",
+   "name": "不死之躯",
+   "desc": "被击倒后，[color=#91e1ff]2[/color]轮后在原位置复活。(收集2个线索后不再复活) 每次复活后，生命值上限永久[color=#94FF46]+2[/color]。 击倒看守的角色，获得[color=#91e1ff]1[/color]层[Astral=Buff:10013][/Astral]。",
+   "round": 0,
+   "buffs": [
+    10681101
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    2,
+    2,
+    2,
+    1,
+    2501
+   ]
+  },
+  "106812": {
+   "id": "106812",
+   "hero": "1068",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 2,
+   "kind": "active",
+   "name": "罪人搜寻",
+   "desc": "优先追击拥有[Astral=Buff:10013][/Astral]的角色。 仅会主动挑战拥有[Astral=Buff:10013][/Astral]的角色。看守累积受到5点伤害后，不再有目标限制，会主动挑战所有角色。 攻击时，目标每拥有1层[Astral=Buff:10013][/Astral]，攻击力[color=#94FF46]+1[/color]。",
+   "round": 0,
+   "buffs": [
+    10681201,
+    10681202
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    5,
+    1,
+    1
+   ]
+  },
+  "106911": {
+   "id": "106911",
+   "hero": "1069",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 2,
+   "kind": "active",
+   "name": "罪恶渴求",
+   "desc": "初始拥有1层[Astral=Buff:10013][/Astral]。 主动挑战角色后，如果目标角色拥有[Astral=Buff:10013][/Astral]，移除该角色1层[Astral=Buff:10013][/Astral]，自身获得1层[Astral=Buff:10013][/Astral]。 自身每拥有1层[Astral=Buff:10013][/Astral]，攻击力+1、防御力+1。",
+   "round": 0,
+   "buffs": [
+    10691101
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    1,
+    -1,
+    1,
+    1,
+    1
+   ]
+  },
+  "106912": {
+   "id": "106912",
+   "hero": "1069",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 2,
+   "kind": "active",
+   "name": "原罪茶饮",
+   "desc": "被击倒后，使击倒者获得罪恶茶壶的全部[Astral=Buff:10013][/Astral]。",
+   "round": 0,
+   "buffs": [
+    10691201
+   ],
+   "targets": [],
+   "self": [],
+   "params": []
+  },
+  "107001": {
+   "id": "107001",
+   "hero": "1070",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 1,
+   "kind": "passive",
+   "name": "探囊妙手",
+   "desc": "指定6格内星币最高的一个角色，夺取[color=#91e1ff]4[/color]星币。",
+   "round": 3,
+   "buffs": [],
+   "targets": [
+    107002
+   ],
+   "self": [
+    107001
+   ],
+   "params": [
+    6,
+    4
+   ]
+  },
+  "10701": {
+   "id": "10701",
+   "hero": "107",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "熊孩子特权",
+   "desc": "指定8格内的一个敌方角色，夺取随机[color=#91e1ff]1[/color]张卡牌。如果这张卡牌是效果牌则获得鼠鼠护盾。",
+   "round": 3,
+   "buffs": [],
+   "targets": [
+    10702
+   ],
+   "self": [
+    10701
+   ],
+   "params": [
+    8,
+    1,
+    1
+   ]
+  },
+  "107011": {
+   "id": "107011",
+   "hero": "1070",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 2,
+   "kind": "active",
+   "name": "盗亦有道",
+   "desc": "经过角色时，夺取[color=#91e1ff]4[/color]星币。 每累计夺取4星币，移动速度[color=#94FF46]+1[/color]。 被击倒后，给予击倒者自身累计夺取的星币。如果自身未夺取过星币，或累计夺取了大于等于12星币，额外给予击倒者[color=#91e1ff]6[/color]星币。",
+   "round": 0,
+   "buffs": [
+    10701101,
+    10701102
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    4,
+    4,
+    1,
+    12,
+    6
+   ]
+  },
+  "10702": {
+   "id": "10702",
+   "hero": "107",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "熊孩子特权",
+   "desc": "指定一名角色获取[color=#91e1ff]1[/color]张卡牌并获得鼠鼠护盾。鼠鼠护盾会使目标下次受到伤害[color=#94FF46]-99[/color]。",
+   "round": 3,
+   "buffs": [],
+   "targets": [
+    4000700
+   ],
+   "self": [
+    10701
+   ],
+   "params": [
+    1071101,
+    -99
+   ]
+  },
+  "10703": {
+   "id": "10703",
+   "hero": "107",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "熊孩子特权",
+   "desc": "指定一名角色获取[color=#91e1ff]1[/color]张卡牌并获得鼠鼠护盾。鼠鼠护盾会使目标下次受到伤害[color=#94FF46]-99[/color]。",
+   "round": 3,
+   "buffs": [],
+   "targets": [
+    4000700
+   ],
+   "self": [
+    10701
+   ],
+   "params": [
+    1071101,
+    -99,
+    1,
+    1060102
+   ]
+  },
+  "107101": {
+   "id": "107101",
+   "hero": "1071",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 1,
+   "kind": "passive",
+   "name": "呼朋引伴",
+   "desc": "召唤[color=#91e1ff]1[/color]个采集小熊。",
+   "round": 3,
+   "buffs": [],
+   "targets": [],
+   "self": [
+    107101
+   ],
+   "params": [
+    1,
+    1073
+   ]
+  },
+  "10711": {
+   "id": "10711",
+   "hero": "107",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "鼠鼠救我！",
+   "desc": "鼠鼠帮你抵抗伤害，下次受到伤害[color=#94FF46]-3[/color]。",
+   "round": 0,
+   "buffs": [
+    1071102
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    -3
+   ]
+  },
+  "107111": {
+   "id": "107111",
+   "hero": "1071",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 2,
+   "kind": "active",
+   "name": "好奇心",
+   "desc": "回合开始时，获得[color=#91e1ff]1[/color]层[Astral=Buff:10711102][/Astral]，对5格内拥有[Astral=Buff:10711103][/Astral]的所有角色造成[color=#91e1ff]3[/color]点伤害，并移除目标角色的[Astral=Buff:10711103][/Astral]。 如果当前生命值不超过生命值上限的[color=#91e1ff]60%[/color][Astral=Blood:1071*0.6][/Astral]，回合开始时额外获得[color=#91e1ff]1[/color]层[Astral=Buff:10711102][/Astral]。",
+   "round": 0,
+   "buffs": [
+    10711101,
+    10711102
+   ],
+   "targets": [
+    107112
+   ],
+   "self": [
+    107111
+   ],
+   "params": [
+    1,
+    2,
+    5,
+    3,
+    600,
+    1,
+    10711103
+   ]
+  },
+  "107112": {
+   "id": "107112",
+   "hero": "1071",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 2,
+   "kind": "active",
+   "name": "我可不好惹",
+   "desc": "被角色挑战后，对该角色施加[Astral=Buff:10711103][/Astral]，持续[color=#91e1ff]2[/color]回合，并使自身[Astral=Buff:10711102][/Astral]层数[color=#FF4646]-1[/color]。 如果当前生命值不超过生命值上限的[color=#91e1ff]60%[/color][Astral=Blood:1071*0.6][/Astral]，可以反击。",
+   "round": 0,
+   "buffs": [
+    10711201,
+    10711103
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    -1,
+    -1,
+    600,
+    1,
+    10711102
+   ]
+  },
+  "10712": {
+   "id": "10712",
+   "hero": "107",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "鼠鼠救我！",
+   "desc": "对友方角色使用主动技能时，如果目标生命值不超过生命值上限的50%，则自身获得鼠鼠护盾并获得[color=#91e1ff]1[/color]张卡牌。",
+   "round": 0,
+   "buffs": [
+    1071101
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    -99
+   ]
+  },
+  "107201": {
+   "id": "107201",
+   "hero": "1072",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 1,
+   "kind": "passive",
+   "name": "杂音攻击",
+   "desc": "对2格内的所有角色造成[color=#91e1ff]2[/color]点伤害。",
+   "round": 1,
+   "buffs": [],
+   "targets": [
+    107202
+   ],
+   "self": [
+    107201
+   ],
+   "params": [
+    2,
+    2
+   ]
+  },
+  "107211": {
+   "id": "107211",
+   "hero": "1072",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 2,
+   "kind": "active",
+   "name": "怒气积攒",
+   "desc": "主动技能每命中1个角色，使自身攻击力永久[color=#94FF46]+1[/color]。",
+   "round": 0,
+   "buffs": [
+    10721101
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    1
+   ]
+  },
+  "107301": {
+   "id": "107301",
+   "hero": "1073",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 1,
+   "kind": "passive",
+   "name": "异味蘑菇",
+   "desc": "指定5格内最近的一个角色，造成[color=#91e1ff]2[/color]点伤害并施加[Astral=Buff:10711103][/Astral]，持续[color=#91e1ff]2[/color]回合。",
+   "round": 2,
+   "buffs": [
+    10711103
+   ],
+   "targets": [
+    107302
+   ],
+   "self": [
+    107301
+   ],
+   "params": [
+    5,
+    2,
+    -1,
+    -1
+   ]
+  },
+  "107311": {
+   "id": "107311",
+   "hero": "1073",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 2,
+   "kind": "active",
+   "name": "遗落礼物",
+   "desc": "被击倒时，给予击倒者随机[color=#91e1ff]1[/color]张植物类型建筑卡。",
+   "round": 0,
+   "buffs": [
+    10731101
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    21026,
+    21027,
+    21028,
+    21029,
+    3000,
+    3000,
+    2000,
+    2000
+   ]
+  },
+  "107411": {
+   "id": "107411",
+   "hero": "1074",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 2,
+   "kind": "active",
+   "name": "最终计时",
+   "desc": "回合开始时，如果当前生命值不超过生命值上限的[color=#91e1ff]50%[/color][Astral=Blood:1074*0.5][/Astral]，自身攻击力永久[color=#94FF46]+1[/color]。",
+   "round": 0,
+   "buffs": [
+    10741101
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    500,
+    0,
+    1
+   ]
+  },
+  "10801": {
+   "id": "10801",
+   "hero": "108",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "商品补货",
+   "desc": "丢弃全部手牌，随后获得[color=#91e1ff]原手牌数量+1[/color]张卡牌。",
+   "round": 3,
+   "buffs": [],
+   "targets": [],
+   "self": [
+    10801
+   ],
+   "params": [
+    1
+   ]
+  },
+  "10811": {
+   "id": "10811",
+   "hero": "108",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "过期回收",
+   "desc": "每丢弃[color=#91e1ff]1[/color]张战斗牌，获得[color=#91e1ff]1[/color]星币。",
+   "round": 0,
+   "buffs": [
+    1081101
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    1
+   ]
+  },
+  "10812": {
+   "id": "10812",
+   "hero": "108",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "过期回收",
+   "desc": "每丢弃[color=#91e1ff]1[/color]张战斗牌，获得[color=#91e1ff]1[/color]星币。",
+   "round": 0,
+   "buffs": [
+    1081201
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    25
+   ]
+  },
+  "10850": {
+   "id": "10850",
+   "hero": "108",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "过期回收",
+   "desc": "每丢弃[color=#91e1ff]1[/color]张战斗牌，获得[color=#91e1ff]1[/color]星币。",
+   "round": 0,
+   "buffs": [
+    1085001
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    -1,
+    -1
+   ]
+  },
+  "10901": {
+   "id": "10901",
+   "hero": "109",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "过来吧你",
+   "desc": "拉取7格内的一个敌方角色到自身所在格，造成[color=#91e1ff]1[/color]点伤害，并使其移动速度[color=#FF4646]-2[/color]，持续[color=#91e1ff]1[/color]次移动。",
+   "round": 3,
+   "buffs": [
+    1090101
+   ],
+   "targets": [
+    10902
+   ],
+   "self": [
+    10901
+   ],
+   "params": [
+    7,
+    1,
+    -1,
+    -2
+   ]
+  },
+  "10902": {
+   "id": "10902",
+   "hero": "109",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "过来吧你",
+   "desc": "拉取7格内的一个怪物到自身所在格，造成[color=#91e1ff]5[/color]点伤害。",
+   "round": 4,
+   "buffs": [],
+   "targets": [],
+   "self": [
+    10901
+   ],
+   "params": [
+    7,
+    1,
+    -5
+   ]
+  },
+  "10903": {
+   "id": "10903",
+   "hero": "109",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "过来吧你",
+   "desc": "拉取7格内的一个怪物到自身所在格，造成[color=#91e1ff]5[/color]点伤害。",
+   "round": 4,
+   "buffs": [],
+   "targets": [],
+   "self": [
+    10901
+   ],
+   "params": [
+    7,
+    1,
+    -5,
+    6
+   ]
+  },
+  "10911": {
+   "id": "10911",
+   "hero": "109",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "垃圾分类",
+   "desc": "使用[Astral=Card:20019][/Astral]、[Astral=Card:20014][/Astral]、[Astral=Card:20002][/Astral]、[Astral=Card:20006][/Astral]时，在所在的地块放置【谜之物体】。",
+   "round": 0,
+   "buffs": [
+    1091101
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    2005,
+    20002,
+    20006,
+    20014,
+    20019
+   ]
+  },
+  "10912": {
+   "id": "10912",
+   "hero": "109",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "回收利用",
+   "desc": "击倒怪物后，主动技能冷却时间[color=#94FF46]-2[/color]。",
+   "round": 0,
+   "buffs": [
+    1091102
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    -2
+   ]
+  },
+  "10913": {
+   "id": "10913",
+   "hero": "109",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "回收利用",
+   "desc": "击倒怪物后，主动技能冷却时间[color=#94FF46]-2[/color]。",
+   "round": 0,
+   "buffs": [
+    1091301
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    1,
+    2
+   ]
+  },
+  "11001": {
+   "id": "11001",
+   "hero": "110",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "搞事情",
+   "desc": "获得[Astral=Card:20009][/Astral]或[Astral=Card:20015][/Astral]中的随机[color=#91e1ff]1[/color]张。",
+   "round": 4,
+   "buffs": [],
+   "targets": [],
+   "self": [
+    11001
+   ],
+   "params": [
+    20009,
+    20015
+   ]
+  },
+  "11002": {
+   "id": "11002",
+   "hero": "110",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "大吃特吃",
+   "desc": "获得[Astral=Card:20002][/Astral]或[Astral=Card:20014][/Astral]中的随机[color=#91e1ff]1[/color]张。",
+   "round": 3,
+   "buffs": [],
+   "targets": [],
+   "self": [
+    11001
+   ],
+   "params": [
+    20002,
+    20014
+   ]
+  },
+  "11011": {
+   "id": "11011",
+   "hero": "110",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "有好有坏",
+   "desc": "所有回血效果[color=#94FF46]+2[/color]，但是受到伤害也会[color=#FF4646]+1[/color] 。",
+   "round": 0,
+   "buffs": [
+    1101101
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    2,
+    1
+   ]
+  },
+  "11012": {
+   "id": "11012",
+   "hero": "110",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "有好有坏",
+   "desc": "使用[Astral=Card:20014][/Astral]、[Astral=Card:20002][/Astral]后，恢复[color=#91e1ff]5[/color]格内所有友方角色[color=#91e1ff]2[/color]点生命值。",
+   "round": 0,
+   "buffs": [
+    1101102
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    0,
+    0,
+    5,
+    2,
+    20002,
+    20014
+   ]
+  },
+  "11013": {
+   "id": "11013",
+   "hero": "110",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "有好有坏",
+   "desc": "使用[Astral=Card:20014][/Astral]、[Astral=Card:20002][/Astral]后，恢复[color=#91e1ff]5[/color]格内所有友方角色[color=#91e1ff]2[/color]点生命值。",
+   "round": 0,
+   "buffs": [
+    1101301,
+    10011
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    1,
+    5,
+    20014,
+    30006,
+    20002,
+    21006,
+    21014,
+    21015,
+    21016,
+    2
+   ]
+  },
+  "11101": {
+   "id": "11101",
+   "hero": "111",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "暗影融合",
+   "desc": "吸收所有影子，每吸收一个影子使自身攻击力[color=#94FF46]+1[/color]，防御力[color=#94FF46]+1[/color]，持续[color=#91e1ff]1[/color]回合。",
+   "round": 3,
+   "buffs": [
+    1110101
+   ],
+   "targets": [],
+   "self": [
+    11103
+   ],
+   "params": [
+    11111,
+    1,
+    1
+   ]
+  },
+  "11102": {
+   "id": "11102",
+   "hero": "111",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "暗影融合",
+   "desc": "选择一个影子进行传送，随后吸收所有影子。每吸收一个影子使自身攻击力[color=#94FF46]+1[/color]，持续[color=#91e1ff]1[/color]回合。",
+   "round": 3,
+   "buffs": [
+    1110201
+   ],
+   "targets": [],
+   "self": [
+    11102,
+    11101
+   ],
+   "params": [
+    11111,
+    1
+   ]
+  },
+  "11111": {
+   "id": "11111",
+   "hero": "111",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "双生之影",
+   "desc": "回合开始和攻击命中时，在墨影所在的地块放置一个【影子】，持续[color=#91e1ff]2[/color]回合。敌方角色与怪物停留在影子上时受到[color=#91e1ff]1[/color]点伤害。",
+   "round": 0,
+   "buffs": [
+    1111101
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    11111
+   ]
+  },
+  "11201": {
+   "id": "11201",
+   "hero": "112",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "附着粘液",
+   "desc": "指定10格内的一个敌方角色，使其移动速度[color=#FF4646]-3[/color]，持续[color=#91e1ff]2[/color]回合。",
+   "round": 4,
+   "buffs": [
+    1120101
+   ],
+   "targets": [
+    11202
+   ],
+   "self": [
+    11201
+   ],
+   "params": [
+    10,
+    1,
+    -3
+   ]
+  },
+  "11202": {
+   "id": "11202",
+   "hero": "112",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "治愈粘液",
+   "desc": "指定10格内的一个角色，该角色获得[color=#91e1ff]3[/color]层治愈。",
+   "round": 3,
+   "buffs": [],
+   "targets": [
+    11203
+   ],
+   "self": [
+    11201
+   ],
+   "params": [
+    10,
+    1,
+    0,
+    3
+   ]
+  },
+  "11203": {
+   "id": "11203",
+   "hero": "112",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "治愈粘液",
+   "desc": "指定一个角色，该角色获得[color=#91e1ff]3[/color]层治愈，使其4格内的所有怪物下次移动速度[color=#FF4646]-3[/color]。",
+   "round": 3,
+   "buffs": [
+    1120301
+   ],
+   "targets": [
+    11203
+   ],
+   "self": [
+    11201
+   ],
+   "params": [
+    1,
+    0,
+    3,
+    4,
+    -3
+   ]
+  },
+  "11211": {
+   "id": "11211",
+   "hero": "112",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "细胞分裂",
+   "desc": "受到伤害后，主动技能冷却时间[color=#94FF46]-1[/color]。",
+   "round": 0,
+   "buffs": [
+    1121101
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    11201,
+    -1
+   ]
+  },
+  "11212": {
+   "id": "11212",
+   "hero": "112",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "细胞分裂",
+   "desc": "受到伤害后，获得[color=#91e1ff]1[/color]层治愈，主动技能冷却时间[color=#94FF46]-1[/color]。",
+   "round": 0,
+   "buffs": [
+    1121102
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    11202,
+    -1,
+    1
+   ]
+  },
+  "11213": {
+   "id": "11213",
+   "hero": "112",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "细胞分裂",
+   "desc": "受到伤害后，主动技能冷却时间[color=#94FF46]-1[/color]。",
+   "round": 0,
+   "buffs": [
+    1121103
+   ],
+   "targets": [],
+   "self": [
+    11205
+   ],
+   "params": [
+    3,
+    2,
+    1,
+    11211,
+    2
+   ]
+  },
+  "11214": {
+   "id": "11214",
+   "hero": "112",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "细胞分裂",
+   "desc": "受到伤害后，获得[color=#91e1ff]1[/color]层治愈，主动技能冷却时间[color=#94FF46]-1[/color]。",
+   "round": 0,
+   "buffs": [
+    1121102
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    11203,
+    -1,
+    1
+   ]
+  },
+  "11301": {
+   "id": "11301",
+   "hero": "113",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "运功",
+   "desc": "回复[color=#91e1ff]2[/color]点生命值。如果拥有[Astral=Buff:1131201][/Astral]，则本回合攻击力[color=#94FF46]+3[/color]。",
+   "round": 3,
+   "buffs": [
+    1130201
+   ],
+   "targets": [],
+   "self": [
+    11301
+   ],
+   "params": [
+    2,
+    3,
+    1131201
+   ]
+  },
+  "11302": {
+   "id": "11302",
+   "hero": "113",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "运功",
+   "desc": "回复[color=#91e1ff]2[/color]点生命值。如果拥有[Astral=Buff:1131201][/Astral]，则本回合攻击力[color=#94FF46]+4[/color]。",
+   "round": 3,
+   "buffs": [
+    1130201
+   ],
+   "targets": [],
+   "self": [
+    11301
+   ],
+   "params": [
+    2,
+    4,
+    1131201
+   ]
+  },
+  "11311": {
+   "id": "11311",
+   "hero": "113",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "养精蓄锐",
+   "desc": "本回合未挑战别人，则在回合结束时获得[Astral=Buff:1131201][/Astral]。自身挑战发起的战斗结束后，移除[Astral=Buff:1131201][/Astral]。",
+   "round": 0,
+   "buffs": [
+    1131101
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    1
+   ]
+  },
+  "11312": {
+   "id": "11312",
+   "hero": "113",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "养精蓄锐",
+   "desc": "本回合未挑战别人，则在回合结束时获得[color=#91e1ff]1[/color]层[Astral=Buff:1131201][/Astral]，最多拥有[color=#91e1ff]1[/color]层。自身挑战发起的战斗结束后，移除[color=#91e1ff]1[/color]层[Astral=Buff:1131201][/Astral]。",
+   "round": 0,
+   "buffs": [
+    1131201
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    2,
+    2,
+    20027,
+    1,
+    1131401,
+    5,
+    1
+   ]
+  },
+  "11313": {
+   "id": "11313",
+   "hero": "113",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "心意相连",
+   "desc": "使用主动技能时，姬梦朝获得[color=#91e1ff]1[/color]张[Astral=Card:20027][/Astral]。",
+   "round": 0,
+   "buffs": [
+    1131301
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    123,
+    20027,
+    1
+   ]
+  },
+  "11314": {
+   "id": "11314",
+   "hero": "113",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "心意相连",
+   "desc": "使用主动技能时，姬梦朝获得[color=#91e1ff]1[/color]张[Astral=Card:20027][/Astral]。",
+   "round": 0,
+   "buffs": [
+    1131401
+   ],
+   "targets": [
+    11305,
+    11306
+   ],
+   "self": [],
+   "params": [
+    5,
+    2,
+    5,
+    2,
+    88,
+    1131201
+   ]
+  },
+  "11401": {
+   "id": "11401",
+   "hero": "114",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "宿命回响",
+   "desc": "指定一个角色，使其受到伤害[color=#FF4646]+1[/color]，持续[color=#91e1ff]2[/color]回合。 如果目标在持续期间被击倒，则蓝海晴获得[color=#91e1ff]4[/color]星币。如果持续期间内未被击倒，则目标回复[color=#91e1ff]4[/color]点生命。",
+   "round": 3,
+   "buffs": [
+    1140101
+   ],
+   "targets": [
+    11402
+   ],
+   "self": [
+    11401
+   ],
+   "params": [
+    1,
+    1,
+    4,
+    4
+   ]
+  },
+  "11402": {
+   "id": "11402",
+   "hero": "114",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "虚弱印记",
+   "desc": "指定一个怪物，使其受到伤害[color=#FF4646]+1[/color]，击倒该怪物使蓝海晴获得[color=#91e1ff]3[/color]星币，持续[color=#91e1ff]2[/color]回合。",
+   "round": 3,
+   "buffs": [
+    1140102
+   ],
+   "targets": [
+    11402
+   ],
+   "self": [
+    11401
+   ],
+   "params": [
+    1,
+    1,
+    3
+   ]
+  },
+  "11403": {
+   "id": "11403",
+   "hero": "114",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "虚弱印记",
+   "desc": "指定一个怪物，使其受到伤害[color=#FF4646]+1[/color]，击倒该怪物使蓝海晴获得[color=#91e1ff]3[/color]星币，持续[color=#91e1ff]2[/color]回合。",
+   "round": 3,
+   "buffs": [
+    1140102
+   ],
+   "targets": [
+    11402
+   ],
+   "self": [
+    11401
+   ],
+   "params": [
+    1,
+    1,
+    3,
+    20032,
+    20005
+   ]
+  },
+  "11411": {
+   "id": "11411",
+   "hero": "114",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "幸运点",
+   "desc": "自身移动的最终点数为6时，获得[color=#91e1ff]6[/color]星币。",
+   "round": 0,
+   "buffs": [
+    1141101
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    6,
+    6
+   ]
+  },
+  "11501": {
+   "id": "11501",
+   "hero": "115",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "樱花裂空斩",
+   "desc": "指定4格内的一个敌方角色，造成[color=#91e1ff]2[/color]点伤害并获得[color=#91e1ff]1[/color]层[Astral=Buff:1150101][/Astral]。",
+   "round": 3,
+   "buffs": [
+    1150101
+   ],
+   "targets": [
+    11502
+   ],
+   "self": [
+    11501
+   ],
+   "params": [
+    4,
+    1,
+    -2,
+    1
+   ]
+  },
+  "11502": {
+   "id": "11502",
+   "hero": "115",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "樱花裂空斩",
+   "desc": "指定4格内的一个怪物，造成[color=#91e1ff]2[/color]点伤害并获得[color=#91e1ff]1[/color]层[Astral=Buff:1150101][/Astral]。",
+   "round": 3,
+   "buffs": [
+    1150101
+   ],
+   "targets": [
+    11502
+   ],
+   "self": [
+    11501
+   ],
+   "params": [
+    4,
+    1,
+    -2,
+    1
+   ]
+  },
+  "11503": {
+   "id": "11503",
+   "hero": "115",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "樱花裂空斩",
+   "desc": "指定6格内的一个怪物，造成[color=#91e1ff]2[/color]点伤害并获得[color=#91e1ff]1[/color]层[Astral=Buff:1150101][/Astral]。 使用主动技能时，如果[Astral=Buff:1150101][/Astral]层数等于3，则改为造成[color=#91e1ff]2[/color]点伤害并消耗[color=#91e1ff]2[/color]层[Astral=Buff:1150101][/Astral]，获得[color=#91e1ff]1[/color]张[Astral=Card:10007][/Astral]。",
+   "round": 3,
+   "buffs": [
+    1150101
+   ],
+   "targets": [
+    11502
+   ],
+   "self": [
+    11501
+   ],
+   "params": [
+    6,
+    1,
+    -2
+   ]
+  },
+  "11511": {
+   "id": "11511",
+   "hero": "115",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "剑气",
+   "desc": "战斗时，如果自身攻击命中或闪避成功，获得[color=#91e1ff]1[/color]层[Astral=Buff:1150101][/Astral]，最多叠加[color=#91e1ff]3[/color]层。被击倒后，清除所有[Astral=Buff:1150101][/Astral]层数。",
+   "round": 0,
+   "buffs": [
+    1150101
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    3,
+    1,
+    2,
+    5
+   ]
+  },
+  "11512": {
+   "id": "11512",
+   "hero": "115",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "剑气",
+   "desc": "战斗时，如果自身攻击命中或闪避成功，获得[color=#91e1ff]1[/color]层[Astral=Buff:1150101][/Astral]，最多叠加[color=#91e1ff]3[/color]层。被击倒后，清除所有[Astral=Buff:1150101][/Astral]层数。",
+   "round": 0,
+   "buffs": [
+    1151201
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    3,
+    1,
+    2,
+    5,
+    10007,
+    -1,
+    -2
+   ]
+  },
+  "11601": {
+   "id": "11601",
+   "hero": "116",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "女王特权",
+   "desc": "获得[color=#91e1ff]3[/color]张临时卡牌。临时卡牌会在回合结束时自动丢弃。",
+   "round": 3,
+   "buffs": [],
+   "targets": [],
+   "self": [
+    11701
+   ],
+   "params": [
+    3
+   ]
+  },
+  "11611": {
+   "id": "11611",
+   "hero": "116",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "威压",
+   "desc": "攻击时，每比敌方多一张手牌，攻击力[color=#94FF46]+1[/color]，最多[color=#94FF46]+3[/color]。",
+   "round": 0,
+   "buffs": [
+    1161101
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    1,
+    3
+   ]
+  },
+  "11701": {
+   "id": "11701",
+   "hero": "117",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "能量过载",
+   "desc": "使用主动技能后，防御力[color=#FF4646]-3[/color]，移动速度[color=#94FF46]+3[/color]，持续[color=#91e1ff]1[/color]轮。",
+   "round": 4,
+   "buffs": [
+    1170101
+   ],
+   "targets": [],
+   "self": [
+    11701
+   ],
+   "params": [
+    -3,
+    3
+   ]
+  },
+  "11702": {
+   "id": "11702",
+   "hero": "117",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "能量过载",
+   "desc": "使用主动技能后，防御力[color=#FF4646]-3[/color]，移动速度[color=#94FF46]+3[/color]，持续[color=#91e1ff]1[/color]轮。",
+   "round": 4,
+   "buffs": [
+    1170102
+   ],
+   "targets": [],
+   "self": [
+    11701
+   ],
+   "params": [
+    -3,
+    3,
+    10,
+    2,
+    2
+   ]
+  },
+  "11711": {
+   "id": "11711",
+   "hero": "117",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "移动充能",
+   "desc": "每累计13点移动点数，交替使自身攻击力永久[color=#94FF46]+1[/color]、防御力永久[color=#94FF46]+1[/color]。",
+   "round": 0,
+   "buffs": [
+    1171101
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    13,
+    1,
+    1
+   ]
+  },
+  "11712": {
+   "id": "11712",
+   "hero": "117",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "移动充能",
+   "desc": "每累计13点移动点数，交替使自身攻击力永久[color=#94FF46]+1[/color]、防御力永久[color=#94FF46]+1[/color]。",
+   "round": 0,
+   "buffs": [
+    1171201
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    -2
+   ]
+  },
+  "11801": {
+   "id": "11801",
+   "hero": "118",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "强者怜悯",
+   "desc": "选择[color=#91e1ff]1-3[/color]张卡牌给予一个敌方角色，夺取目标[color=#91e1ff]给予牌数量*3[/color]的星币。",
+   "round": 3,
+   "buffs": [],
+   "targets": [
+    10702
+   ],
+   "self": [
+    10701
+   ],
+   "params": [
+    1,
+    3,
+    3
+   ]
+  },
+  "11802": {
+   "id": "11802",
+   "hero": "118",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "强者怜悯",
+   "desc": "选择[color=#91e1ff]1-3[/color]张卡牌给予一个友方角色，获取[color=#91e1ff]给予牌数量[/color]的星币。",
+   "round": 3,
+   "buffs": [],
+   "targets": [
+    4000700
+   ],
+   "self": [
+    10701
+   ],
+   "params": [
+    1,
+    3,
+    1
+   ]
+  },
+  "11811": {
+   "id": "11811",
+   "hero": "118",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "钞能力",
+   "desc": "获得星币时，攻击力[color=#94FF46]+2[/color]，防御力[color=#94FF46]+1[/color]，持续[color=#91e1ff]1[/color]轮。",
+   "round": 0,
+   "buffs": [
+    1181101
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    2,
+    1
+   ]
+  },
+  "11812": {
+   "id": "11812",
+   "hero": "118",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "双赢",
+   "desc": "使友方角色获得卡牌时，双方获得[color=#91e1ff]1[/color]层星光。自身每拥有6层星光，攻击力[color=#94FF46]+1[/color]，防御力[color=#94FF46]+1[/color]。",
+   "round": 0,
+   "buffs": [
+    1181201
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    1,
+    1,
+    6,
+    1,
+    1
+   ]
+  },
+  "11901": {
+   "id": "11901",
+   "hero": "119",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "无可阻挡",
+   "desc": "本回合移动骰点变为投[color=#91e1ff]2[/color]枚[color=#91e1ff]6[/color]面的骰子，移动时无法触发战斗，但会对经过的敌方角色和怪物造成[color=#91e1ff]移动步数50%[/color]的伤害。",
+   "round": 3,
+   "buffs": [
+    1190101
+   ],
+   "targets": [
+    11902
+   ],
+   "self": [
+    11901
+   ],
+   "params": [
+    2,
+    21,
+    2
+   ]
+  },
+  "11902": {
+   "id": "11902",
+   "hero": "119",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "无可阻挡",
+   "desc": "本回合移动骰点变为投[color=#91e1ff]2[/color]枚[color=#91e1ff]6[/color]面的骰子，移动时无法触发战斗，但会对经过的怪物造成[color=#91e1ff]2+自身攻击力[/color]的伤害。",
+   "round": 3,
+   "buffs": [
+    1190102
+   ],
+   "targets": [
+    11902
+   ],
+   "self": [
+    11901
+   ],
+   "params": [
+    2,
+    21,
+    2
+   ]
+  },
+  "11903": {
+   "id": "11903",
+   "hero": "119",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "无可阻挡",
+   "desc": "本回合移动骰点变为投[color=#91e1ff]2[/color]枚[color=#91e1ff]6[/color]面的骰子，移动时无法触发战斗，但会对经过的怪物造成[color=#91e1ff]2+自身攻击力[/color]的伤害。",
+   "round": 3,
+   "buffs": [
+    1190102
+   ],
+   "targets": [
+    11902
+   ],
+   "self": [
+    11901
+   ],
+   "params": [
+    2,
+    21,
+    2,
+    1,
+    1
+   ]
+  },
+  "11911": {
+   "id": "11911",
+   "hero": "119",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "蓄势待发",
+   "desc": "1回合1次，经过【保障点】后，主动技能冷却时间[color=#94FF46]-2[/color]。",
+   "round": 0,
+   "buffs": [
+    1191101
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    11901,
+    -2
+   ]
+  },
+  "11912": {
+   "id": "11912",
+   "hero": "119",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "蓄势待发",
+   "desc": "1回合1次，经过【保障点】后，主动技能冷却时间[color=#94FF46]-2[/color]。",
+   "round": 0,
+   "buffs": [
+    1191102
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    11902,
+    -2
+   ]
+  },
+  "11913": {
+   "id": "11913",
+   "hero": "119",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "蓄势待发",
+   "desc": "1回合1次，经过【保障点】后，主动技能冷却时间[color=#94FF46]-2[/color]。",
+   "round": 0,
+   "buffs": [
+    1191103
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    11903,
+    -2
+   ]
+  },
+  "12001": {
+   "id": "12001",
+   "hero": "120",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "远程侵入",
+   "desc": "远程挑战[color=#91e1ff]6[/color]格外的一个敌方角色，本次交战将不会触发被动技能的弃牌效果。",
+   "round": 3,
+   "buffs": [],
+   "targets": [],
+   "self": [
+    12001
+   ],
+   "params": [
+    6
+   ]
+  },
+  "12002": {
+   "id": "12002",
+   "hero": "120",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "远程侵入",
+   "desc": "远程挑战一个怪物，本次交战将不会触发被动技能的弃牌效果。如果目标距离南希露超过[color=#91e1ff]2[/color]格，则本次交战不会被反击。",
+   "round": 3,
+   "buffs": [],
+   "targets": [],
+   "self": [
+    12001
+   ],
+   "params": []
+  },
+  "12003": {
+   "id": "12003",
+   "hero": "120",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "远程侵入",
+   "desc": "远程挑战一个怪物，本次交战将不会触发被动技能的弃牌效果。如果目标距离南希露超过[color=#91e1ff]2[/color]格，则本次交战不会被反击。",
+   "round": 3,
+   "buffs": [
+    1201202
+   ],
+   "targets": [],
+   "self": [
+    12001
+   ],
+   "params": [
+    6,
+    1,
+    2,
+    2
+   ]
+  },
+  "12011": {
+   "id": "12011",
+   "hero": "120",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "被动防火墙",
+   "desc": "回合开始时，如果[color=#91e1ff]3[/color]格内没有其他敌方角色，则获得[color=#91e1ff]1[/color]张战斗牌，且自身攻击力[color=#94FF46]+1[/color]，防御力[color=#94FF46]+1[/color]，持续[color=#91e1ff]1[/color]轮。自身发起的战斗结束后，丢弃手牌中所有的战斗卡牌。",
+   "round": 0,
+   "buffs": [
+    1201101,
+    1201102
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    3,
+    1,
+    1,
+    1
+   ]
+  },
+  "12012": {
+   "id": "12012",
+   "hero": "120",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "被动防火墙",
+   "desc": "回合开始时，如果[color=#91e1ff]2[/color]格内没有怪物，则获得[color=#91e1ff]1[/color]张战斗牌，并获得[Astral=Buff:1201202][/Astral]，持续[color=#91e1ff]1[/color]轮。自身挑战发起的战斗结束后，随机丢弃手牌中的[color=#91e1ff]1[/color]张战斗牌。",
+   "round": 0,
+   "buffs": [
+    1201201,
+    1201202
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    2,
+    2,
+    2,
+    1,
+    1,
+    2,
+    1201301,
+    5
+   ]
+  },
+  "12013": {
+   "id": "12013",
+   "hero": "120",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "被动防火墙",
+   "desc": "回合开始时，如果[color=#91e1ff]2[/color]格内没有怪物，则获得[color=#91e1ff]1[/color]张战斗牌，并获得[Astral=Buff:1201202][/Astral]，持续[color=#91e1ff]1[/color]轮。自身挑战发起的战斗结束后，随机丢弃手牌中的[color=#91e1ff]1[/color]张战斗牌。",
+   "round": 0,
+   "buffs": [
+    1201301
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    1201202,
+    2,
+    -1
+   ]
+  },
+  "12101": {
+   "id": "12101",
+   "hero": "121",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "活体书页",
+   "desc": "获得[color=#91e1ff]1[/color]张[Astral=Card:20030][/Astral]；效果牌射程[color=#94FF46]+3[/color]，持续[color=#91e1ff]1[/color]回合。",
+   "round": 3,
+   "buffs": [
+    1210101
+   ],
+   "targets": [],
+   "self": [
+    11701
+   ],
+   "params": [
+    20030,
+    3
+   ]
+  },
+  "12102": {
+   "id": "12102",
+   "hero": "121",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "活体书页",
+   "desc": "获得[color=#91e1ff]1[/color]张[Astral=Card:20031][/Astral]；效果牌射程[color=#94FF46]+3[/color]，持续[color=#91e1ff]1[/color]回合。",
+   "round": 3,
+   "buffs": [
+    1210101
+   ],
+   "targets": [],
+   "self": [
+    11701
+   ],
+   "params": [
+    20031,
+    3
+   ]
+  },
+  "12111": {
+   "id": "12111",
+   "hero": "121",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "调查发现",
+   "desc": "事件触发后，获得[color=#91e1ff]1[/color]张[Astral=Card:20030][/Astral]。",
+   "round": 0,
+   "buffs": [
+    1211101
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    20030
+   ]
+  },
+  "12112": {
+   "id": "12112",
+   "hero": "121",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "调查发现",
+   "desc": "事件触发后，获得[color=#91e1ff]1[/color]张[Astral=Card:20031][/Astral]。 每次使用[Astral=Card:20031][/Astral]后，[Astral=Card:20031][/Astral]伤害永久[color=#94FF46]+1[/color]。",
+   "round": 0,
+   "buffs": [
+    1211201
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    20031,
+    1
+   ]
+  },
+  "12201": {
+   "id": "12201",
+   "hero": "122",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "轨道轰炸",
+   "desc": "丢弃所有手牌，每丢弃[color=#91e1ff]2[/color]张，对随机敌方角色造成[color=#91e1ff]1[/color]次[color=#91e1ff]2[/color]点伤害。",
+   "round": 3,
+   "buffs": [],
+   "targets": [
+    12201,
+    12202
+   ],
+   "self": [
+    12203
+   ],
+   "params": [
+    2,
+    2
+   ]
+  },
+  "12202": {
+   "id": "12202",
+   "hero": "122",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "轨道轰炸",
+   "desc": "丢弃所有卡牌，每丢弃2张，对6格内的随机怪物造成[color=#91e1ff]1[/color]次[color=#91e1ff]3[/color]点伤害的【轨道轰炸】。丢弃的卡牌中每有3点费用，【轨道轰炸】便会增加[color=#91e1ff]1[/color]点伤害。",
+   "round": 3,
+   "buffs": [],
+   "targets": [
+    12201,
+    12202
+   ],
+   "self": [
+    12203
+   ],
+   "params": [
+    3,
+    2,
+    6,
+    3,
+    1
+   ]
+  },
+  "12203": {
+   "id": "12203",
+   "hero": "122",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "轨道轰炸",
+   "desc": "传送到3格范围内的地块，随后丢弃所有卡牌，每丢弃2张，对6格内的随机怪物造成[color=#91e1ff]1[/color]次[color=#91e1ff]3[/color]点伤害的【轨道轰炸】。丢弃的卡牌中每有3点费用，【轨道轰炸】便会增加[color=#91e1ff]1[/color]点伤害。",
+   "round": 3,
+   "buffs": [],
+   "targets": [
+    12201,
+    12202
+   ],
+   "self": [
+    12203,
+    8000300,
+    8000301
+   ],
+   "params": [
+    3,
+    2,
+    6,
+    3,
+    1,
+    3,
+    1221202
+   ]
+  },
+  "12211": {
+   "id": "12211",
+   "hero": "122",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "物资补充",
+   "desc": "回合结束时，如果自身手牌少于6张，获得[color=#91e1ff]1[/color]张卡牌。",
+   "round": 0,
+   "buffs": [
+    1221101
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    6,
+    1
+   ]
+  },
+  "12212": {
+   "id": "12212",
+   "hero": "122",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "物资补充",
+   "desc": "使用轨道炮后，抽取1张战斗卡牌，对目标及附近2格内的怪物造成该战斗卡牌费用的伤害并施加[Astral=Buff:1221202][/Astral]",
+   "round": 0,
+   "buffs": [
+    1221201,
+    1221202
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    21001,
+    1,
+    1,
+    2,
+    1,
+    6
+   ]
+  },
+  "12301": {
+   "id": "12301",
+   "hero": "123",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "白泽赐福",
+   "desc": "自身获得[color=#91e1ff]治疗溢出量[/color]的星币，持续[color=#91e1ff]1[/color]回合。获得[color=#91e1ff]1[/color]张[Astral=Card:20027][/Astral]并将手牌中所有的[Astral=Card:20028][/Astral]转化为[Astral=Card:20027][/Astral]。",
+   "round": 3,
+   "buffs": [
+    1230101
+   ],
+   "targets": [
+    11411
+   ],
+   "self": [
+    12203
+   ],
+   "params": [
+    1,
+    20027,
+    20028
+   ]
+  },
+  "12302": {
+   "id": "12302",
+   "hero": "123",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "白泽赐福",
+   "desc": "指定一个角色施加[Astral=Buff:1230201][/Astral]，目标增加[color=#91e1ff]治疗溢出量[/color]的攻击力，持续[color=#91e1ff]1[/color]回合。获得[color=#91e1ff]1[/color]张[Astral=Card:20027][/Astral]且将手牌中所有的[Astral=Card:20029][/Astral]转化为[Astral=Card:20027][/Astral]。",
+   "round": 3,
+   "buffs": [
+    1230201
+   ],
+   "targets": [
+    11411
+   ],
+   "self": [
+    12203
+   ],
+   "params": [
+    1,
+    20027,
+    20029
+   ]
+  },
+  "12311": {
+   "id": "12311",
+   "hero": "123",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "福祸相倚",
+   "desc": "骰点为1时，获得[color=#91e1ff]1[/color]张[Astral=Card:20028][/Astral]，骰点为6时，获得[color=#91e1ff]1[/color]张[Astral=Card:20027][/Astral]。",
+   "round": 0,
+   "buffs": [
+    1231101
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    6,
+    20027,
+    1,
+    20028
+   ]
+  },
+  "12312": {
+   "id": "12312",
+   "hero": "123",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "福祸相倚",
+   "desc": "骰点为1时，获得[color=#91e1ff]1[/color]张[Astral=Card:20029][/Astral]，骰点为6时，获得[color=#91e1ff]1[/color]张[Astral=Card:20027][/Astral]。",
+   "round": 0,
+   "buffs": [
+    1231201
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    6,
+    20027,
+    1,
+    20029
+   ]
+  },
+  "12313": {
+   "id": "12313",
+   "hero": "123",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "完美帮手",
+   "desc": "对姬梦枫使用[Astral=Card:20027][/Astral]时，目标获得[color=#91e1ff]1[/color]层[Astral=Buff:1131201][/Astral]。",
+   "round": 0,
+   "buffs": [],
+   "targets": [],
+   "self": [],
+   "params": []
+  },
+  "12401": {
+   "id": "12401",
+   "hero": "124",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "降神",
+   "desc": "指定一个角色施加[Astral=Buff:1240102][/Astral]，本轮自身增加[Astral=Buff:1240102][/Astral]目标的攻击力与防御力。[Astral=Buff:1240102][/Astral]持续[color=#91e1ff]1[/color]回合。",
+   "round": 3,
+   "buffs": [
+    1240101,
+    1240102
+   ],
+   "targets": [
+    2002200
+   ],
+   "self": [
+    10701
+   ],
+   "params": [
+    100,
+    1241101,
+    1,
+    2
+   ]
+  },
+  "12402": {
+   "id": "12402",
+   "hero": "124",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "降神",
+   "desc": "指定一个角色施加[Astral=Buff:1240202][/Astral]，本轮自身增加[Astral=Buff:1240202][/Astral]目标[color=#91e1ff]50%[/color]的攻击力与防御力。[Astral=Buff:1240202][/Astral]目标攻击后，照会消耗[color=#91e1ff]1[/color]层[Astral=Buff:1241201][/Astral]并进行追击，[Astral=Buff:1240202][/Astral]持续[color=#91e1ff]1[/color]回合。",
+   "round": 3,
+   "buffs": [
+    1240201,
+    1240202
+   ],
+   "targets": [
+    11411
+   ],
+   "self": [
+    10701
+   ],
+   "params": [
+    50,
+    1241201,
+    2,
+    1,
+    1
+   ]
+  },
+  "12411": {
+   "id": "12411",
+   "hero": "124",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "狐火",
+   "desc": "使用主动技能时，夺取目标[color=#91e1ff][Astral=Buff:1241101][/Astral]层数[/color]的星币。自身或拥有[Astral=Buff:1240102][/Astral]的目标使用费用2及以上的攻击牌时，自身获得[color=#91e1ff]1[/color]层[Astral=Buff:1241101][/Astral]。",
+   "round": 0,
+   "buffs": [
+    1241101
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    2
+   ]
+  },
+  "12412": {
+   "id": "12412",
+   "hero": "124",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "狐火",
+   "desc": "自身或拥有[Astral=Buff:1240202][/Astral]的目标使用费用2及以上的攻击牌时，自身获得[color=#91e1ff]1[/color]层[Astral=Buff:1241201][/Astral]。",
+   "round": 0,
+   "buffs": [
+    1241201
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    2
+   ]
+  },
+  "12501": {
+   "id": "12501",
+   "hero": "125",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "弱点解析",
+   "desc": "指定一个敌方角色施加[Astral=Buff:1250101][/Astral]。",
+   "round": 2,
+   "buffs": [
+    1250101
+   ],
+   "targets": [
+    12501
+   ],
+   "self": [
+    10701
+   ],
+   "params": [
+    3
+   ]
+  },
+  "12502": {
+   "id": "12502",
+   "hero": "125",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "弱点反击",
+   "desc": "指定一个怪物施加[Astral=Buff:1250201][/Astral]。 如果拥有[Astral=Buff:1250201][/Astral]的怪物挑战摩西，则摩西将进行反击。",
+   "round": 2,
+   "buffs": [
+    1250201
+   ],
+   "targets": [
+    12501
+   ],
+   "self": [
+    10701
+   ],
+   "params": [
+    0,
+    125,
+    10010
+   ]
+  },
+  "12511": {
+   "id": "12511",
+   "hero": "125",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "精密技巧",
+   "desc": "闪避成功后，下次攻击的攻击力[color=#94FF46]+4[/color]。",
+   "round": 0,
+   "buffs": [
+    1251101,
+    1251102
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    4
+   ]
+  },
+  "12512": {
+   "id": "12512",
+   "hero": "125",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "精密技巧",
+   "desc": "闪避成功或反击后，获得[color=#91e1ff]1[/color]层[Astral=Buff:1251201][/Astral]，最高叠加[color=#91e1ff]3[/color]层。",
+   "round": 0,
+   "buffs": [
+    1251201
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    3,
+    2,
+    1
+   ]
+  },
+  "12601": {
+   "id": "12601",
+   "hero": "126",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "连锁反应",
+   "desc": "丢弃4格内所有敌方角色的[color=#91e1ff]1[/color]张随机手牌。使用主动技能时，如果目标的手牌数少于4张，额外造成[color=#91e1ff]2[/color]点伤害。",
+   "round": 3,
+   "buffs": [],
+   "targets": [
+    102602
+   ],
+   "self": [
+    102601
+   ],
+   "params": [
+    4,
+    1,
+    4,
+    -2
+   ]
+  },
+  "12602": {
+   "id": "12602",
+   "hero": "126",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "连锁反应",
+   "desc": "自身获得[color=#91e1ff]1[/color]张[Astral=Card:10012][/Astral]，并使得5格内的所有友方角色获得[color=#91e1ff]1[/color]张卡牌，如果目标的手牌数量少于4张，则会额外获得[color=#91e1ff]1[/color]张卡牌。",
+   "round": 3,
+   "buffs": [],
+   "targets": [
+    4000700
+   ],
+   "self": [
+    12601
+   ],
+   "params": [
+    5,
+    1,
+    3,
+    1,
+    10012,
+    10013,
+    1,
+    1261201
+   ]
+  },
+  "12611": {
+   "id": "12611",
+   "hero": "126",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "湖沼之王",
+   "desc": "受到伤害后，受到伤害[color=#94FF46]-1[/color]，攻击力[color=#94FF46]+1[/color]，持续至回合结束。",
+   "round": 0,
+   "buffs": [
+    1261101
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    -1,
+    1
+   ]
+  },
+  "12612": {
+   "id": "12612",
+   "hero": "126",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "湖沼之王",
+   "desc": "使其他角色获得卡牌的时候，真梦梓获得[color=#91e1ff]1[/color]层[Astral=Buff:1261201][/Astral]。 当[Astral=Buff:1261201][/Astral]达到[color=#91e1ff]8[/color]层时，真梦梓获得[Astral=Buff:1261204][/Astral]。 拥有[Astral=Buff:1261204][/Astral]时，将手牌中及技能之后获得的[Astral=Card:10012][/Astral]转变为[Astral=Card:10013][/Astral]。",
+   "round": 0,
+   "buffs": [
+    1261201,
+    1261204
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    7,
+    10012,
+    10013
+   ]
+  },
+  "12701": {
+   "id": "12701",
+   "hero": "127",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "隐匿行动",
+   "desc": "指定一个敌方角色施加[Astral=Buff:1270101][/Astral]与[color=#91e1ff]2[/color]层[Astral=Buff:10006][/Astral]。 拥有[Astral=Buff:1270101][/Astral]的角色被击倒后，获得[color=#91e1ff]5[/color]星币。",
+   "round": 3,
+   "buffs": [
+    1270101
+   ],
+   "targets": [
+    12701
+   ],
+   "self": [
+    12601
+   ],
+   "params": [
+    2,
+    5,
+    12701
+   ]
+  },
+  "12702": {
+   "id": "12702",
+   "hero": "127",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "隐匿行动",
+   "desc": "指定一个怪物施加[Astral=Buff:1270201][/Astral]与[color=#91e1ff]1[/color]层[Astral=Buff:10006][/Astral]，并获得[color=#91e1ff]目标标记层数*2[/color]的星币。",
+   "round": 3,
+   "buffs": [
+    1270201
+   ],
+   "targets": [
+    12701
+   ],
+   "self": [
+    12601
+   ],
+   "params": [
+    1,
+    2,
+    1271201,
+    12702,
+    12703,
+    12704,
+    12705
+   ]
+  },
+  "12711": {
+   "id": "12711",
+   "hero": "127",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "关键线索",
+   "desc": "将[Astral=EventCards:12701]【隐匿调查】[/Astral]置入地图事件池 。 攻击拥有[Astral=Buff:10006][/Astral]的角色时，攻击力[color=#94FF46]+3[/color]。击倒拥有[Astral=Buff:10006][/Astral]的角色时，获得[color=#91e1ff]1[/color]张战斗牌。",
+   "round": 0,
+   "buffs": [
+    1271101
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    3,
+    1,
+    12701,
+    10
+   ]
+  },
+  "12712": {
+   "id": "12712",
+   "hero": "127",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "关键线索",
+   "desc": "将[Astral=EventCards:12702|12703|12704|12705]【隐匿调查】[/Astral]置入地图事件池 。 攻击拥有[Astral=Buff:10006][/Astral]的怪物时，攻击力[color=#94FF46]+3[/color]。击倒拥有[Astral=Buff:10006][/Astral]的怪物时，获得[color=#91e1ff]1[/color]张战斗牌。",
+   "round": 0,
+   "buffs": [
+    1271201
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    3,
+    1,
+    12702,
+    10
+   ]
+  },
+  "12801": {
+   "id": "12801",
+   "hero": "128",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "阻拦冲撞",
+   "desc": "下次移动改为冲锋移动。在1-5中选择一个数字，作为下次冲锋移动的最终点数。 冲锋时挟持经过的所有敌方角色，使挟持的角色防御力[color=#FF4646]-3[/color]，持续[color=#91e1ff]1[/color]轮。停留后依次决定是否挑战他们。",
+   "round": 3,
+   "buffs": [
+    1280101,
+    1280102
+   ],
+   "targets": [
+    12804
+   ],
+   "self": [
+    12801,
+    12802,
+    12803
+   ],
+   "params": [
+    1,
+    5,
+    -3
+   ]
+  },
+  "12802": {
+   "id": "12802",
+   "hero": "128",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "阻拦冲撞",
+   "desc": "下次移动改为冲锋移动。在1-7中选择一个数字，作为下次冲锋移动的最终点数。 冲锋时挟持经过的所有怪物，停留后依次决定是否挑战它们。如果冲锋时经过了[Astral=Card:20033][/Astral]则使挟持的怪物防御力[color=#FF4646]-2[/color]，自身攻击力[color=#94FF46]+2[/color]，持续[color=#91e1ff]2[/color]轮。",
+   "round": 3,
+   "buffs": [
+    1280201,
+    1280202,
+    1280203
+   ],
+   "targets": [
+    12804
+   ],
+   "self": [
+    12801,
+    12802,
+    12803
+   ],
+   "params": [
+    1,
+    7,
+    -2,
+    2,
+    20033
+   ]
+  },
+  "12811": {
+   "id": "12811",
+   "hero": "128",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "拦截者",
+   "desc": "轮次奖励额外获得[color=#91e1ff]1[/color]张[Astral=Card:20010][/Astral]。经过[Astral=Card:20010][/Astral]后，主动技能冷却时间[color=#94FF46]-2[/color]，下次移动速度[color=#94FF46]+2[/color]。",
+   "round": 0,
+   "buffs": [
+    1281101,
+    1281102
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    20010,
+    1,
+    -2,
+    20010,
+    2
+   ]
+  },
+  "12812": {
+   "id": "12812",
+   "hero": "128",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "拦截者",
+   "desc": "自身的[Astral=Card:20010][/Astral]转变为[Astral=Card:20033][/Astral]，游戏开始时额外获得[color=#91e1ff]2[/color]张[Astral=Card:20033][/Astral]。 经过[Astral=Card:20010][/Astral]后，获得[color=#91e1ff]1[/color]张[Astral=Card:20033][/Astral]。",
+   "round": 0,
+   "buffs": [
+    1281201
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    20010,
+    20033,
+    2,
+    1
+   ]
+  },
+  "12901": {
+   "id": "12901",
+   "hero": "129",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "魔域转化",
+   "desc": "选定4格内的一个地块，生成[color=#91e1ff]1[/color]个魔渊触须，并将该地块[color=#91e1ff]1[/color]格内的所有地块临时转化为魔渊区域。随后，激活魔渊区域内的所有魔渊触须。 魔渊区域：对以任何形式进入魔渊区域的敌方单位施加下次移动速度[color=#FF4646]-2[/color]；此外，一轮一次，使移动进入魔渊区域的敌方角色停止移动。魔渊区域在赛克斯回合开始时消失。",
+   "round": 3,
+   "buffs": [],
+   "targets": [
+    12902,
+    12903,
+    12904
+   ],
+   "self": [
+    12901
+   ],
+   "params": [
+    4,
+    1,
+    12911,
+    12921,
+    12903
+   ]
+  },
+  "12902": {
+   "id": "12902",
+   "hero": "129",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "魔域转化",
+   "desc": "选定4格内的一个地块，生成[color=#91e1ff]1[/color]个魔渊触须，并将该地块[color=#91e1ff]2[/color]格内的所有地块临时转化为魔渊区域。随后，激活魔渊区域内的所有魔渊触须。 魔渊区域：对以任何形式进入魔渊区域的怪物施加下次移动速度[color=#FF4646]-2[/color]。魔渊区域在赛克斯回合开始时消失。",
+   "round": 3,
+   "buffs": [],
+   "targets": [
+    12902,
+    12903,
+    12904
+   ],
+   "self": [
+    12901
+   ],
+   "params": [
+    4,
+    2,
+    12912,
+    12922,
+    12904,
+    1291201
+   ]
+  },
+  "12903": {
+   "id": "12903",
+   "hero": "129",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "魔域转化",
+   "desc": "选定4格内的一个地块，生成[color=#91e1ff]1[/color]个魔渊触须，并将该地块[color=#91e1ff]1[/color]格内的所有地块临时转化为魔渊区域。随后，激活魔渊区域内的所有魔渊触须。 魔渊区域：对以任何形式进入魔渊区域的敌方单位施加下次移动速度[color=#FF4646]-2[/color]；此外，一轮一次，使移动进入魔渊区域的敌方角色停止移动。魔渊区域在赛克斯回合开始时消失。",
+   "round": 0,
+   "buffs": [],
+   "targets": [
+    12904
+   ],
+   "self": [
+    12903
+   ],
+   "params": [
+    1,
+    -1
+   ]
+  },
+  "12904": {
+   "id": "12904",
+   "hero": "129",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "魔域转化",
+   "desc": "选定4格内的一个地块，生成[color=#91e1ff]1[/color]个魔渊触须，并将该地块[color=#91e1ff]2[/color]格内的所有地块临时转化为魔渊区域。随后，激活魔渊区域内的所有魔渊触须。 魔渊区域：对以任何形式进入魔渊区域的怪物施加下次移动速度[color=#FF4646]-2[/color]。魔渊区域在赛克斯回合开始时消失。",
+   "round": 0,
+   "buffs": [],
+   "targets": [
+    12904
+   ],
+   "self": [
+    12903
+   ],
+   "params": [
+    2,
+    -1
+   ]
+  },
+  "12911": {
+   "id": "12911",
+   "hero": "129",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "触须深渊",
+   "desc": "游戏开始时，随机在地图上生成[color=#91e1ff]5[/color]个魔渊触须。回合结束时，赛克斯激活[color=#91e1ff]2[/color]格内所有的魔渊触须。 激活魔渊触须：魔渊触须对[color=#91e1ff]1[/color]格内的所有敌方单位造成[color=#91e1ff]1[/color]点伤害。 魔渊触须永久存在，一个地块最多存在一个魔渊触须。",
+   "round": 0,
+   "buffs": [
+    1291101
+   ],
+   "targets": [
+    12903,
+    12904
+   ],
+   "self": [],
+   "params": [
+    5,
+    2,
+    12903,
+    12911,
+    12921
+   ]
+  },
+  "12912": {
+   "id": "12912",
+   "hero": "129",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "触须深渊",
+   "desc": "自身造成伤害时，对目标施加[color=#91e1ff]1[/color]层[Astral=Buff:1291202][/Astral]，持续[color=#91e1ff]1[/color]轮。 回合结束时，在自身所在的地块生成[color=#91e1ff]1[/color]个魔渊触须。随后，激活[color=#91e1ff]3[/color]格内所有的魔渊触须。 激活魔渊触须：魔渊触须对[color=#91e1ff]2[/color]格内的所有怪物造成[color=#91e1ff]1[/color]点伤害，随后对其中受减速效果影响的怪物施加[color=#91e1ff]1[/color]层[Astral=Buff:1291202][/Astral]，持续[color=#91e1ff]1[/color]轮。 魔渊触须永久存在，一个地块最多存在一个魔渊触须。",
+   "round": 0,
+   "buffs": [
+    1291201,
+    1291202
+   ],
+   "targets": [
+    12903,
+    12904
+   ],
+   "self": [],
+   "params": [
+    3,
+    12904,
+    12912,
+    12922,
+    1,
+    0
+   ]
+  },
+  "202601": {
+   "id": "202601",
+   "hero": "2026",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 1,
+   "kind": "passive",
+   "name": "蛟之吻",
+   "desc": "指定距离最近的一个角色，使其获得[Astral=Card:10011][/Astral]。",
+   "round": 1,
+   "buffs": [],
+   "targets": [
+    4000700
+   ],
+   "self": [
+    10701
+   ],
+   "params": [
+    10011,
+    1
+   ]
+  },
+  "202611": {
+   "id": "202611",
+   "hero": "2026",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 2,
+   "kind": "active",
+   "name": "",
+   "desc": "",
+   "round": 0,
+   "buffs": [
+    20261101
+   ],
+   "targets": [],
+   "self": [],
+   "params": []
+  },
+  "202701": {
+   "id": "202701",
+   "hero": "2027",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 1,
+   "kind": "passive",
+   "name": "葫芦佳酿",
+   "desc": "在随机地块放置[color=#91e1ff]2[/color]个葫芦。",
+   "round": 1,
+   "buffs": [],
+   "targets": [],
+   "self": [
+    10701
+   ],
+   "params": [
+    2300,
+    2
+   ]
+  },
+  "202711": {
+   "id": "202711",
+   "hero": "2027",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 2,
+   "kind": "active",
+   "name": "回甘",
+   "desc": "角色每拾取一个葫芦，攻击力永久[color=#94FF46]+1[/color]。",
+   "round": 0,
+   "buffs": [
+    20271101
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    1
+   ]
+  },
+  "300101": {
+   "id": "300101",
+   "hero": "3001",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 1,
+   "kind": "passive",
+   "name": "指示",
+   "desc": "指定距离最近的一个角色获得[color=#91e1ff]1[/color]张[Astral=Card:21010][/Astral]。如果当前生命值不超过生命值上限的[color=#91e1ff]50%[/color][Astral=Blood:1018*0.5][/Astral]，则改为指定两个角色。",
+   "round": 2,
+   "buffs": [],
+   "targets": [
+    8001400
+   ],
+   "self": [
+    100501
+   ],
+   "params": [
+    21010,
+    50,
+    1,
+    2
+   ]
+  },
+  "300401": {
+   "id": "300401",
+   "hero": "3004",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 1,
+   "kind": "passive",
+   "name": "召唤眷属",
+   "desc": "召唤[color=#91e1ff]1[/color]只金小鱼。",
+   "round": 2,
+   "buffs": [],
+   "targets": [],
+   "self": [
+    10701
+   ],
+   "params": [
+    3051,
+    1
+   ]
+  },
+  "300411": {
+   "id": "300411",
+   "hero": "3004",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 2,
+   "kind": "active",
+   "name": "川流之主",
+   "desc": "反击时，获得[color=#91e1ff]1[/color]层[Astral=Buff:10271101][/Astral]。",
+   "round": 0,
+   "buffs": [
+    10271101
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    1,
+    1,
+    1
+   ]
+  },
+  "30101": {
+   "id": "30101",
+   "hero": "301",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "网络天使",
+   "desc": "获得[color=#91e1ff]2[/color]星币，每使得一个角色或怪物成为【粉丝】，额外获得[color=#91e1ff]1[/color]星币，一次技能最多获得[color=#91e1ff]7[/color]星币。如果【粉丝】数量大于等于3个，则额外回复[color=#91e1ff]3[/color]点生命值。",
+   "round": 3,
+   "buffs": [],
+   "targets": [],
+   "self": [
+    11701
+   ],
+   "params": [
+    2,
+    1,
+    7,
+    3,
+    3,
+    3010101
+   ]
+  },
+  "30102": {
+   "id": "30102",
+   "hero": "301",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "网络天使",
+   "desc": "获得[color=#91e1ff]1[/color]星币，每使得一个怪物成为【粉丝】，额外获得[color=#91e1ff]1[/color]星币，一次技能最多获得[color=#91e1ff]7[/color]星币。如果【粉丝】数量大于等于3个，则额外回复[color=#91e1ff]3[/color]点生命值。",
+   "round": 3,
+   "buffs": [],
+   "targets": [],
+   "self": [
+    11701
+   ],
+   "params": [
+    1,
+    1,
+    7,
+    3,
+    3,
+    3011201
+   ]
+  },
+  "30103": {
+   "id": "30103",
+   "hero": "301",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "网络天使",
+   "desc": "获得[color=#91e1ff]1[/color]星币，每使得一个怪物成为【粉丝】，额外获得[color=#91e1ff]1[/color]星币，一次技能最多获得[color=#91e1ff]10[/color]星币。如果【粉丝】数量大于等于3个，则额外回复[color=#91e1ff]3[/color]点生命值。如果粉丝数量大于等于9个，则使场上所有粉丝攻击力永久[color=#FF4646]-1[/color](无法叠加)，并使其他友方角色获得[color=#91e1ff]3[/color]星币。",
+   "round": 3,
+   "buffs": [],
+   "targets": [],
+   "self": [
+    11701
+   ],
+   "params": [
+    1,
+    1,
+    10,
+    3,
+    3,
+    3011201
+   ]
+  },
+  "30111": {
+   "id": "30111",
+   "hero": "301",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "小天使请安",
+   "desc": "攻击超天酱和被超天酱战斗攻击的角色和怪物会被施加【粉丝】状态。当角色拥有【粉丝】且攻击超天酱时，攻击力[color=#FF4646]-1[/color]。超天酱被击倒时，移除场上所有【粉丝】状态。",
+   "round": 0,
+   "buffs": [
+    3010101,
+    3010102
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    -1,
+    301
+   ]
+  },
+  "30112": {
+   "id": "30112",
+   "hero": "301",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "小天使请安",
+   "desc": "攻击超天酱和被超天酱攻击的怪物会被施加【粉丝】状态。当怪物拥有【粉丝】且攻击超天酱时，攻击力[color=#FF4646]-1[/color]。",
+   "round": 0,
+   "buffs": [
+    3011201,
+    3011202
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    -1,
+    301,
+    302
+   ]
+  },
+  "30113": {
+   "id": "30113",
+   "hero": "301",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "一心同体",
+   "desc": "与糖糖组队的时候，会有神奇的事情发生。",
+   "round": 0,
+   "buffs": [
+    3011301,
+    3021402
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    302,
+    3021101,
+    1,
+    4,
+    1,
+    -1
+   ]
+  },
+  "30114": {
+   "id": "30114",
+   "hero": "301",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "小天使请安",
+   "desc": "攻击超天酱和被超天酱攻击的怪物会被施加【粉丝】状态。当怪物拥有【粉丝】且攻击超天酱时，攻击力[color=#FF4646]-1[/color]。",
+   "round": 0,
+   "buffs": [
+    3011401,
+    3011402
+   ],
+   "targets": [
+    30101
+   ],
+   "self": [],
+   "params": [
+    3011202,
+    9,
+    3,
+    -1,
+    3011201
+   ]
+  },
+  "30201": {
+   "id": "30201",
+   "hero": "302",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "感情过量摄入",
+   "desc": "回复当前[Astral=Buff:3021101][/Astral]层数的生命值，获得[Astral=Buff:3021101][/Astral]层数的移动速度，持续[color=#91e1ff]1[/color]回合。回合结束时扣除[color=#91e1ff]4[/color]层[Astral=Buff:3021101][/Astral]。",
+   "round": 3,
+   "buffs": [
+    3020101
+   ],
+   "targets": [],
+   "self": [
+    11701
+   ],
+   "params": [
+    3021101,
+    1,
+    1,
+    4
+   ]
+  },
+  "30211": {
+   "id": "30211",
+   "hero": "302",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "无法承受的爱",
+   "desc": "受到伤害时，获得[color=#91e1ff]1[/color]层[Astral=Buff:3021101][/Astral]，最多叠加[color=#91e1ff]4[/color]层。游戏开始时，[Astral=Buff:3021101][/Astral]为[color=#91e1ff]2[/color]层。",
+   "round": 0,
+   "buffs": [
+    3021101,
+    3021402
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    2,
+    1,
+    4,
+    1,
+    -1
+   ]
+  },
+  "30213": {
+   "id": "30213",
+   "hero": "302",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "一心同体",
+   "desc": "与超天酱组队的时候，会有神奇的事情发生。",
+   "round": 0,
+   "buffs": [
+    3021301,
+    3011202
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    301,
+    -1,
+    301,
+    302,
+    3011201
+   ]
+  },
+  "30214": {
+   "id": "30214",
+   "hero": "302",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "无法承受的爱",
+   "desc": "受到伤害时，获得[color=#91e1ff]1[/color]层[Astral=Buff:3021101][/Astral]，最多叠加[color=#91e1ff]4[/color]层。游戏开始时，[Astral=Buff:3021101][/Astral]为[color=#91e1ff]2[/color]层。",
+   "round": 0,
+   "buffs": [
+    3021401,
+    3021402
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    3021101,
+    4,
+    0,
+    1,
+    1
+   ]
+  },
+  "30301": {
+   "id": "30301",
+   "hero": "303",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "调制饮料",
+   "desc": "选择3张手牌，根据所选手牌类型对自身依次发动效果： 效果牌或诅咒牌：恢复[color=#91e1ff]1[/color]点生命值。 攻击牌：攻击力[color=#94FF46]+1[/color]，持续[color=#91e1ff]1[/color]回合。 防御牌：防御力[color=#94FF46]+1[/color]，持续[color=#91e1ff]1[/color]回合。 随后丢弃这[color=#91e1ff]3[/color]张手牌并获得等量卡牌。",
+   "round": 3,
+   "buffs": [
+    3030101
+   ],
+   "targets": [],
+   "self": [
+    10701
+   ],
+   "params": [
+    3,
+    1,
+    1,
+    1,
+    3031101
+   ]
+  },
+  "30302": {
+   "id": "30302",
+   "hero": "303",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "调制饮料",
+   "desc": "选择3张手牌，根据所选手牌类型对一个角色依次发动效果： 效果牌或诅咒牌：恢复[color=#91e1ff]1[/color]点生命值。 攻击牌：攻击力[color=#94FF46]+1[/color]，持续[color=#91e1ff]1[/color]回合。 防御牌：防御力[color=#94FF46]+1[/color]，持续[color=#91e1ff]1[/color]回合。 随后丢弃这[color=#91e1ff]3[/color]张手牌并获得等量卡牌。",
+   "round": 3,
+   "buffs": [
+    3030101
+   ],
+   "targets": [
+    30301
+   ],
+   "self": [
+    10701
+   ],
+   "params": [
+    3,
+    1,
+    1,
+    1,
+    3031101
+   ]
+  },
+  "30311": {
+   "id": "30311",
+   "hero": "303",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "改变生活",
+   "desc": "调制饮料时选择3种不同类型的卡牌时，吉尔获得[color=#91e1ff]3[/color]星币。 调制饮料时选择3张同类型的卡牌时，使目标移动速度[color=#94FF46]+3[/color]，持续[color=#91e1ff]1[/color]回合。",
+   "round": 0,
+   "buffs": [
+    3031101,
+    3031102
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    3,
+    3
+   ]
+  },
+  "30401": {
+   "id": "30401",
+   "hero": "304",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "真正的我",
+   "desc": "恢复[color=#91e1ff]1[/color]点生命值，下次移动时，可以自由选择移动方向， 使用技能时，如果[Astral=Buff:3041101][/Astral]已达到5层，则本回合使自身增加[color=#91e1ff]当前防御力[/color]的攻击力，随后消耗所有[Astral=Buff:3041101][/Astral]。",
+   "round": 3,
+   "buffs": [
+    3040203
+   ],
+   "targets": [],
+   "self": [
+    10701
+   ],
+   "params": [
+    1,
+    3041101,
+    5,
+    5
+   ]
+  },
+  "30402": {
+   "id": "30402",
+   "hero": "304",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "真正的我",
+   "desc": "传送至一个友方角色的位置并为双方恢复[color=#91e1ff]1[/color]点生命值。本回合经过友方角色时，双方攻击力[color=#94FF46]+1[/color]（无法叠加）。 使用技能时，如果[Astral=Buff:3041201][/Astral]已达到5层，消耗所有[Astral=Buff:3041201][/Astral]，本回合自身增加[color=#91e1ff]当前防御力[/color]的攻击力。",
+   "round": 2,
+   "buffs": [
+    3040201,
+    3040202,
+    3040203
+   ],
+   "targets": [],
+   "self": [
+    30401,
+    8000301
+   ],
+   "params": [
+    1,
+    3041201,
+    5,
+    5,
+    1
+   ]
+  },
+  "30411": {
+   "id": "30411",
+   "hero": "304",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "交际花",
+   "desc": "恢复生命时，获得[color=#91e1ff]1[/color]层[Astral=Buff:3041101][/Astral]，最多叠加[color=#91e1ff]5[/color]层。 经过其他角色时，恢复双方[color=#91e1ff]1[/color]点生命值，并夺取目标[color=#91e1ff]1[/color]星币。",
+   "round": 0,
+   "buffs": [
+    3041101
+   ],
+   "targets": [
+    30403
+   ],
+   "self": [
+    30402
+   ],
+   "params": [
+    1,
+    5,
+    1,
+    1,
+    1
+   ]
+  },
+  "30412": {
+   "id": "30412",
+   "hero": "304",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "交际花",
+   "desc": "恢复生命时，获得[color=#91e1ff]1[/color]层[Astral=Buff:3041201][/Astral]，最多叠加[color=#91e1ff]5[/color]层。 经过其他角色时，恢复双方[color=#91e1ff]1[/color]点生命值。",
+   "round": 0,
+   "buffs": [
+    3041201
+   ],
+   "targets": [
+    30403
+   ],
+   "self": [
+    30402
+   ],
+   "params": [
+    1,
+    5,
+    1,
+    1
+   ]
+  },
+  "30501": {
+   "id": "30501",
+   "hero": "305",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "飘浮魔法",
+   "desc": "获得[Astral=Buff:3050101][/Astral]，持续[color=#91e1ff]1[/color]轮。",
+   "round": 3,
+   "buffs": [
+    3050101
+   ],
+   "targets": [],
+   "self": [
+    30501
+   ],
+   "params": [
+    2
+   ]
+  },
+  "30502": {
+   "id": "30502",
+   "hero": "305",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "飘浮魔法",
+   "desc": "获得[Astral=Buff:3050101][/Astral]，持续[color=#91e1ff]1[/color]轮。",
+   "round": 3,
+   "buffs": [
+    3050101
+   ],
+   "targets": [],
+   "self": [
+    30501
+   ],
+   "params": [
+    2
+   ]
+  },
+  "305101": {
+   "id": "305101",
+   "hero": "3051",
+   "ownerDigits": 4,
+   "playerHero": false,
+   "type": 1,
+   "kind": "passive",
+   "name": "眷族支援",
+   "desc": "为天川苍鲤施加[color=#91e1ff]1[/color]层[Astral=Buff:10271101][/Astral]。",
+   "round": 1,
+   "buffs": [],
+   "targets": [
+    101701
+   ],
+   "self": [
+    100501
+   ],
+   "params": [
+    3004,
+    1,
+    10271101,
+    1,
+    1,
+    3006
+   ]
+  },
+  "30511": {
+   "id": "30511",
+   "hero": "305",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "幻想千金",
+   "desc": "移动的最终点数大于等于6时，获得[color=#91e1ff]1[/color]星币。",
+   "round": 0,
+   "buffs": [
+    3051101
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    6,
+    1
+   ]
+  },
+  "30512": {
+   "id": "30512",
+   "hero": "305",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "幻想千金",
+   "desc": "移动的最终点数大于等于6时，获得[color=#91e1ff]1[/color]星币。 经过友方角色时，获得[color=#91e1ff]1[/color]星币和[color=#91e1ff]1[/color]层[Astral=Buff:3051201][/Astral]。如果此时拥有[Astral=Buff:3050101][/Astral]且自身星币足够，向该友方角色转账[color=#91e1ff]3[/color]星币。 当[Astral=Buff:3051201][/Astral]达到[color=#91e1ff]7[/color]层时，远野汉娜获得[Astral=Buff:3051202][/Astral]：经过友方角色时，使该友方角色获得下次移动速度[color=#94FF46]+2[/color]。",
+   "round": 0,
+   "buffs": [
+    3051201,
+    3051202,
+    3051203
+   ],
+   "targets": [
+    30503,
+    30505,
+    30507,
+    30509
+   ],
+   "self": [
+    30502,
+    30504,
+    30506,
+    30508
+   ],
+   "params": [
+    6,
+    1,
+    3050101,
+    3,
+    7,
+    2,
+    1
+   ]
+  },
+  "30513": {
+   "id": "30513",
+   "hero": "305",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "挚友祝福",
+   "desc": "经过橘雪莉时，使橘雪莉获得下次移动速度[color=#94FF46]+2[/color]和[color=#91e1ff]1[/color]层[Astral=Buff:3061201][/Astral]。",
+   "round": 0,
+   "buffs": [
+    3051301,
+    3051302
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    306,
+    2,
+    3061201,
+    1
+   ]
+  },
+  "30601": {
+   "id": "30601",
+   "hero": "306",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "怪力投掷",
+   "desc": "将2格内的所有敌对角色扔向5格内的一个地块，随后对该地块的所有敌对角色造成[color=#91e1ff]2[/color]点伤害。",
+   "round": 2,
+   "buffs": [],
+   "targets": [
+    30602,
+    30603
+   ],
+   "self": [
+    30601
+   ],
+   "params": [
+    2,
+    5,
+    -2
+   ]
+  },
+  "30602": {
+   "id": "30602",
+   "hero": "306",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "怪力投掷",
+   "desc": "将3格内的所有怪物扔向7格内的一个地块，随后对该地块的所有怪物造成[color=#91e1ff]2[/color]点伤害。",
+   "round": 2,
+   "buffs": [],
+   "targets": [
+    30602,
+    30603
+   ],
+   "self": [
+    30601
+   ],
+   "params": [
+    3,
+    7,
+    -2
+   ]
+  },
+  "30611": {
+   "id": "30611",
+   "hero": "306",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "侦探出击",
+   "desc": "主动挑战敌方角色后，获得[color=#91e1ff]1[/color]层[Astral=Buff:3061101][/Astral]，最高叠加4层。",
+   "round": 0,
+   "buffs": [
+    3061101
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    1,
+    4,
+    1
+   ]
+  },
+  "30612": {
+   "id": "30612",
+   "hero": "306",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "侦探出击",
+   "desc": "主动挑战怪物后，获得[color=#91e1ff]1[/color]层[Astral=Buff:3061201][/Astral]，最高叠加4层。",
+   "round": 0,
+   "buffs": [
+    3061201
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    1,
+    4,
+    1
+   ]
+  },
+  "30613": {
+   "id": "30613",
+   "hero": "306",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "挚友守护",
+   "desc": "如果远野汉娜在橘雪莉4格内，使远野汉娜获得受到伤害[color=#94FF46]-1[/color]。",
+   "round": 0,
+   "buffs": [
+    3061301
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    305,
+    4,
+    -1
+   ]
+  },
+  "30701": {
+   "id": "30701",
+   "hero": "307",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "",
+   "desc": "",
+   "round": 4,
+   "buffs": [
+    3071101
+   ],
+   "targets": [
+    30702
+   ],
+   "self": [
+    30701
+   ],
+   "params": [
+    6,
+    -2,
+    1
+   ]
+  },
+  "30702": {
+   "id": "30702",
+   "hero": "307",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "",
+   "desc": "",
+   "round": 3,
+   "buffs": [
+    3071301
+   ],
+   "targets": [
+    30702
+   ],
+   "self": [
+    30701
+   ],
+   "params": [
+    6,
+    -3,
+    1,
+    3071202
+   ]
+  },
+  "30711": {
+   "id": "30711",
+   "hero": "307",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "",
+   "desc": "",
+   "round": 0,
+   "buffs": [
+    3071101
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    1,
+    1,
+    1,
+    1
+   ]
+  },
+  "30712": {
+   "id": "30712",
+   "hero": "307",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "",
+   "desc": "",
+   "round": 0,
+   "buffs": [
+    3071201
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    307,
+    3071202,
+    3
+   ]
+  },
+  "30713": {
+   "id": "30713",
+   "hero": "307",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "",
+   "desc": "",
+   "round": 0,
+   "buffs": [
+    3071301
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    1,
+    3071202,
+    1,
+    1,
+    -1
+   ]
+  },
+  "30714": {
+   "id": "30714",
+   "hero": "307",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "",
+   "desc": "",
+   "round": 0,
+   "buffs": [
+    3071401
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    307,
+    3071202,
+    3
+   ]
+  },
+  "30715": {
+   "id": "30715",
+   "hero": "307",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "",
+   "desc": "",
+   "round": 0,
+   "buffs": [
+    3071501
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    308,
+    3071301,
+    1
+   ]
+  },
+  "30801": {
+   "id": "30801",
+   "hero": "308",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "",
+   "desc": "",
+   "round": 3,
+   "buffs": [],
+   "targets": [],
+   "self": [
+    30801
+   ],
+   "params": []
+  },
+  "30802": {
+   "id": "30802",
+   "hero": "308",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 1,
+   "kind": "passive",
+   "name": "",
+   "desc": "",
+   "round": 3,
+   "buffs": [],
+   "targets": [],
+   "self": [
+    30801
+   ],
+   "params": []
+  },
+  "30811": {
+   "id": "30811",
+   "hero": "308",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "",
+   "desc": "",
+   "round": 0,
+   "buffs": [
+    3081101,
+    3081102,
+    3081103
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    1,
+    1,
+    2,
+    1,
+    1
+   ]
+  },
+  "30812": {
+   "id": "30812",
+   "hero": "308",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "",
+   "desc": "",
+   "round": 0,
+   "buffs": [
+    3081201,
+    3081102,
+    3081103,
+    3081104
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    1,
+    1,
+    2,
+    1,
+    1,
+    6,
+    3,
+    2,
+    1
+   ]
+  },
+  "30813": {
+   "id": "30813",
+   "hero": "308",
+   "ownerDigits": 3,
+   "playerHero": true,
+   "type": 2,
+   "kind": "active",
+   "name": "",
+   "desc": "",
+   "round": 0,
+   "buffs": [
+    3081301
+   ],
+   "targets": [],
+   "self": [],
+   "params": [
+    305,
+    306,
+    307,
+    308,
+    1,
+    1
+   ]
+  }
+ }
+}
