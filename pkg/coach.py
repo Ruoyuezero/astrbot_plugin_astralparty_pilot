@@ -19,8 +19,18 @@ import sys
 import time
 
 SELF_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# 兜底路径仅在「配置没写、环境变量没设、自动探测也失败」时使用
 DEFAULT_GAME = r"D:\a_ruoyue\Game\steam\steamapps\common\Astral Party\8vJXn6CN"
 NO_WINDOW = 0x08000000 if os.name == "nt" else 0
+
+
+def _auto_game_dir() -> str | None:
+    """自动探测游戏实例目录（Steam 库扫描，无写死盘符）。"""
+    try:
+        from .gamepath import detect_game_dir
+        return detect_game_dir()
+    except Exception:
+        return None
 
 
 def home(cfg: dict | None = None) -> str:
@@ -53,7 +63,13 @@ def game_dir(cfg: dict | None = None) -> str:
     env = str(os.environ.get("ASTRAL_GAME_DIR") or "").strip()
     if env:
         return env
-    return str(_project_cfg(home(cfg)).get("game_dir") or "").strip() or DEFAULT_GAME
+    proj = str(_project_cfg(home(cfg)).get("game_dir") or "").strip()
+    if proj:
+        return proj
+    auto = _auto_game_dir()
+    if auto:
+        return auto
+    return DEFAULT_GAME
 
 
 def state_file(cfg: dict | None = None) -> str:
