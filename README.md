@@ -1,0 +1,142 @@
+<img src="logo.png" width="120" align="right" alt="星趴助手 logo">
+
+# 星趴助手（Astral Party Pilot）
+
+> AstrBot 插件：把《星引擎 Party / Astral Party》（国服《吉星派对》）的对局知识库、地图拓扑、决策函数与陪玩引擎搬进 QQ。
+
+[![AstrBot](https://img.shields.io/badge/AstrBot-plugin-2B579A.svg?style=flat-square)](#)
+[![Python](https://img.shields.io/badge/python-3.10%2B-3776AB.svg?style=flat-square&logo=python&logoColor=white)](#环境要求)
+[![Platform](https://img.shields.io/badge/platform-Windows-0078D4.svg?style=flat-square&logo=windows&logoColor=white)](#环境要求)
+
+游戏对局数据解析与自动化操作助手，围绕「读局 → 判断 → 执行」三段闭环构建：从游戏资源与运行时状态中取回地图、手牌与对局进度，用确定性规则算出当前最优动作，再以模拟鼠标输入交给游戏执行。
+
+---
+
+## 功能
+
+- **图文图鉴**：卡牌 / 地图 / 地块 / Buff / 怪物 / 英雄 / 皮肤 / 战斗 CG / 表情包，全部渲染成图片卡片
+- **实时查号**：按 UID 查玩家，在局内显示对局进度，不在局显示档案卡
+- **陪玩引擎**：威胁排序、寻路、手牌建议，支持「只看不动」的辅助模式和自主代打
+- **知识库**：手牌 76 张、Buff 311 条、怪物 / 英雄 / 地图拓扑等，随插件分发、离线可查
+
+---
+
+## 指令说明
+
+### `/app` —— 图鉴与陪玩
+
+| 指令 | 说明 |
+|---|---|
+| `/app help` | 指令一览（渲染成图） |
+| `/app card` | 列出所有手牌中文名与序号 |
+| `/app card <名字>` | 渲染手牌简介卡（原图 + 说明） |
+| `/app map` | 列出所有地图中文名与序号 |
+| `/app map <序号\|名字>` | 渲染地图拓扑图 |
+| `/app land` | 全部地块（地形 26 种 + 角色地块） |
+| `/app land <数字\|名字>` | 地块卡（地形类型号或角色 ID 101~306） |
+| `/app buff` | 全部 Buff 图鉴（图标 + 名称） |
+| `/app buff <id\|名字>` | 单个 Buff 详解（效果 + 来源） |
+| `/app monster` | 按地图分类列出所有怪物 |
+| `/app monster <名字>` | 怪物简介卡（立绘 + 数值 + 机制） |
+| `/app monsterCG <名字>` | 怪物战斗 CG 原图 |
+| `/app hero` | 全部英雄（局内小人，数字为角色 ID） |
+| `/app hero <名字>` | 角色简介卡（立绘 + 属性 + 技能） |
+| `/app heroskins <名字>` | 皮肤总览 |
+| `/app heroCG <名字>` | 角色全部战斗 CG |
+| `/app heroemoji <名字\|ID>` | 角色表情包 |
+| `/app <UID>` | 查玩家（在局→进度卡，不在局→档案卡） |
+| `/app 查 <UID>` | 同上（`/app uid 1551363` 也行） |
+| `/app auto` | 自主代打：出牌 / 开技能 / 移动 |
+| `/app auto dry` | 只算不点（演练，不动鼠标） |
+| `/app pilot` | 辅助：轮到我推建议卡，只看不动 |
+| `/app pilot card` | 代出牌（只出无需选目标的牌） |
+| `/app pilot skill` | 代开技能 |
+| `/app pilot go` | 代移动 |
+| `/app pilot 攻/守/发育` | 切换倾向，可和 card / skill / go 叠加 |
+| `/app noauto` | 取消辅助，完全由你决定 |
+
+### `/星趴` —— 对局向子命令
+
+| 指令 | 说明 |
+|---|---|
+| `/星趴 卡 <名字/编号>` | 手牌详情 |
+| `/星趴 怪 <名字/称号>` | 怪物五档数值与技能 |
+| `/星趴 地块 <类型号>` | 地块效果 |
+| `/星趴 图 <地图名>` | 地图拓扑概况 |
+| `/星趴 格 <地图名> <格子>` | 单格详情（含可变地块） |
+| `/星趴 交叉 <地图名>` | 该图会出现哪些怪/事件/专属牌 |
+| `/星趴 搜 <关键词>` | 全库检索 |
+| `/星趴 威胁 <地图名> [难度]` | 怪物威胁排序 |
+| `/星趴 走 <地图> <起点> <步数> [倾向]` | 寻路 |
+| `/星趴 路线 <地图> <起点> <终点> [倾向]` | 路径规划 |
+| `/星趴 手牌 <牌1,牌2> [倾向]` | 手牌建议 |
+
+> 倾向：攻 / 守 / 发育 / 自动（默认）
+
+---
+
+## 环境要求
+
+- **AstrBot**（插件宿主）
+- **Python 3.10+**
+- **Windows**（陪玩引擎的鼠标输入依赖 Win32 API，图鉴部分跨平台可用）
+
+---
+
+## 安装
+
+1. 将本插件放入 AstrBot 的 `data/plugins/` 目录
+2. 在 AstrBot 插件管理页启用
+3. （可选）配置美术图库根目录与游戏目录，见下文「配置」
+
+---
+
+## 配置
+
+### 美术图库
+
+图鉴图片默认从外部图库读取（`art_root`，默认 `F:\pictures\Astral Party`），按 37 类英文子目录组织（`portrait` / `cg` / `emoji` / `land` / `card` / `buff` / `relic` / `cardback` / `headshot` 等）。插件本体只内置字体与 logo，不含游戏素材。
+
+### 游戏目录（陪玩用）
+
+陪玩引擎按以下优先级定位游戏实例目录，**无需手动填也能自动探测**：
+
+1. 插件配置 `pilot_game_dir`
+2. 环境变量 `ASTRAL_GAME_DIR`
+3. 工程 `config.json` 的 `game_dir`
+4. **自动探测**：读 Steam 注册表 + `libraryfolders.vdf` + `appmanifest` 定位 `common/Astral Party/<实例>`
+5. 硬编码兜底
+
+---
+
+## 目录结构
+
+```
+astrbot_plugin_astralparty_pilot/
+├── main.py               插件入口（/app 与 /星趴 两个指令）
+├── pkg/                  渲染、知识库读取、陪玩进程管理等模块
+│   ├── gamepath.py       游戏目录自动探测（Steam 库扫描）
+│   └── ...
+├── pilot/                陪玩引擎（子进程拉起，插件核心）
+├── kb/                   知识库（手牌 / Buff / 怪物 / 英雄 / 地图拓扑）
+├── maps/                 地图拓扑数据
+├── fonts/                内置字体（含 MSUIGothicCN 混合字体）
+├── images/               内置图片
+├── logo.png
+├── metadata.yaml
+└── _conf_schema.json     配置项定义
+```
+
+---
+
+## 致谢
+
+- 游戏配置表与素材版权归《星引擎 Party / Astral Party》开发方所有
+- 地图拓扑与知识库经 biligame 星引擎 Party wiki 及实局数据交叉校验
+- 依赖 [AstrBot](https://github.com/AstrBotDevs/AstrBot)、Pillow、NetworkX
+
+---
+
+## 免责声明
+
+本项目仅供个人学习与研究使用，不得用于商业用途。请勿在联机对局中使用自动化功能影响其他玩家的游戏体验。游戏内容及相关素材的版权归其权利人所有；若权利人要求移除相关内容，请随时联系。
