@@ -254,7 +254,7 @@ class Coach:
                 sk = "、".join(self.gi.sname(s) for s in st["skills"])
                 lines.append(f"可开技能：{sk}")
             if action:
-                lines.append(f"塞拉建议：{why}")
+                lines.append(f"bot 建议：{why}")
             if pool and not ready:
                 lines.append("这些牌都要选目标，v1 不自动出，先跳过")
             if self.allow and "card" not in self.allow:
@@ -285,7 +285,7 @@ class Coach:
             opts.sort(key=lambda x: -x[2])
             lines = [f"{n} 点 → {AP.cell_desc(cells, d)}（{v:.2f}）" for n, d, v in opts[:4]]
             if action:
-                lines.insert(0, f"塞拉建议：{why}")
+                lines.insert(0, f"bot 建议：{why}")
             if not lines:
                 lines = ["没有地图数据，直接点移动键"]
             self.push_event("move", "轮到我：移动", lines)
@@ -298,7 +298,7 @@ class Coach:
 
         # 情形三：选目标阶段
         if stage in ("target_card", "target_skill"):
-            self.push_event("target", "需要选目标", [why or "当前阶段需要选目标，塞拉先停手"])
+            self.push_event("target", "需要选目标", [why or "当前阶段需要选目标，bot 先停手"])
             return payload
 
         return payload

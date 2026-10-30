@@ -604,7 +604,7 @@ def snapshot_text(st, cells, mapname, me, gi, action, why, pref="eco"):
             parts.append(f"《{nm}》({sid}){('：' + desc) if desc else ''}")
         lines.append("【可开技能】" + "  ".join(parts))
     if action is not None:
-        lines.append(f"【塞拉的判断】{action}  ← {why}")
+        lines.append(f"【bot 的判断】{action}  ← {why}")
     return "\n".join(lines)
 
 
@@ -717,7 +717,7 @@ def main():
 
         say("")
         say(enrich_state_text(st, cells, mapname, me, gi, args.prefer))
-        say(f"【塞拉的判断】{action}  ← {why}")
+        say(f"【bot 的判断】{action}  ← {why}")
 
         if mode == "observe":
             say("  （observe 模式：只建议，不动游戏）")

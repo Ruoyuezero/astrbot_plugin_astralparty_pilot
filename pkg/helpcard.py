@@ -73,7 +73,7 @@ def render_help(sections: list, out_path: str) -> str:
         y += 2
 
     y += 12
-    plan.append(("foot", y, "名字支持模糊搜索（别名、编号都能查）· 表格由塞拉实时生成"))
+    plan.append(("foot", y, "名字支持模糊搜索（别名、编号都能查）· 表格由 bot 实时生成"))
     y += 26
 
     total = y + PAD

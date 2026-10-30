@@ -71,12 +71,12 @@ HELP_SECTIONS = [
         ("/app 查 <UID>", "同上（/app uid 1551363 也行）"),
     ]),
     ("🎮", "陪玩（游戏开着、插件在跑才有用）", [
-        ("/app auto", "塞拉自主代打：出牌 / 开技能 / 移动"),
+        ("/app auto", "bot 自主代打：出牌 / 开技能 / 移动"),
         ("/app auto dry", "只算不点（演练，不动鼠标）"),
         ("/app pilot", "辅助：轮到我推建议卡，只看不动"),
-        ("/app pilot card", "让塞拉代出牌（只出无需选目标的牌）"),
-        ("/app pilot skill", "让塞拉代开技能"),
-        ("/app pilot go", "让塞拉代移动（点移动键推进）"),
+        ("/app pilot card", "让 bot 代出牌（只出无需选目标的牌）"),
+        ("/app pilot skill", "让 bot 代开技能"),
+        ("/app pilot go", "让 bot 代移动（点移动键推进）"),
         ("/app pilot 攻/守/发育", "切换倾向，可和 card / skill / go 叠着写"),
         ("/app noauto", "取消辅助，完全由你自己决定"),
     ]),
@@ -91,7 +91,7 @@ PREFER_ALIAS = {
     "auto": "auto", "自动": "auto", "默认": "auto",
 }
 
-# /app pilot card|skill|go：把某一类动作交给塞拉代动
+# /app pilot card|skill|go：把某一类动作交给bot 代动
 PILOT_ACT_ALIAS = {
     "card": "card", "牌": "card", "出牌": "card", "打牌": "card", "出张牌": "card",
     "skill": "skill", "技能": "skill", "开技能": "skill", "放技能": "skill",
@@ -332,7 +332,7 @@ class AstralPartyPilotPlugin(Star):
             text = f"没找到：{exc}"
         except Exception as exc:  # noqa: BLE001
             logger.error(f"[星趴] 查询异常：{exc}")
-            text = f"塞拉查的时候出错了：{exc}"
+            text = f"bot 查的时候出错了：{exc}"
         yield event.plain_result(text)
 
     # ------------------------------------------------------------ /app ----
@@ -416,7 +416,7 @@ class AstralPartyPilotPlugin(Star):
             return
 
         yield event.plain_result(
-            f"塞拉没看懂「{sub}」这个图鉴子命令呢～\n"
+            f"bot 没看懂「{sub}」这个图鉴子命令呢～\n"
             "可用：card / map / land / buff / monster / monsterCG / hero / heroskins / heroCG / heroemoji\n"
             "查玩家：/app <UID>（例如 /app 1551363）\n"
             "发 /app help 看完整说明"
@@ -496,7 +496,7 @@ class AstralPartyPilotPlugin(Star):
     async def _app_land(self, event: AstrMessageEvent, joined: str):
         # 不带参数：地形地块 + 角色地块，一起排成一张总览图
         if not LR.available():
-            yield event.plain_result("塞拉找不到地块素材呢，现在找的是：\n" + LR.describe()
+            yield event.plain_result("bot 找不到地块素材呢，现在找的是：\n" + LR.describe()
                                      + "\n（素材库目录在配置 art_root 里改）")
             return
 
@@ -563,7 +563,7 @@ class AstralPartyPilotPlugin(Star):
     def _art_check(self) -> str:
         if AL.available():
             return ""
-        return ("塞拉找不到图片库呢，现在找的是：\n" + AL.describe() + "\n"
+        return ("bot 找不到图片库呢，现在找的是：\n" + AL.describe() + "\n"
                 "插件已不再内置美术素材，请把「星趴图库目录」（art_root）指向素材库根目录，"
                 "里面要有 chibi / portrait / cg / emoji 四个子目录～")
 
@@ -716,7 +716,7 @@ class AstralPartyPilotPlugin(Star):
         """实时查号：/app 1551363。局内→进度卡，不在局→档案卡。"""
         m = re.search(r"\d{4,}", joined or "")
         if not m:
-            yield event.plain_result("要塞拉一个 UID（纯数字）哦，例如：/app 1551363")
+            yield event.plain_result("要bot一个 UID（纯数字）哦，例如：/app 1551363")
             return
         uid = int(m.group(0))
 
@@ -770,23 +770,23 @@ class AstralPartyPilotPlugin(Star):
                 return
         except Exception as exc:  # noqa: BLE001
             logger.error(f"[星趴] 渲染查号卡失败：{exc}")
-            yield event.plain_result(f"塞拉画查号卡的时候出错了：{exc}")
+            yield event.plain_result(f"bot 画查号卡的时候出错了：{exc}")
             return
 
         # 3) 联机不通：把原因说清楚（登录票过期 / 账号别处在线 / 没网）
         if err is not None:
             why = getattr(err, "code", None)
             tip = {
-                10000: "本机登录票过期了 —— 打开游戏重新登录一次，塞拉再查就有数据啦",
+                10000: "本机登录票过期了 —— 打开游戏重新登录一次，bot 再查就有数据啦",
                 10020: "这个号正在游戏里（同一账号不能双登）—— 关掉游戏再查，或者在局内直接查会走本机实时数据",
                 10012: "客户端版本变了 —— 在插件配置里把 live_client_ver 改成当前版本号",
             }.get(why)
-            msg = f"塞拉查不到 UID {uid}：{err}"
+            msg = f"bot 查不到 UID {uid}：{err}"
             if tip:
                 msg += f"\n💡 {tip}"
             yield event.plain_result(msg)
             return
-        yield event.plain_result(f"塞拉没拿到 UID {uid} 的数据呢")
+        yield event.plain_result(f"bot 没拿到 UID {uid} 的数据呢")
 
     # ------------------------------------------------------------ 陪玩 ----
     def _pilot_prefer(self, joined: str) -> str:
@@ -848,7 +848,7 @@ class AstralPartyPilotPlugin(Star):
             head = "🧭 辅助已开" if not allow else f"🧭 辅助已开 · 代动「{picks}」"
         lines = [f"{head}：{msg}"]
         if mode == "auto":
-            lines.append("塞拉会接管鼠标：出牌（无需目标的牌）、点技能、点移动键。")
+            lines.append("bot 会接管鼠标：出牌（无需目标的牌）、点技能、点移动键。")
             if dry:
                 lines.append("演练模式：只算不点，鼠标不会动。")
             else:
@@ -858,16 +858,16 @@ class AstralPartyPilotPlugin(Star):
             if "card" in allow:
                 lines.append("· 出牌：只出无需选目标的牌；要选怪/选人/选格的牌还是你自己点。")
             if "skill" in allow:
-                lines.append("· 开技能：轮到你且有技能可开时，塞拉点技能键。")
+                lines.append("· 开技能：轮到你且有技能可开时，bot 点技能键。")
             if "go" in allow:
-                lines.append("· 移动：出牌推不动 / 移动阶段，塞拉点移动键推进。")
+                lines.append("· 移动：出牌推不动 / 移动阶段，bot 点移动键推进。")
             lines.append("要收回：/app pilot 回到只看；整个停掉：/app noauto")
         else:
-            lines.append("塞拉只看不动：每次轮到我推一张建议卡（出牌 / 移动）。")
+            lines.append("bot 只看不动：每次轮到我推一张建议卡（出牌 / 移动）。")
             if revoked:
                 lines.append("已收回刚才的授权，回到只看不建议动。")
             else:
-                lines.append("想让塞拉代某一类：/app pilot card（出牌）· skill（开技能）· go（移动），可叠加")
+                lines.append("想让bot 代某一类：/app pilot card（出牌）· skill（开技能）· go（移动），可叠加")
         lines.append(f"倾向：{prefer}（可写「/app pilot 攻」临时切换）")
         if not game_on:
             lines.append("💡 现在没检测到游戏进程，进对局后才会开始判定。")
@@ -889,7 +889,7 @@ class AstralPartyPilotPlugin(Star):
         msg = await asyncio.to_thread(CO.stop, self.config)
         self._stop_push()
         yield event.plain_result(
-            f"🔇 已取消辅助：{msg}\n授权也一并收回，从现在起完全由你自己决定，塞拉不看不点。")
+            f"🔇 已取消辅助：{msg}\n授权也一并收回，从现在起完全由你自己决定，bot 不看不点。")
 
     def _ensure_push(self, event: AstrMessageEvent) -> None:
         umo = getattr(event, "unified_msg_origin", "") or ""
@@ -966,7 +966,7 @@ class AstralPartyPilotPlugin(Star):
             return fmt_monster(m) if m else f"知识库里没有「{joined}」这只怪呢"
         if sub in ("地块", "地", "land"):
             l = kb.land_find(joined) if joined else None
-            return fmt_land(l) if l else "要塞拉地块类型号或地块名哦"
+            return fmt_land(l) if l else "要bot地块类型号或地块名哦"
         if sub in ("图", "地图", "map"):
             mi = kb.mapinfo(joined)
             return fmt_map(mi) if mi else f"没有这张地图：{joined}"
@@ -998,7 +998,7 @@ class AstralPartyPilotPlugin(Star):
             return self._route(rest)
         if sub in ("手牌", "hand"):
             return self._hand(rest)
-        return f"塞拉不认识「{sub}」这个子命令呢\n\n" + HELP
+        return f"bot 不认识「{sub}」这个子命令呢\n\n" + HELP
 
     # ------------------------------------------------------- 决策子命令 ----
     def _threat(self, rest: list[str]) -> str:
@@ -1052,7 +1052,7 @@ class AstralPartyPilotPlugin(Star):
         hand = [x for x in re.split(r"[,，、/\s]+", names) if x]
         rows = D.suggest_hand(hand, prefer)
         if not rows:
-            return "这些牌塞拉都没认出来呢…"
+            return "这些牌bot 都没认出来呢…"
         lines = [f"🃏 手牌建议（{prefer}）"]
         for r in rows:
             kw = "、".join(r.get("keywords") or []) or "无明显关键词"

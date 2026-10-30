@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """陪玩建议卡：把 coach.py 写出的 coach.json 渲染成一张图。
 
-一张卡只讲一件事：这一轮轮到我时，塞拉建议我怎么打。
+一张卡只讲一件事：这一轮轮到我时，bot 建议我怎么打。
 """
 from __future__ import annotations
 
@@ -63,18 +63,18 @@ def render_advice(d: dict, out_path: str) -> str:
 
     # 建议正文
     lines = ev.get("lines") or []
-    judge = next((x for x in lines if x.startswith("塞拉建议")), "")
+    judge = next((x for x in lines if x.startswith("bot 建议")), "")
     rest = [x for x in lines if x is not judge]
     if judge:
-        b.heading("塞拉的判断", before=14)
-        b.items.append(("t", judge.replace("塞拉建议：", ""), _font(19, True), ACCENT, PAD, b.y, 30))
+        b.heading("bot 的判断", before=14)
+        b.items.append(("t", judge.replace("bot 建议：", ""), _font(19, True), ACCENT, PAD, b.y, 30))
         b.y += 30
     elif d.get("error"):
         b.heading("状态提示", before=14)
         b.text(str(d["error"]), _font(16), MUTE, line_h=26)
 
     if rest:
-        b.heading("局势与选项" if judge else "塞拉看到的情况", before=10)
+        b.heading("局势与选项" if judge else "bot 看到的情况", before=10)
         for x in rest[:8]:
             b.items.append(("t", "· " + str(x), _font(16), BODY, PAD, b.y, 26))
             b.y += 26
@@ -85,11 +85,11 @@ def render_advice(d: dict, out_path: str) -> str:
 
     acted = d.get("acted") or {}
     if acted:
-        b.text(f"塞拉刚动作：{acted.get('what')} —— {acted.get('note') or ''}",
+        b.text(f"bot 刚动作：{acted.get('what')} —— {acted.get('note') or ''}",
                _font(14), MUTE, line_h=24, before=10)
 
     if mode == "auto":
-        note = "代打模式：塞拉会自己动鼠标"
+        note = "代打模式：bot 会自己动鼠标"
     elif allow:
         note = "辅助模式：只代动 " + "、".join(ACT_CN[a] for a in allow) + "，其余只看不动"
     else:
