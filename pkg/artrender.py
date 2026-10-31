@@ -960,3 +960,420 @@ def render_hero_emoji(hero: dict, out_path: str, cols: int = 8,
 
     canvas.save(out_path, "PNG")
     return out_path
+
+
+# ---------------------------------------------------------------- 筹码 ----
+# 筹码品质只有蓝 / 紫 / 金三档（与皮肤那套 Sapphire/Amethyst 不是一回事）
+RELIC_QUALITY_COLOR = {
+    "蓝": (32, 146, 198),
+    "紫": (158, 82, 188),
+    "金": (206, 148, 56),
+}
+# 展示与排序用：金 > 紫 > 蓝
+RELIC_QUALITY_RANK = {"金": 0, "紫": 1, "蓝": 2}
+RELIC_FACTION_ORDER = [
+    "通用系", "星光系", "治愈系", "标记系", "充能系",
+    "星趴·梦想号专属", "御魂庆典专属", "水乡古镇专属", "魔法学院专属",
+    "龙宫游乐园专属", "幽魂暗巷专属", "园林中庭专属", "运动场专属",
+    "决赛大赛场", "异变图书馆专属",
+]
+
+
+def _relic_color(q) -> tuple:
+    return RELIC_QUALITY_COLOR.get(str(q or "").strip(), MUTE)
+
+
+def _relic_rank(q) -> int:
+    return RELIC_QUALITY_RANK.get(str(q or "").strip(), 9)
+
+
+def _mix(c1, c2, t: float) -> tuple:
+    return tuple(int(a + (b - a) * t) for a, b in zip(c1[:3], c2[:3]))
+
+
+_TILE_CACHE: dict[tuple, Image.Image] = {}
+
+
+def _quality_tile(size: int, quality) -> Image.Image:
+    """按品质色生成圆角底板（游戏里没有独立的品质框贴图，这里是仿制）。
+
+    垂直渐变 + 亮色描边 + 顶部高光 + 内圈暗线，叠在透明图标下面做「稀有度底」。
+    """
+    key = (size, str(quality or "").strip())
+    if key in _TILE_CACHE:
+        return _TILE_CACHE[key]
+
+    base = _relic_color(quality)
+    light = _mix(base, (255, 255, 255), 0.44)
+    dark = _mix(base, (12, 12, 18), 0.54)
+    radius = max(4, int(size * 0.24))
+
+    tile = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+
+    # 渐变主体，用圆角蒙版抠形
+    grad = Image.new("RGBA", (size, size))
+    gd = ImageDraw.Draw(grad)
+    for i in range(size):
+        t = i / max(1, size - 1)
+        gd.line([(0, i), (size, i)], fill=_mix(light, dark, t) + (255,))
+    mask = Image.new("L", (size, size), 0)
+    ImageDraw.Draw(mask).rounded_rectangle([0, 0, size - 1, size - 1], radius=radius, fill=255)
+    tile.paste(grad, (0, 0), mask)
+
+    d = ImageDraw.Draw(tile)
+    # 外圈亮描边 + 内圈暗线，做出「镶边」感
+    d.rounded_rectangle([1, 1, size - 2, size - 2], radius=radius,
+                        outline=_mix(base, (255, 255, 255), 0.74) + (235,),
+                        width=max(2, size // 44))
+    inset = max(3, int(size * 0.09))
+    d.rounded_rectangle([inset, inset, size - inset - 1, size - inset - 1],
+                        radius=max(3, int(radius * 0.8)),
+                        outline=_mix(base, (0, 0, 0), 0.52) + (95,),
+                        width=max(1, size // 90))
+
+    # 顶部柔和高光
+    gloss = Image.new("RGBA", (size, size), (255, 255, 255, 0))
+    ImageDraw.Draw(gloss).ellipse(
+        [-size * 0.25, -size * 0.62, size * 1.25, size * 0.52],
+        fill=(255, 255, 255, 30))
+    tile.alpha_composite(Image.composite(
+        gloss, Image.new("RGBA", (size, size), (0, 0, 0, 0)), mask))
+
+    _TILE_CACHE[key] = tile
+    return tile
+
+
+def _relic_tile(canvas: Image.Image, draw: ImageDraw.ImageDraw, relic: dict,
+                x: int, y: int, size: int, inner_ratio: float = 0.72) -> None:
+    """品质底 + 居中叠放图标。
+
+    优先用游戏原始的圆盘底框（UT_RelicBase_*），图库里没有时退回自绘方形底。
+    """
+    base_path = artlib.relic_base(relic.get("quality"))
+    im_base = _open(base_path) if base_path else None
+    if im_base is not None:
+        b = _fit(im_base, size, size)
+        canvas.paste(b, (x + (size - b.width) // 2, y + (size - b.height) // 2), b)
+        ratio = inner_ratio
+    else:
+        tile = _quality_tile(size, relic.get("quality"))
+        canvas.paste(tile, (x, y), tile)
+        ratio = min(0.84, inner_ratio + 0.08)
+
+    path = artlib.relic_icon(relic.get("icon") or "")
+    im = _open(path) if path else None
+    inner = max(8, int(size * ratio))
+    if im:
+        _paste_center(canvas, _fit(im, inner, inner), x, y, size, size)
+    else:
+        f = _font(max(12, int(size * 0.2)))
+        txt = "?"
+        draw.text((x + (size - f.getlength(txt)) / 2, y + size / 2 - size * 0.11),
+                  txt, font=f, fill=(255, 255, 255, 210))
+
+
+def _relic_groups() -> list[tuple[str, list[dict]]]:
+    """按流派分组，流派顺序固定；组内先按品质（金 → 紫 → 蓝），再按编号。"""
+    rows = kb.relics()
+    order = {f: i for i, f in enumerate(RELIC_FACTION_ORDER)}
+    groups: dict[str, list[dict]] = {}
+    for r in rows:
+        groups.setdefault(str(r.get("faction") or "其他"), []).append(r)
+    out = []
+    for fac in sorted(groups, key=lambda f: (order.get(f, 99), f)):
+        items = sorted(groups[fac], key=lambda r: (
+            _relic_rank(r.get("quality")),
+            0 if str(r.get("no") or "—").isdigit() else 1,
+            int(r["no"]) if str(r.get("no") or "—").isdigit() else 0,
+            str(r.get("name") or ""),
+        ))
+        out.append((fac, items))
+    return out
+
+
+def render_relic_list(out_path: str, cols: int = 6) -> str:
+    """筹码总览：按流派分组，每格是图标 + 数字编号 + 中文名。"""
+    groups = _relic_groups()
+    if not groups:
+        raise FileNotFoundError("知识库里没有筹码数据")
+
+    margin, gap = 26, 10
+    icon = 74
+    cell_w = icon + 58
+    cell_h = icon + 46
+    header_h, sec_h = 62, 40
+
+    total_cells = sum(len(items) for _f, items in groups)
+    W = margin * 2 + cols * cell_w + (cols - 1) * gap
+    H = margin + header_h + margin
+    for _fac, items in groups:
+        rows = (len(items) + cols - 1) // cols
+        H += sec_h + rows * (cell_h + gap)
+    H += margin - gap
+
+    canvas = Image.new("RGB", (W, H), BG)
+    draw = ImageDraw.Draw(canvas)
+    tf = _font(30, True)
+    head = "星趴筹码图鉴"
+    draw.text((margin, margin), head, font=tf, fill=TITLE)
+    info = f"{total_cells} 种 · 排序：金 → 紫 → 蓝 · — 表示纯属性筹码，无独立图标"
+    draw.text((margin + tf.getlength(head) + 16, margin + 10), info, font=_font(17), fill=MUTE)
+    draw.line([margin, margin + header_h - 14, W - margin, margin + header_h - 14], fill=RULE)
+
+    name_f, no_f, sec_f = _font(15, True), _font(13), _font(21, True)
+    y = margin + header_h + margin - 20
+
+    for fac, items in groups:
+        draw.rectangle([margin, y + 6, margin + 5, y + sec_h - 12], fill=ACCENT)
+        draw.text((margin + 16, y + 2), fac, font=sec_f, fill=TITLE)
+        cnt = f"{len(items)} 种"
+        draw.text((W - margin - sec_f.getlength(cnt), y + 4), cnt, font=sec_f, fill=MUTE)
+        y += sec_h
+
+        for i, r in enumerate(items):
+            c, row = i % cols, i // cols
+            x = margin + c * (cell_w + gap)
+            yy = y + row * (cell_h + gap)
+            _relic_tile(canvas, draw, r, x, yy, icon, 0.80)
+            col = _relic_color(r.get("quality"))
+            nm = _ellipsis(str(r.get("name") or ""), name_f, cell_w)
+            draw.text((x + (cell_w - name_f.getlength(nm)) / 2, yy + icon + 2),
+                      nm, font=name_f, fill=TITLE)
+            no = str(r.get("no") or "—")
+            draw.text((x + (cell_w - no_f.getlength(no)) / 2, yy + icon + 24),
+                      no, font=no_f, fill=col)
+        y += (len(items) + cols - 1) // cols * (cell_h + gap)
+
+    canvas.save(out_path, "PNG")
+    return out_path
+
+
+def render_relic_card(relic: dict, out_path: str, others: list[dict] | None = None,
+                      others_label: str = "同套系") -> str:
+    """单个筹码：左侧图标，右侧名称 + 品质/流派/编号，效果说明紧贴在这一行正下方。
+
+    效果不再单独占一块面板，直接填进图标右侧的空白区；描述过长时面板自动加高。
+
+    others 是共用编号或共用图标的其它筹码（如「普通瞄具 / 鹰眼瞄具」），作脚注列出；
+    others_label 决定脚注前缀（共用编号用「同套系」，共用图标用「同系列」）。
+    """
+    W, margin = 900, 30
+    icon, pad = 150, 20
+
+    name = str(relic.get("name") or "")
+    quality = str(relic.get("quality") or "")
+    faction = str(relic.get("faction") or "")
+    no = str(relic.get("no") or "—")
+    desc = str(relic.get("desc") or "（暂无效果说明）")
+    col = _relic_color(quality)
+
+    # 右栏几何：名称行 → 品质行 → 细分隔线 → 效果正文
+    tx = margin + pad + icon + 26
+    col_w = W - margin - pad - tx
+    text_x = tx + 18
+    text_w = col_w - 18
+
+    name_f, tag_f = _font(34, True), _font(17, True)
+    meta_f, desc_f, note_f = _font(17), _font(18), _font(15)
+    line_h = 28
+
+    cy = margin + pad
+    name_y = cy
+    cy += 46
+    tag_y = cy
+    cy += 30
+    rule_y = cy
+    cy += 15
+    desc_y = cy
+    desc_lines = _wrap(desc, desc_f, text_w)
+    cy += len(desc_lines) * line_h
+
+    note_lines = []
+    note_y = cy
+    if others:
+        note = f"{others_label}：" + " / ".join(
+            f"{o.get('name')}（{o.get('quality')}）" for o in others)
+        note_lines = _wrap(note, note_f, col_w)[:2]
+        cy += 10
+        note_y = cy
+        cy += len(note_lines) * 22
+
+    panel_bottom = max(margin + icon + pad * 2, cy + pad)
+
+    canvas = Image.new("RGB", (W, panel_bottom + margin), BG)
+    draw = ImageDraw.Draw(canvas)
+
+    draw.rounded_rectangle([margin, margin, W - margin, panel_bottom],
+                           radius=16, fill=PANEL_BG, outline=RULE)
+    _relic_tile(canvas, draw, relic, margin + pad, margin + pad, icon, 0.72)
+
+    draw.text((tx, name_y), _ellipsis(name, name_f, W - margin - tx - pad),
+              font=name_f, fill=TITLE)
+
+    # 品质 + 流派 + 编号（纯属性筹码没有图标编号，直接说明，不留空「—」）
+    draw.text((tx, tag_y), quality or "—", font=tag_f, fill=col)
+    cx = tx + tag_f.getlength(quality or "—") + 14
+    if faction:
+        draw.text((cx, tag_y), faction, font=meta_f, fill=MUTE)
+        cx += meta_f.getlength(faction) + 14
+    no_txt = f"编号 {no}" if no and no != "—" else "纯属性筹码 · 无图标编号"
+    draw.text((cx, tag_y), no_txt, font=meta_f, fill=MUTE)
+
+    # 细分隔线 + 效果正文（左侧竖条标记）
+    draw.line([tx, rule_y, W - margin - pad, rule_y], fill=RULE)
+    bar_top = desc_y - 3
+    bar_bot = desc_y + len(desc_lines) * line_h - 9
+    draw.rounded_rectangle([tx, bar_top, tx + 4, bar_bot], radius=2, fill=ACCENT)
+    dy = desc_y
+    for line in desc_lines:
+        draw.text((text_x, dy), line, font=desc_f, fill=BODY)
+        dy += line_h
+
+    for i, line in enumerate(note_lines):
+        draw.text((tx, note_y + i * 22), line, font=note_f, fill=MUTE)
+
+    canvas.save(out_path, "PNG")
+    return out_path
+
+
+# ---------------------------------------------------------------- 成就 ----
+def _round_pic(path: str | None, size: int, radius: int = 14) -> Image.Image | None:
+    """把方图裁成圆角小图；成就插画是不透明方形，直接贴会显得硬。"""
+    im = _open(path) if path else None
+    if not im:
+        return None
+    im = _fit(im, size, size)
+    tile = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    tile.paste(im.convert("RGBA"), ((size - im.width) // 2, (size - im.height) // 2))
+    mask = Image.new("L", (size, size), 0)
+    ImageDraw.Draw(mask).rounded_rectangle([0, 0, size - 1, size - 1],
+                                           radius=radius, fill=255)
+    tile.putalpha(mask)
+    return tile
+
+
+def render_achieve_list(out_path: str, cols: int = 8) -> str:
+    """成就总览：一张图铺开，每格是成就图 + 中文名 + 数字 ID。"""
+    rows = sorted(kb.achievements(), key=lambda r: int(r.get("id") or 0))
+    if not rows:
+        raise FileNotFoundError("知识库里没有成就数据")
+
+    margin, gap = 26, 10
+    icon = 72
+    cell_w = 130
+    cell_h = icon + 46
+    header_h = 62
+
+    total = len(rows)
+    nrows = (total + cols - 1) // cols
+    W = margin * 2 + cols * cell_w + (cols - 1) * gap
+    H = margin + header_h + margin + nrows * (cell_h + gap) - gap + margin
+
+    canvas = Image.new("RGB", (W, H), BG)
+    draw = ImageDraw.Draw(canvas)
+    tf = _font(30, True)
+    head = "星趴成就图鉴"
+    draw.text((margin, margin), head, font=tf, fill=TITLE)
+    info = f"{total} 个 · 金色数字是成就 ID"
+    draw.text((margin + tf.getlength(head) + 16, margin + 10), info,
+              font=_font(17), fill=MUTE)
+    draw.line([margin, margin + header_h - 14, W - margin, margin + header_h - 14], fill=RULE)
+
+    name_f, id_f = _font(15, True), _font(12)
+    y0 = margin + header_h + margin
+
+    for i, r in enumerate(rows):
+        c, row = i % cols, i // cols
+        x = margin + c * (cell_w + gap)
+        yy = y0 + row * (cell_h + gap)
+        pic = _round_pic(artlib.achieve_icon(r.get("icon") or ""), icon, 14)
+        if pic:
+            canvas.paste(pic, (x + (cell_w - icon) // 2, yy), pic)
+        else:
+            _placeholder(draw, x + (cell_w - icon) // 2, yy, icon, icon)
+        nm = _ellipsis(str(r.get("name") or ""), name_f, cell_w)
+        draw.text((x + (cell_w - name_f.getlength(nm)) / 2, yy + icon + 4),
+                  nm, font=name_f, fill=TITLE)
+        aid = str(r.get("id") or "")
+        draw.text((x + (cell_w - id_f.getlength(aid)) / 2, yy + icon + 26),
+                  aid, font=id_f, fill=ACCENT)
+
+    canvas.save(out_path, "PNG")
+    return out_path
+
+
+def render_achieve_card(ach: dict, out_path: str) -> str:
+    """单个成就：左侧成就图，右侧名称 + ID，达成条件与奖励紧贴在这行下方。"""
+    W, margin = 900, 30
+    icon, pad = 150, 20
+
+    name = str(ach.get("name") or "")
+    aid = str(ach.get("id") or "")
+    desc = str(ach.get("desc") or "（暂无达成条件）")
+    reward = ach.get("reward") or {}
+    rw_icon = str(reward.get("icon") or "")
+    rw_amt = reward.get("amount")
+
+    tx = margin + pad + icon + 26
+    col_w = W - margin - pad - tx
+    text_x = tx + 18
+    text_w = col_w - 18
+
+    name_f, meta_f, desc_f = _font(34, True), _font(17), _font(18)
+    line_h = 28
+
+    cy = margin + pad
+    name_y = cy
+    cy += 46
+    meta_y = cy
+    cy += 30
+    rule_y = cy
+    cy += 15
+    desc_y = cy
+    desc_lines = _wrap(desc, desc_f, text_w)
+    cy += len(desc_lines) * line_h
+
+    rw_y = cy + 12
+    if rw_icon or rw_amt is not None:
+        cy = rw_y + 28
+
+    panel_bottom = max(margin + icon + pad * 2, cy + pad)
+
+    canvas = Image.new("RGB", (W, panel_bottom + margin), BG)
+    draw = ImageDraw.Draw(canvas)
+    draw.rounded_rectangle([margin, margin, W - margin, panel_bottom],
+                           radius=16, fill=PANEL_BG, outline=RULE)
+
+    pic = _round_pic(artlib.achieve_icon(ach.get("icon") or ""), icon, 22)
+    if pic:
+        canvas.paste(pic, (margin + pad, margin + pad), pic)
+    else:
+        _placeholder(draw, margin + pad, margin + pad, icon, icon)
+
+    draw.text((tx, name_y), _ellipsis(name, name_f, W - margin - tx - pad),
+              font=name_f, fill=TITLE)
+    draw.text((tx, meta_y), f"成就 ID {aid}", font=meta_f, fill=MUTE)
+
+    # 细分隔线 + 达成条件（左侧竖条标记，与筹码卡同一套观感）
+    draw.line([tx, rule_y, W - margin - pad, rule_y], fill=RULE)
+    bar_top = desc_y - 3
+    bar_bot = desc_y + len(desc_lines) * line_h - 9
+    draw.rounded_rectangle([tx, bar_top, tx + 4, bar_bot], radius=2, fill=ACCENT)
+    dy = desc_y
+    for line in desc_lines:
+        draw.text((text_x, dy), line, font=desc_f, fill=BODY)
+        dy += line_h
+
+    # 奖励：小图标 + 数量
+    if rw_icon or rw_amt is not None:
+        draw.text((tx, rw_y + 2), "奖励", font=_font(15, True), fill=MUTE)
+        rx = tx + 40
+        ri = _round_pic(artlib.item_icon(rw_icon), 24, 6) if rw_icon else None
+        if ri:
+            canvas.paste(ri, (rx, rw_y), ri)
+            rx += 30
+        if rw_amt is not None:
+            draw.text((rx, rw_y + 2), f"×{rw_amt}", font=_font(16, True), fill=TITLE)
+
+    canvas.save(out_path, "PNG")
+    return out_path

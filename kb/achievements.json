@@ -1,0 +1,1342 @@
+[
+ {
+  "id": "100",
+  "name": "一血",
+  "desc": "首次击倒玩家",
+  "icon": "UT_Achieve_100.png",
+  "reward": {
+   "icon": "UT_Item_Currency_2.png",
+   "amount": 60
+  }
+ },
+ {
+  "id": "101",
+  "name": "势如破竹",
+  "desc": "累计击倒≥10人",
+  "icon": "UT_Achieve_101.png",
+  "reward": {
+   "icon": "UT_Item_Currency_2.png",
+   "amount": 60
+  }
+ },
+ {
+  "id": "102",
+  "name": "震慑八方",
+  "desc": "累计击倒≥100人",
+  "icon": "UT_Achieve_102.png",
+  "reward": {
+   "icon": "UT_Item_Currency_2.png",
+   "amount": 60
+  }
+ },
+ {
+  "id": "103",
+  "name": "魔神降临",
+  "desc": "累计击倒≥999人",
+  "icon": "UT_Achieve_103.png",
+  "reward": {
+   "icon": "UT_Item_PlayerPhoto_70905.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "200",
+  "name": "战斗高手",
+  "desc": "累计直接伤害≥100",
+  "icon": "UT_Achieve_200.png",
+  "reward": {
+   "icon": "UT_Item_Currency_2.png",
+   "amount": 60
+  }
+ },
+ {
+  "id": "201",
+  "name": "战斗大师",
+  "desc": "累计直接伤害≥1000",
+  "icon": "UT_Achieve_201.png",
+  "reward": {
+   "icon": "UT_Item_Currency_2.png",
+   "amount": 60
+  }
+ },
+ {
+  "id": "202",
+  "name": "战狂",
+  "desc": "累计直接伤害≥3000",
+  "icon": "UT_Achieve_202.png",
+  "reward": {
+   "icon": "UT_Item_PlayerPhoto_70913.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "300",
+  "name": "无所谓",
+  "desc": "累计被击倒≥10次",
+  "icon": "UT_Achieve_300.png",
+  "reward": {
+   "icon": "UT_Item_Currency_2.png",
+   "amount": 60
+  }
+ },
+ {
+  "id": "301",
+  "name": "超鬼",
+  "desc": "累计被击倒≥100次",
+  "icon": "UT_Achieve_301.png",
+  "reward": {
+   "icon": "UT_Item_Currency_2.png",
+   "amount": 60
+  }
+ },
+ {
+  "id": "302",
+  "name": "死神",
+  "desc": "累计直接伤害≥300次",
+  "icon": "UT_Achieve_302.png",
+  "reward": {
+   "icon": "UT_Item_PlayerPhoto_70903.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "400",
+  "name": "擦破皮",
+  "desc": "累计承受伤害≥100点",
+  "icon": "UT_Achieve_400.png",
+  "reward": {
+   "icon": "UT_Item_Currency_2.png",
+   "amount": 60
+  }
+ },
+ {
+  "id": "401",
+  "name": "皮糙肉厚",
+  "desc": "累计承受伤害≥1000点",
+  "icon": "UT_Achieve_401.png",
+  "reward": {
+   "icon": "UT_Item_Currency_2.png",
+   "amount": 60
+  }
+ },
+ {
+  "id": "402",
+  "name": "团队坦克",
+  "desc": "累计承受伤害≥3000点",
+  "icon": "UT_Achieve_402.png",
+  "reward": {
+   "icon": "UT_Item_PlayerPhoto_70902.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "500",
+  "name": "粗心大意",
+  "desc": "累计踩中陷阱≥1次",
+  "icon": "UT_Achieve_500.png",
+  "reward": {
+   "icon": "UT_Item_Currency_2.png",
+   "amount": 60
+  }
+ },
+ {
+  "id": "501",
+  "name": "习以为常",
+  "desc": "累计踩中陷阱≥10次",
+  "icon": "UT_Achieve_501.png",
+  "reward": {
+   "icon": "UT_Item_Currency_2.png",
+   "amount": 60
+  }
+ },
+ {
+  "id": "502",
+  "name": "故意的？",
+  "desc": "累计踩中陷阱≥50次",
+  "icon": "UT_Achieve_502.png",
+  "reward": {
+   "icon": "UT_Item_Currency_2.png",
+   "amount": 60
+  }
+ },
+ {
+  "id": "600",
+  "name": "小惊喜",
+  "desc": "累计放置≥1个陷阱",
+  "icon": "UT_Achieve_600.png",
+  "reward": {
+   "icon": "UT_Item_Currency_2.png",
+   "amount": 60
+  }
+ },
+ {
+  "id": "601",
+  "name": "动物追踪者",
+  "desc": "累计放置≥10个陷阱",
+  "icon": "UT_Achieve_601.png",
+  "reward": {
+   "icon": "UT_Item_Currency_2.png",
+   "amount": 60
+  }
+ },
+ {
+  "id": "700",
+  "name": "看看效果",
+  "desc": "累计放置≥1个路障",
+  "icon": "UT_Achieve_700.png",
+  "reward": {
+   "icon": "UT_Item_Currency_2.png",
+   "amount": 60
+  }
+ },
+ {
+  "id": "701",
+  "name": "此路不通",
+  "desc": "累计放置≥10个路障",
+  "icon": "UT_Achieve_701.png",
+  "reward": {
+   "icon": "UT_Item_Currency_2.png",
+   "amount": 60
+  }
+ },
+ {
+  "id": "801",
+  "name": "天罚",
+  "desc": "被雷劈≥1次",
+  "icon": "UT_Achieve_801.png",
+  "reward": {
+   "icon": "UT_Item_Currency_2.png",
+   "amount": 60
+  }
+ },
+ {
+  "id": "900",
+  "name": "小感冒",
+  "desc": "累计住院≥1次",
+  "icon": "UT_Achieve_900.png",
+  "reward": {
+   "icon": "UT_Item_Currency_2.png",
+   "amount": 60
+  }
+ },
+ {
+  "id": "901",
+  "name": "大感冒",
+  "desc": "累计住院≥10次",
+  "icon": "UT_Achieve_901.png",
+  "reward": {
+   "icon": "UT_Item_Currency_2.png",
+   "amount": 60
+  }
+ },
+ {
+  "id": "902",
+  "name": "常客",
+  "desc": "累计住院≥30次",
+  "icon": "UT_Achieve_902.png",
+  "reward": {
+   "icon": "UT_Item_Currency_2.png",
+   "amount": 60
+  }
+ },
+ {
+  "id": "1000",
+  "name": "意外之财",
+  "desc": "首次彩票中奖",
+  "icon": "UT_Achieve_1000.png",
+  "reward": {
+   "icon": "UT_Item_Currency_2.png",
+   "amount": 60
+  }
+ },
+ {
+  "id": "1001",
+  "name": "超级幸运儿",
+  "desc": "累计彩票中奖≥10次",
+  "icon": "UT_Achieve_1001.png",
+  "reward": {
+   "icon": "UT_Item_Currency_2.png",
+   "amount": 60
+  }
+ },
+ {
+  "id": "1002",
+  "name": "作弊了？",
+  "desc": "累计彩票中奖≥30次",
+  "icon": "UT_Achieve_1002.png",
+  "reward": {
+   "icon": "UT_Item_Currency_2.png",
+   "amount": 60
+  }
+ },
+ {
+  "id": "1100",
+  "name": "棋盘拯救者",
+  "desc": "击倒小怪兽≥1次",
+  "icon": "UT_Achieve_1100.png",
+  "reward": {
+   "icon": "UT_Item_Currency_2.png",
+   "amount": 60
+  }
+ },
+ {
+  "id": "1200",
+  "name": "首尝胜果",
+  "desc": "首胜",
+  "icon": "UT_Achieve_1200.png",
+  "reward": {
+   "icon": "UT_Item_Currency_2.png",
+   "amount": 60
+  }
+ },
+ {
+  "id": "1201",
+  "name": "小有成就",
+  "desc": "累计胜利≥10次",
+  "icon": "UT_Achieve_1201.png",
+  "reward": {
+   "icon": "UT_Item_Currency_2.png",
+   "amount": 60
+  }
+ },
+ {
+  "id": "1202",
+  "name": "游戏大师",
+  "desc": "累计胜利≥100次",
+  "icon": "UT_Achieve_1202.png",
+  "reward": {
+   "icon": "UT_Item_PlayerPhoto_70907.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "1300",
+  "name": "派对爱好者",
+  "desc": "累计参与派对≥10次",
+  "icon": "UT_Achieve_1300.png",
+  "reward": {
+   "icon": "UT_Item_Currency_2.png",
+   "amount": 60
+  }
+ },
+ {
+  "id": "1301",
+  "name": "派对狂热者",
+  "desc": "累计参与派对≥100次",
+  "icon": "UT_Achieve_1301.png",
+  "reward": {
+   "icon": "UT_Item_Currency_2.png",
+   "amount": 60
+  }
+ },
+ {
+  "id": "1302",
+  "name": "没星趴我怎么活",
+  "desc": "累计参与派对≥365次",
+  "icon": "UT_Achieve_1302.png",
+  "reward": {
+   "icon": "UT_Item_PlayerPhoto_70908.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "1400",
+  "name": "愉快90天",
+  "desc": "累计登录≥90天",
+  "icon": "UT_Achieve_1400.png",
+  "reward": {
+   "icon": "UT_Item_Currency_2.png",
+   "amount": 60
+  }
+ },
+ {
+  "id": "1701",
+  "name": "商业高手",
+  "desc": "累计使用商业之主完成游戏≥50次",
+  "icon": "UT_Achieve_1701.png",
+  "reward": {
+   "icon": "UT_Item_Gacha_90001.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "1702",
+  "name": "探案高手",
+  "desc": "累计使用古怪神探完成游戏≥50次",
+  "icon": "UT_Achieve_1702.png",
+  "reward": {
+   "icon": "UT_Item_Gacha_90001.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "1703",
+  "name": "大修女长",
+  "desc": "累计使用社恐修女完成游戏≥50次",
+  "icon": "UT_Achieve_1703.png",
+  "reward": {
+   "icon": "UT_Item_Gacha_90001.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "1704",
+  "name": "完美忍者",
+  "desc": "累计使用暗影忍者完成游戏≥50次",
+  "icon": "UT_Achieve_1704.png",
+  "reward": {
+   "icon": "UT_Item_Gacha_90001.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "1705",
+  "name": "超级社员",
+  "desc": "累计使用社员叔叔完成游戏≥50次",
+  "icon": "UT_Achieve_1705.png",
+  "reward": {
+   "icon": "UT_Item_Gacha_90001.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "1706",
+  "name": "辣妹",
+  "desc": "累计使用猩红辣妹完成游戏≥50次",
+  "icon": "UT_Achieve_1706.png",
+  "reward": {
+   "icon": "UT_Item_Gacha_90001.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "1707",
+  "name": "游戏人生",
+  "desc": "累计使用游戏大师完成游戏≥50次",
+  "icon": "UT_Achieve_1707.png",
+  "reward": {
+   "icon": "UT_Item_Gacha_90001.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "1708",
+  "name": "打工战士",
+  "desc": "累计使用看板娘完成游戏≥50次",
+  "icon": "UT_Achieve_1708.png",
+  "reward": {
+   "icon": "UT_Item_Gacha_90001.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "1709",
+  "name": "铁人",
+  "desc": "累计使用垃圾桶完成游戏≥50次",
+  "icon": "UT_Achieve_1709.png",
+  "reward": {
+   "icon": "UT_Item_Gacha_90001.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "1710",
+  "name": "街舞达人",
+  "desc": "累计使用肉弹战车完成游戏≥50次",
+  "icon": "UT_Achieve_1710.png",
+  "reward": {
+   "icon": "UT_Item_Gacha_90001.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "1711",
+  "name": "小猎手",
+  "desc": "累计使用小猎手完成游戏≥50次",
+  "icon": "UT_Achieve_1711.png",
+  "reward": {
+   "icon": "UT_Item_Gacha_90001.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "1712",
+  "name": "公主",
+  "desc": "累计使用史莱姆完成游戏≥50次",
+  "icon": "UT_Achieve_1712.png",
+  "reward": {
+   "icon": "UT_Item_Gacha_90001.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "1713",
+  "name": "大当家",
+  "desc": "累计使用旗袍娘完成游戏≥50次",
+  "icon": "UT_Achieve_1713.png",
+  "reward": {
+   "icon": "UT_Item_Gacha_90001.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "1714",
+  "name": "神秘怪盗",
+  "desc": "累计使用命运少女完成游戏≥50次",
+  "icon": "UT_Achieve_1714.png",
+  "reward": {
+   "icon": "UT_Item_Gacha_90001.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "1715",
+  "name": "参战",
+  "desc": "累计使用太刀使完成游戏≥50次",
+  "icon": "UT_Achieve_1715.png",
+  "reward": {
+   "icon": "UT_Item_Gacha_90001.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "1716",
+  "name": "绿洲女王",
+  "desc": "累计使用绿洲女王完成游戏≥50次",
+  "icon": "UT_Achieve_1716.png",
+  "reward": {
+   "icon": "UT_Item_Gacha_90001.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "1717",
+  "name": "家政机器人",
+  "desc": "累计使用家政机器人完成游戏≥50次",
+  "icon": "UT_Achieve_1717.png",
+  "reward": {
+   "icon": "UT_Item_Gacha_90001.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "1718",
+  "name": "暗区少主",
+  "desc": "累计使用暗区少主完成游戏≥50次",
+  "icon": "UT_Achieve_1718.png",
+  "reward": {
+   "icon": "UT_Item_Gacha_90001.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "1719",
+  "name": "午夜闪光",
+  "desc": "累计使用午夜闪光完成游戏≥50次",
+  "icon": "UT_Achieve_1719.png",
+  "reward": {
+   "icon": "UT_Item_Gacha_90001.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "1720",
+  "name": "网络魅影",
+  "desc": "累计使用网络魅影完成游戏≥50次",
+  "icon": "UT_Achieve_1720.png",
+  "reward": {
+   "icon": "UT_Item_Gacha_90001.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "1721",
+  "name": "新人调查员",
+  "desc": "累计使用新人调查员完成游戏≥50次",
+  "icon": "UT_Achieve_1721.png",
+  "reward": {
+   "icon": "UT_Item_Gacha_90001.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "1722",
+  "name": "机械超人",
+  "desc": "累计使用机械超人完成游戏≥50次",
+  "icon": "UT_Achieve_1722.png",
+  "reward": {
+   "icon": "UT_Item_Gacha_90001.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "1723",
+  "name": "风水师",
+  "desc": "累计使用风水师完成游戏≥50次",
+  "icon": "UT_Achieve_1723.png",
+  "reward": {
+   "icon": "UT_Item_Gacha_90001.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "1724",
+  "name": "三神御主",
+  "desc": "累计使用三神御主完成游戏≥50次",
+  "icon": "UT_Achieve_1724.png",
+  "reward": {
+   "icon": "UT_Item_Gacha_90001.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "1725",
+  "name": "枪匠",
+  "desc": "累计使用枪匠完成游戏≥50次",
+  "icon": "UT_Achieve_1725.png",
+  "reward": {
+   "icon": "UT_Item_Gacha_90001.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "1726",
+  "name": "沼之蛟龙",
+  "desc": "累计使用沼之蛟龙完成游戏≥50次",
+  "icon": "UT_Achieve_1726.png",
+  "reward": {
+   "icon": "UT_Item_Gacha_90001.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "1727",
+  "name": "毒苹果",
+  "desc": "累计使用毒苹果完成游戏≥50次",
+  "icon": "UT_Achieve_1727.png",
+  "reward": {
+   "icon": "UT_Item_Gacha_90001.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "1728",
+  "name": "怪力乱神",
+  "desc": "累计使用怪力乱神完成游戏≥50次",
+  "icon": "UT_Achieve_1728.png",
+  "reward": {
+   "icon": "UT_Item_Gacha_90001.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "1729",
+  "name": "魔渊幼体",
+  "desc": "累计使用魔渊幼体完成游戏≥50次",
+  "icon": "UT_Achieve_1729.png",
+  "reward": {
+   "icon": "UT_Item_Gacha_90001.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "1796",
+  "name": "改变生活",
+  "desc": "累计使用吉尔完成游戏≥50次",
+  "icon": "UT_Achieve_1796.png",
+  "reward": {
+   "icon": "UT_Item_Gacha_90001.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "1797",
+  "name": "敞开心扉",
+  "desc": "累计使用多萝西完成游戏≥50次",
+  "icon": "UT_Achieve_1797.png",
+  "reward": {
+   "icon": "UT_Item_Gacha_90001.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "1798",
+  "name": "超天酱",
+  "desc": "累计使用超天酱完成游戏≥50次",
+  "icon": "UT_Achieve_1798.png",
+  "reward": {
+   "icon": "UT_Item_Gacha_90001.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "1799",
+  "name": "糖糖",
+  "desc": "累计使用糖糖完成游戏≥50次",
+  "icon": "UT_Achieve_1799.png",
+  "reward": {
+   "icon": "UT_Item_Gacha_90001.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "1801",
+  "name": "商业之主",
+  "desc": "累计使用商业之主胜利≥30次",
+  "icon": "UT_Achieve_1801.png",
+  "reward": {
+   "icon": "UT_Item_Gacha_90001.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "1802",
+  "name": "古怪神探",
+  "desc": "累计使用古怪神探胜利≥30次",
+  "icon": "UT_Achieve_1802.png",
+  "reward": {
+   "icon": "UT_Item_Gacha_90001.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "1803",
+  "name": "战斗修女",
+  "desc": "累计使用社恐修女胜利≥30次",
+  "icon": "UT_Achieve_1803.png",
+  "reward": {
+   "icon": "UT_Item_Gacha_90001.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "1804",
+  "name": "暗影忍者",
+  "desc": "累计使用暗影忍者胜利≥30次",
+  "icon": "UT_Achieve_1804.png",
+  "reward": {
+   "icon": "UT_Item_Gacha_90001.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "1805",
+  "name": "精英社员",
+  "desc": "累计使用社员叔叔胜利≥30次",
+  "icon": "UT_Achieve_1805.png",
+  "reward": {
+   "icon": "UT_Item_Gacha_90001.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "1806",
+  "name": "猩红辣妹",
+  "desc": "累计使用猩红辣妹胜利≥30次",
+  "icon": "UT_Achieve_1806.png",
+  "reward": {
+   "icon": "UT_Item_Gacha_90001.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "1807",
+  "name": "游戏大师",
+  "desc": "累计使用游戏大师胜利≥30次",
+  "icon": "UT_Achieve_1807.png",
+  "reward": {
+   "icon": "UT_Item_Gacha_90001.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "1808",
+  "name": "看板娘",
+  "desc": "累计使用看板娘胜利≥30次",
+  "icon": "UT_Achieve_1808.png",
+  "reward": {
+   "icon": "UT_Item_Gacha_90001.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "1809",
+  "name": "终结者",
+  "desc": "累计使用垃圾桶胜利≥30次",
+  "icon": "UT_Achieve_1809.png",
+  "reward": {
+   "icon": "UT_Item_Gacha_90001.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "1810",
+  "name": "肉弹战车",
+  "desc": "累计使用肉弹战车胜利≥30次",
+  "icon": "UT_Achieve_1810.png",
+  "reward": {
+   "icon": "UT_Item_Gacha_90001.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "1811",
+  "name": "完美猎手",
+  "desc": "累计使用小猎手胜利≥30次",
+  "icon": "UT_Achieve_1811.png",
+  "reward": {
+   "icon": "UT_Item_Gacha_90001.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "1812",
+  "name": "危险生物",
+  "desc": "累计使用史莱姆胜利≥30次",
+  "icon": "UT_Achieve_1812.png",
+  "reward": {
+   "icon": "UT_Item_Gacha_90001.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "1813",
+  "name": "帮派大佬",
+  "desc": "累计使用旗袍娘胜利≥30次",
+  "icon": "UT_Achieve_1813.png",
+  "reward": {
+   "icon": "UT_Item_Gacha_90001.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "1814",
+  "name": "命运之主",
+  "desc": "累计使用命运少女胜利≥30次",
+  "icon": "UT_Achieve_1814.png",
+  "reward": {
+   "icon": "UT_Item_Gacha_90001.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "1815",
+  "name": "刀刀暴击",
+  "desc": "累计使用太刀使胜利≥30次",
+  "icon": "UT_Achieve_1815.png",
+  "reward": {
+   "icon": "UT_Item_Gacha_90001.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "1816",
+  "name": "女王的侍从",
+  "desc": "累计使用绿洲女王胜利≥30次",
+  "icon": "UT_Achieve_1816.png",
+  "reward": {
+   "icon": "UT_Item_Gacha_90001.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "1817",
+  "name": "清扫专家",
+  "desc": "累计使用家政机器人胜利≥30次",
+  "icon": "UT_Achieve_1817.png",
+  "reward": {
+   "icon": "UT_Item_Gacha_90001.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "1818",
+  "name": "暗区话事人",
+  "desc": "累计使用暗区少主胜利≥30次",
+  "icon": "UT_Achieve_1818.png",
+  "reward": {
+   "icon": "UT_Item_Gacha_90001.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "1819",
+  "name": "无可抵挡",
+  "desc": "累计使用午夜闪光胜利≥30次",
+  "icon": "UT_Achieve_1819.png",
+  "reward": {
+   "icon": "UT_Item_Gacha_90001.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "1820",
+  "name": "老练黑客",
+  "desc": "累计使用网络魅影胜利≥30次",
+  "icon": "UT_Achieve_1820.png",
+  "reward": {
+   "icon": "UT_Item_Gacha_90001.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "1821",
+  "name": "纸巫女",
+  "desc": "累计使用新人调查员胜利≥30次",
+  "icon": "UT_Achieve_1821.png",
+  "reward": {
+   "icon": "UT_Item_Gacha_90001.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "1822",
+  "name": "老练操控者",
+  "desc": "累计使用机械超人胜利≥30次",
+  "icon": "UT_Achieve_1822.png",
+  "reward": {
+   "icon": "UT_Item_Gacha_90001.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "1823",
+  "name": "完美帮手",
+  "desc": "累计使用风水师胜利≥30次",
+  "icon": "UT_Achieve_1823.png",
+  "reward": {
+   "icon": "UT_Item_Gacha_90001.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "1824",
+  "name": "御主威名",
+  "desc": "累计使用三神御主胜利≥30次",
+  "icon": "UT_Achieve_1824.png",
+  "reward": {
+   "icon": "UT_Item_Gacha_90001.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "1825",
+  "name": "神枪手",
+  "desc": "累计使用枪匠胜利≥30次",
+  "icon": "UT_Achieve_1825.png",
+  "reward": {
+   "icon": "UT_Item_Gacha_90001.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "1826",
+  "name": "化龙",
+  "desc": "累计使用沼之蛟龙胜利≥30次",
+  "icon": "UT_Achieve_1826.png",
+  "reward": {
+   "icon": "UT_Item_Gacha_90001.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "1827",
+  "name": "极端主义",
+  "desc": "累计使用毒苹果胜利≥30次",
+  "icon": "UT_Achieve_1827.png",
+  "reward": {
+   "icon": "UT_Item_Gacha_90001.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "1828",
+  "name": "力大无穷",
+  "desc": "累计使用怪力乱神胜利≥30次",
+  "icon": "UT_Achieve_1828.png",
+  "reward": {
+   "icon": "UT_Item_Gacha_90001.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "1829",
+  "name": "魔渊领主",
+  "desc": "累计使用魔渊幼体胜利≥30次",
+  "icon": "UT_Achieve_1829.png",
+  "reward": {
+   "icon": "UT_Item_Gacha_90001.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "1896",
+  "name": "调制高手",
+  "desc": "累计使用吉尔胜利≥30次",
+  "icon": "UT_Achieve_1896.png",
+  "reward": {
+   "icon": "UT_Item_Gacha_90001.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "1897",
+  "name": "真实的我",
+  "desc": "累计使用多萝西胜利≥30次",
+  "icon": "UT_Achieve_1897.png",
+  "reward": {
+   "icon": "UT_Item_Gacha_90001.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "1898",
+  "name": "主播女孩",
+  "desc": "累计使用超天酱胜利≥30次",
+  "icon": "UT_Achieve_1898.png",
+  "reward": {
+   "icon": "UT_Item_Gacha_90001.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "1899",
+  "name": "可爱主播",
+  "desc": "累计使用糖糖胜利≥30次",
+  "icon": "UT_Achieve_1899.png",
+  "reward": {
+   "icon": "UT_Item_Gacha_90001.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "1901",
+  "name": "荣誉市民",
+  "desc": "累计击倒小偷≥100次",
+  "icon": "UT_Achieve_1901.png",
+  "reward": {
+   "icon": "UT_Item_Gacha_90001.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "2000",
+  "name": "吃到撑",
+  "desc": "累计吃团子≥60次",
+  "icon": "UT_Achieve_2000.png",
+  "reward": {
+   "icon": "UT_Item_Gacha_90001.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "2100",
+  "name": "闪避大师",
+  "desc": "从未收到撞击的局数≥10局",
+  "icon": "UT_Achieve_2100.png",
+  "reward": {
+   "icon": "UT_Item_Gacha_90001.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "2200",
+  "name": "人见人爱",
+  "desc": "累计获得点赞≥300次",
+  "icon": "UT_Achieve_2200.png",
+  "reward": {
+   "icon": "UT_Item_Gacha_90001.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "2300",
+  "name": "社交明星",
+  "desc": "累计获得点赞≥1000次",
+  "icon": "UT_Achieve_2300.png",
+  "reward": {
+   "icon": "UT_Item_Gacha_90001.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "2701",
+  "name": "初出茅庐",
+  "desc": "合作挑战普通难度胜利≥1次",
+  "icon": "UT_Achieve_2701.png",
+  "reward": {
+   "icon": "UT_Item_Currency_1.png",
+   "amount": 77
+  }
+ },
+ {
+  "id": "2702",
+  "name": "小试牛刀",
+  "desc": "合作挑战困难难度胜利≥1次",
+  "icon": "UT_Achieve_2702.png",
+  "reward": {
+   "icon": "UT_Item_Currency_1.png",
+   "amount": 88
+  }
+ },
+ {
+  "id": "2703",
+  "name": "破除噩梦",
+  "desc": "合作挑战噩梦难度胜利≥1次",
+  "icon": "UT_Achieve_2703.png",
+  "reward": {
+   "icon": "UT_Item_Currency_1.png",
+   "amount": 99
+  }
+ },
+ {
+  "id": "2704",
+  "name": "一起疯狂",
+  "desc": "合作挑战疯狂难度胜利≥1次",
+  "icon": "UT_Achieve_2704.png",
+  "reward": {
+   "icon": "UT_Item_PlayerPhoto_Monster_07.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "3201",
+  "name": "凶险通路",
+  "desc": "丛林冒险地图中激活机关同时下沉3名角色",
+  "icon": "UT_Achieve_3201.png",
+  "reward": {
+   "icon": "UT_Item_AccountBackground_71051.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "10000",
+  "name": "鬼见愁",
+  "desc": "单局击倒玩家次数≥5",
+  "icon": "UT_Achieve_10000.png",
+  "reward": {
+   "icon": "UT_Item_Currency_2.png",
+   "amount": 60
+  }
+ },
+ {
+  "id": "10001",
+  "name": "主宰棋盘",
+  "desc": "单局击倒玩家次数≥10",
+  "icon": "UT_Achieve_10001.png",
+  "reward": {
+   "icon": "UT_Item_PlayerPhoto_70904.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "10100",
+  "name": "啊？",
+  "desc": "最高单次pk伤害≥15点",
+  "icon": "UT_Achieve_10100.png",
+  "reward": {
+   "icon": "UT_Item_Currency_2.png",
+   "amount": 60
+  }
+ },
+ {
+  "id": "10101",
+  "name": "啊！？",
+  "desc": "最高单次pk伤害≥20点",
+  "icon": "UT_Achieve_10101.png",
+  "reward": {
+   "icon": "UT_Item_Currency_2.png",
+   "amount": 60
+  }
+ },
+ {
+  "id": "10102",
+  "name": "作弊吧？",
+  "desc": "最高单次pk伤害≥25点",
+  "icon": "UT_Achieve_10102.png",
+  "reward": {
+   "icon": "UT_Item_PlayerPhoto_70906.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "10200",
+  "name": "你什么超能力？",
+  "desc": "单局获得≥100星币",
+  "icon": "UT_Achieve_10200.png",
+  "reward": {
+   "icon": "UT_Item_Currency_2.png",
+   "amount": 60
+  }
+ },
+ {
+  "id": "10300",
+  "name": "乱吃东西的代价",
+  "desc": "单局吃团子传送到医院的次数≥3次",
+  "icon": "UT_Achieve_10300.png",
+  "reward": {
+   "icon": "UT_Item_Gacha_90001.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "10401",
+  "name": "噩梦终结",
+  "desc": "合作挑战模式（噩梦难度或以上）胜利时进度≤15",
+  "icon": "UT_Achieve_10401.png",
+  "reward": {
+   "icon": "UT_Item_PlayerPhoto_70031.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "10501",
+  "name": "硬核高玩",
+  "desc": "合作挑战模式（噩梦难度或以上）在未有角色被击倒的情况下通关",
+  "icon": "UT_Achieve_10501.png",
+  "reward": {
+   "icon": "UT_Item_Gacha_90001.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "20000",
+  "name": "星趴新手",
+  "desc": "账号等级达到≥10级",
+  "icon": "UT_Achieve_20000.png",
+  "reward": {
+   "icon": "UT_Item_Currency_2.png",
+   "amount": 60
+  }
+ },
+ {
+  "id": "20001",
+  "name": "星趴高手",
+  "desc": "账号等级达到≥30级",
+  "icon": "UT_Achieve_20001.png",
+  "reward": {
+   "icon": "UT_Item_Currency_2.png",
+   "amount": 60
+  }
+ },
+ {
+  "id": "20002",
+  "name": "星趴老手",
+  "desc": "账号等级达到≥50级",
+  "icon": "UT_Achieve_20002.png",
+  "reward": {
+   "icon": "UT_Item_Currency_2.png",
+   "amount": 60
+  }
+ },
+ {
+  "id": "20100",
+  "name": "我的朋友很少",
+  "desc": "拥有≥5个角色",
+  "icon": "UT_Achieve_20100.png",
+  "reward": {
+   "icon": "UT_Item_Currency_2.png",
+   "amount": 60
+  }
+ },
+ {
+  "id": "20101",
+  "name": "我的朋友很多",
+  "desc": "拥有≥10个角色",
+  "icon": "UT_Achieve_20101.png",
+  "reward": {
+   "icon": "UT_Item_Currency_2.png",
+   "amount": 60
+  }
+ },
+ {
+  "id": "20200",
+  "name": "私交甚好",
+  "desc": "与1个角色缔结契约",
+  "icon": "UT_Achieve_20200.png",
+  "reward": {
+   "icon": "UT_Item_Currency_2.png",
+   "amount": 60
+  }
+ },
+ {
+  "id": "20201",
+  "name": "三两好友",
+  "desc": "与2个角色缔结契约",
+  "icon": "UT_Achieve_20201.png",
+  "reward": {
+   "icon": "UT_Item_Currency_2.png",
+   "amount": 60
+  }
+ },
+ {
+  "id": "20202",
+  "name": "大家的好伙伴",
+  "desc": "与3个角色缔结契约",
+  "icon": "UT_Achieve_20202.png",
+  "reward": {
+   "icon": "UT_Item_PlayerPhoto_70912.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "20203",
+  "name": "伙伴成群",
+  "desc": "与4个角色缔结契约",
+  "icon": "UT_Achieve_20203.png",
+  "reward": {
+   "icon": "UT_Item_Currency_2.png",
+   "amount": 60
+  }
+ },
+ {
+  "id": "20204",
+  "name": "交际花",
+  "desc": "与5个角色缔结契约",
+  "icon": "UT_Achieve_20204.png",
+  "reward": {
+   "icon": "UT_Item_Currency_2.png",
+   "amount": 60
+  }
+ },
+ {
+  "id": "20300",
+  "name": "刚刚入坑",
+  "desc": "拥有≥3个骰子",
+  "icon": "UT_Achieve_20300.png",
+  "reward": {
+   "icon": "UT_Item_Currency_2.png",
+   "amount": 60
+  }
+ },
+ {
+  "id": "20301",
+  "name": "收藏家",
+  "desc": "拥有≥5个骰子",
+  "icon": "UT_Achieve_20301.png",
+  "reward": {
+   "icon": "UT_Item_Currency_2.png",
+   "amount": 60
+  }
+ },
+ {
+  "id": "20302",
+  "name": "顶尖囤积者",
+  "desc": "拥有≥10个骰子",
+  "icon": "UT_Achieve_20302.png",
+  "reward": {
+   "icon": "UT_Item_Currency_2.png",
+   "amount": 60
+  }
+ },
+ {
+  "id": "20400",
+  "name": "是他让我加的",
+  "desc": "好友数量≥1个",
+  "icon": "UT_Achieve_20400.png",
+  "reward": {
+   "icon": "UT_Item_Currency_2.png",
+   "amount": 60
+  }
+ }
+]

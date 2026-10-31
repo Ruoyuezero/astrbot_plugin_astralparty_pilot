@@ -40,6 +40,8 @@ def monsters():   return _load("monsters", "kb/monsters.json")
 def events():     return _load("events", "kb/events.json")
 def map_events(): return _load("map_events", "kb/map_events.json")
 def buffs():      return _load("buffs", "kb/buffs.json")
+def relics():     return _load("relics", "kb/relics.json")
+def achievements(): return _load("achievements", "kb/achievements.json")
 def states():     return _load("states", "kb/states.json")
 def lands():
     """地形地块类型表。
@@ -184,6 +186,44 @@ def state(q):
     return states().get(str(q))
 
 
+def relic(q):
+    """按名字 / 数字编号找筹码；名字支持模糊（「瞄具」能匹配到鹰眼瞄具）。"""
+    q = str(q).strip()
+    rs = relics()
+    for r in rs:
+        if _eq(r.get("name"), q) or str(r.get("no")) == q:
+            return r
+    for r in rs:
+        if q and q in (r.get("name") or ""):
+            return r
+    return None
+
+
+def relic_find_all(q) -> list[dict]:
+    """模糊匹配，可能多条（同名套系 / 共用编号）。"""
+    q = str(q).strip()
+    hits = [r for r in relics()
+            if _eq(r.get("name"), q) or str(r.get("no")) == q]
+    if hits:
+        return hits
+    return [r for r in relics() if q and q in (r.get("name") or "")]
+
+
+def achieve_find_all(q) -> list[dict]:
+    """按名字 / 数字 ID 找成就，名字支持模糊匹配。"""
+    q = str(q).strip()
+    rows = achievements()
+    hits = [r for r in rows if _eq(r.get("name"), q) or str(r.get("id")) == q]
+    if hits:
+        return hits
+    return [r for r in rows if q and q in (r.get("name") or "")]
+
+
+def achieve(q):
+    hits = achieve_find_all(q)
+    return hits[0] if hits else None
+
+
 def land(t):
     t = int(t)
     for l in lands():
@@ -271,6 +311,8 @@ def search(q, limit=20):
     scan("事件", events(), ["name", "effect", "flavor", "note"], lambda r: r["name"])
     scan("地图事件", map_events(), ["name", "actions"], lambda r: r["name"])
     scan("Buff", buffs(), ["text"], lambda r: r["name"] or r["text"][:12])
+    scan("筹码", relics(), ["name", "desc", "faction"], lambda r: r["name"])
+    scan("成就", achievements(), ["name", "desc"], lambda r: r["name"])
     scan("地块", lands(), ["name", "desc"], lambda r: r["name"])
     return hits[:limit]
 

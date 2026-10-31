@@ -10,7 +10,9 @@
   "states": 27,
   "lands": 27,
   "maps": 21,
-  "skills": 295
+  "skills": 295,
+  "relics": 89,
+  "achievements": 134
  },
  "files": {
   "cards": "kb/cards.json",
@@ -22,7 +24,9 @@
   "lands": "kb/lands.json",
   "maps": "maps/Map_*.json",
   "index": "maps/index.json",
-  "skills": "kb/skills.json"
+  "skills": "kb/skills.json",
+  "relics": "kb/relics.json",
+  "achievements": "kb/achievements.json"
  },
  "maps": [
   {

@@ -25,7 +25,8 @@ HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 DEFAULT_ROOT = r"F:\pictures\Astral Party"
 # 子目录名统一由 assets 提供（全英文，另带旧中文名兼容），这里不再重写一份
-SUBDIR = AS.SUBDIRS
+# 图鉴用的 SUBDIRS 之外，还要能取到解包出来的其它类别（成就 / 头像 / 奖励图标等）
+SUBDIR = {**AS.ALL_SUBDIRS, **AS.SUBDIRS}
 
 # 素材包里缺图的怪物 -> 借用哪个编号的图
 # 1049 姬梦枫（孔雀意识）没有独立立绘；1050 是同一「孔雀意识」线（被动「真的生气了」）
@@ -55,8 +56,9 @@ def dir_of(kind: str) -> str:
     两者都不存在时退回 `images/art/<kind>`，由调用方判空。
     """
     key = {"chibi": "chibi_dir", "portrait": "portrait_dir",
-           "cg": "cg_dir", "emoji": "emoji_dir"}[kind]
-    sub = str(_cfg.get(key) or SUBDIR[kind])
+           "cg": "cg_dir", "emoji": "emoji_dir",
+           "relic": "relic_dir", "buff": "buff_dir"}.get(kind)
+    sub = str((_cfg.get(key) if key else "") or AS._sub(kind))
     if os.path.isabs(sub):
         return sub if os.path.isdir(sub) else os.path.join(HERE, "images", "art", kind)
 
@@ -67,7 +69,7 @@ def dir_of(kind: str) -> str:
     for p in order:
         if os.path.isdir(p):
             return p
-    legacy = AS.LEGACY.get(kind)             # 图库还没改名时认旧中文目录
+    legacy = AS.LEGACY.get(kind) or AS.LEGACY_ALL.get(kind)   # 图库还没改名时认旧中文目录
     if legacy:
         old = os.path.join(root(), legacy)
         if os.path.isdir(old):
@@ -75,8 +77,12 @@ def dir_of(kind: str) -> str:
     return os.path.join(HERE, "images", "art", sub)
 
 
+# 判断「有没有美术素材」只看图鉴必需的那几类，不看解包出来的其它杂项目录
+_CORE_KINDS = ("chibi", "portrait", "cg", "emoji", "relic", "buff", "land", "handcard")
+
+
 def available() -> bool:
-    return any(os.path.isdir(dir_of(k)) for k in SUBDIR)
+    return any(os.path.isdir(dir_of(k)) for k in _CORE_KINDS)
 
 
 def describe() -> str:
@@ -207,6 +213,49 @@ def hero_cgs(hid) -> list[tuple[str, dict]]:
     """[(皮肤后缀, {帧号: 路径})]。"""
     h = index()["heroes"].get(str(hid)) or {}
     return list((h.get("cg") or {}).items())
+
+
+def relic_icon(filename: str) -> str | None:
+    """筹码图标。filename 来自 kb/relics.json 的 icon 字段（如 UT_Relic_50044.png）。"""
+    if not filename:
+        return None
+    p = os.path.join(dir_of("relic"), filename)
+    return p if os.path.isfile(p) else None
+
+
+# 品质底框（圆盘）：蓝 / 紫 / 金（游戏内部叫 Orange）
+RELIC_BASE_FILE = {"蓝": "UT_RelicBase_Blue.png",
+                   "紫": "UT_RelicBase_Purple.png",
+                   "金": "UT_RelicBase_Orange.png"}
+
+
+def relic_base(quality: str) -> str | None:
+    """按品质取筹码圆盘底框，没有对应图时返回 None（渲染会退回自绘方形底）。"""
+    name = RELIC_BASE_FILE.get(str(quality or "").strip())
+    return relic_icon(name) if name else None
+
+
+def achieve_icon(filename: str) -> str | None:
+    """成就图标。filename 来自 kb/achievements.json 的 icon 字段（如 UT_Achieve_20100.png）。"""
+    if not filename:
+        return None
+    p = os.path.join(dir_of("achieve"), filename)
+    return p if os.path.isfile(p) else None
+
+
+# 奖励图标散落在多个解包目录里（货币在 relic、头像在 player_photo、背景在 account_bg…）
+_ITEM_KINDS = ("relic", "player_photo", "account_bg", "misc", "other")
+
+
+def item_icon(filename: str) -> str | None:
+    """通用道具图标：按文件名在几个解包目录里依次找。"""
+    if not filename:
+        return None
+    for kind in _ITEM_KINDS:
+        p = os.path.join(dir_of(kind), filename)
+        if os.path.isfile(p):
+            return p
+    return None
 
 
 def hero_emojis(hid) -> list[tuple[str, str]]:

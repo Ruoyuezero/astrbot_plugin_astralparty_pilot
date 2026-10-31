@@ -66,6 +66,14 @@ HELP_SECTIONS = [
         ("/app heroCG <名字>", "角色全部战斗 CG（一行两张）"),
         ("/app heroemoji <名字|ID>", "角色表情包（8 个一行）"),
     ]),
+    ("🎯", "筹码图鉴", [
+        ("/app relic", "全部筹码（按流派分组，图标 + 编号 + 名称）"),
+        ("/app relic <名字|编号>", "单个筹码详解（品质 + 流派 + 效果说明）"),
+    ]),
+    ("🏆", "成就图鉴", [
+        ("/app achieve", "全部成就（一张图，图 + 名称 + 数字 ID）"),
+        ("/app achieve <名字|ID>", "单个成就详解（达成条件 + 奖励）"),
+    ]),
     ("🔎", "查号（实时）", [
         ("/app <UID>", "查玩家：在局里→局内进度卡，不在局→档案卡"),
         ("/app 查 <UID>", "同上（/app uid 1551363 也行）"),
@@ -402,6 +410,14 @@ class AstralPartyPilotPlugin(Star):
             async for result in self._app_hero_emoji(event, joined):
                 yield result
             return
+        if sub in ("relic", "relics", "筹码", "遗物"):
+            async for result in self._app_relic(event, joined):
+                yield result
+            return
+        if sub in ("achieve", "achievement", "achievements", "成就"):
+            async for result in self._app_achieve(event, joined):
+                yield result
+            return
         if sub in ("auto", "代打", "自动", "自动驾驶"):
             async for result in self._app_pilot_mode(event, joined, "auto"):
                 yield result
@@ -417,7 +433,7 @@ class AstralPartyPilotPlugin(Star):
 
         yield event.plain_result(
             f"bot 没看懂「{sub}」这个图鉴子命令呢～\n"
-            "可用：card / map / land / buff / monster / monsterCG / hero / heroskins / heroCG / heroemoji\n"
+            "可用：card / map / land / buff / monster / monsterCG / hero / heroskins / heroCG / heroemoji / relic / achieve\n"
             "查玩家：/app <UID>（例如 /app 1551363）\n"
             "发 /app help 看完整说明"
         )
@@ -711,6 +727,87 @@ class AstralPartyPilotPlugin(Star):
         except Exception as exc:  # noqa: BLE001
             logger.error(f"[星趴] 渲染表情包失败：{exc}")
             yield event.plain_result(f"渲染「{h['name']}」的表情包出错了：{exc}")
+
+    async def _app_relic(self, event: AstrMessageEvent, joined: str):
+        """筹码图鉴：不带参数出总览，带名字/编号出单张详情。"""
+        if not joined:
+            try:
+                fd, tmp = tempfile.mkstemp(suffix=".png", prefix="app_relic_")
+                os.close(fd)
+                AR.render_relic_list(tmp)
+                yield event.image_result(tmp)
+            except Exception as exc:  # noqa: BLE001
+                logger.error(f"[星趴] 渲染筹码总览失败：{exc}")
+                yield event.plain_result(f"渲染筹码总览出错了：{exc}")
+            return
+
+        hits = kb.relic_find_all(joined)
+        if not hits:
+            names = [r.get("name") or "" for r in kb.relics()]
+            yield event.plain_result(f"知识库里没有「{joined}」这个筹码呢{_suggest(joined, names)}")
+            return
+        if len(hits) > 1:
+            # 名字没对上唯一一条（套系 / 共用编号），列出候选让主人再点一次
+            lines = [f"「{joined}」匹配到 {len(hits)} 个筹码，带上完整名字再试一次："]
+            for r in hits[:12]:
+                lines.append(f"· {r.get('name')}（{r.get('quality')}·{r.get('faction')}·编号 {r.get('no')}）")
+            yield event.plain_result("\n".join(lines))
+            return
+
+        r = hits[0]
+        others = []
+        others_label = "同套系"
+        no = str(r.get("no") or "")
+        if no and no != "—":
+            others = [o for o in kb.relic_find_all(no) if o is not r]
+        elif r.get("icon"):
+            # 纯属性筹码没有独立图标号，按图标找同系列的其它档位
+            others = [o for o in kb.relics()
+                      if o.get("icon") == r.get("icon") and o is not r]
+            others_label = "同系列"
+        try:
+            fd, tmp = tempfile.mkstemp(suffix=".png", prefix="app_relic_")
+            os.close(fd)
+            AR.render_relic_card(r, tmp, others, others_label)
+            yield event.image_result(tmp)
+        except Exception as exc:  # noqa: BLE001
+            logger.error(f"[星趴] 渲染筹码详情失败：{exc}")
+            yield event.plain_result(f"渲染「{r.get('name')}」出错了：{exc}")
+
+    async def _app_achieve(self, event: AstrMessageEvent, joined: str):
+        """成就图鉴：不带参数出总览，带名字/ID 出单张详情。"""
+        if not joined:
+            try:
+                fd, tmp = tempfile.mkstemp(suffix=".png", prefix="app_achieve_")
+                os.close(fd)
+                AR.render_achieve_list(tmp)
+                yield event.image_result(tmp)
+            except Exception as exc:  # noqa: BLE001
+                logger.error(f"[星趴] 渲染成就总览失败：{exc}")
+                yield event.plain_result(f"渲染成就总览出错了：{exc}")
+            return
+
+        hits = kb.achieve_find_all(joined)
+        if not hits:
+            names = [r.get("name") or "" for r in kb.achievements()]
+            yield event.plain_result(f"知识库里没有「{joined}」这个成就呢{_suggest(joined, names)}")
+            return
+        if len(hits) > 1:
+            lines = [f"「{joined}」匹配到 {len(hits)} 个成就，带上完整名字或 ID 再试一次："]
+            for r in hits[:12]:
+                lines.append(f"· {r.get('name')}（ID {r.get('id')}·{r.get('desc')}）")
+            yield event.plain_result("\n".join(lines))
+            return
+
+        r = hits[0]
+        try:
+            fd, tmp = tempfile.mkstemp(suffix=".png", prefix="app_achieve_")
+            os.close(fd)
+            AR.render_achieve_card(r, tmp)
+            yield event.image_result(tmp)
+        except Exception as exc:  # noqa: BLE001
+            logger.error(f"[星趴] 渲染成就详情失败：{exc}")
+            yield event.plain_result(f"渲染「{r.get('name')}」出错了：{exc}")
 
     async def _app_uid(self, event: AstrMessageEvent, joined: str):
         """实时查号：/app 1551363。局内→进度卡，不在局→档案卡。"""
