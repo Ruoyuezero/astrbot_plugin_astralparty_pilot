@@ -2,7 +2,7 @@ name: astrbot_plugin_astralparty_pilot
 display_name: 星趴助手（Astral Party Pilot）
 desc: "利用游戏资源解包数据 + 本地知识库 + 自动寻路决策算法，为《星引擎派对》（Astral Party）实现图鉴查询与对局辅助：查卡牌 / 怪物 / 英雄 / 地块 / 地图 / 格子 / 筹码 / 成就，看立绘、战斗CG、表情包与地块圆片，算威胁排序、寻路与手牌建议，支持按 UID 查号与陪玩提示"
 help: 发送 /app help 查看图鉴指令（card / map / land / buff / monster / monsterCG / hero / heroskins / heroCG / heroemoji / relic / achieve），发送 /星趴 帮助 查看对局向子命令。
-version: 1.8.3
+version: 1.8.4
 author: AstralPartyPilot
 repo: "https://github.com/Ruoyuezero/astrbot_plugin_astralparty_pilot"
 astrbot_version: ">=4.0.0"

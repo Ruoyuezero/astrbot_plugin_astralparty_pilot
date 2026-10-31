@@ -63,6 +63,11 @@ def _eq(a, b):
     return (a or "").strip() == (b or "").strip()
 
 
+def _alias_eq(q: str, name: str) -> bool:
+    """别名比较忽略大小写（sex / Sex、蟹bro / 蟹BRO 都能中）。"""
+    return str(q).strip().casefold() == str(name).strip().casefold()
+
+
 def card(q):
     """按名字/编号/英文名找手牌。"""
     q = str(q)
@@ -75,16 +80,42 @@ def card(q):
     return None
 
 
+def monster_alias():
+    """社区俗名表 {怪物编号: [别名...]}（小偷 / 茶壶 / 嘎呜 / 猿神 …）。"""
+    return _load("monster_alias", "kb/monster_alias.json")
+
+
+def monster_aliases(no) -> list[str]:
+    return list(monster_alias().get(str(no)) or [])
+
+
+def monster_find_all(q) -> list[dict]:
+    """按编号 / 名字 / 称号 / 社区俗名找怪物，可能多只（「茶壶」有三只、「嘎呜」有五只）。"""
+    q = str(q).strip()
+    ms = monsters()
+    # 1 编号 / 名字 / 称号精确
+    hits = [m for m in ms if _eq(m["no"], q) or _eq(m["name"], q) or _eq(m.get("title"), q)]
+    if hits:
+        return hits
+    # 2 俗名精确（要早于名字包含：「虾」不该被「虾布罗」之外的东西抢走）
+    ids = [k for k, names in monster_alias().items() if any(_alias_eq(q, n) for n in names)]
+    hits = [m for m in ms if str(m["no"]) in ids]
+    if hits:
+        return hits
+    # 3 名字 / 称号包含
+    hits = [m for m in ms if q and (q in m["name"] or q in (m.get("title") or ""))]
+    if hits:
+        return hits
+    # 4 俗名包含
+    ids = [k for k, names in monster_alias().items()
+           if q and any(q.casefold() in n.casefold() for n in names)]
+    return [m for m in ms if str(m["no"]) in ids]
+
+
 def monster(q):
-    """按名字或称号找怪物。"""
-    q = str(q)
-    for m in monsters():
-        if _eq(m["name"], q) or _eq(m["title"], q) or _eq(m["no"], q):
-            return m
-    for m in monsters():
-        if q in m["name"] or q in m["title"]:
-            return m
-    return None
+    """按名字 / 称号 / 编号 / 社区俗名找怪物（多义时取第一条，调用方可先看 monster_find_all）。"""
+    hits = monster_find_all(q)
+    return hits[0] if hits else None
 
 
 def monsters_on(mapname):
@@ -131,11 +162,6 @@ def hero_alias():
 
 def hero_aliases(hid) -> list[str]:
     return list(hero_alias().get(str(hid)) or [])
-
-
-def _alias_eq(q: str, name: str) -> bool:
-    """别名比较忽略大小写（sex / Sex 都能中）。"""
-    return q.strip().casefold() == str(name).strip().casefold()
 
 
 def skills():
@@ -329,7 +355,13 @@ def search(q, limit=20):
                     hits.append((kind, namef(r), str(v)[max(0, i - 30):i + 50].replace("\n", " ")))
                     break
     scan("卡牌", cards(), ["name", "en", "eff_common", "eff_pvp", "eff_pve", "note", "source"], lambda r: r["name"])
-    scan("怪物", monsters(), ["name", "title", "mech", "active_desc", "passive_desc", "passive2_desc"], lambda r: r["name"])
+    mal = monster_alias()
+    ms = []
+    for m in monsters():
+        d = dict(m)
+        d["alias"] = " ".join(mal.get(str(m.get("no")), []))
+        ms.append(d)
+    scan("怪物", ms, ["name", "title", "alias", "mech", "active_desc", "passive_desc", "passive2_desc"], lambda r: r["name"])
     scan("事件", events(), ["name", "effect", "flavor", "note"], lambda r: r["name"])
     scan("地图事件", map_events(), ["name", "actions"], lambda r: r["name"])
     scan("Buff", buffs(), ["text"], lambda r: r["name"] or r["text"][:12])

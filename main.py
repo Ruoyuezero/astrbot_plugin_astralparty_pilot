@@ -56,7 +56,7 @@ HELP_SECTIONS = [
     ]),
     ("👹", "怪物图鉴", [
         ("/app monster", "按地图分类列出所有怪物"),
-        ("/app monster <名字>", "怪物简介卡（立绘 + 数值 + 机制）"),
+        ("/app monster <名字>", "怪物简介卡（立绘 + 数值 + 机制，认俗名）"),
         ("/app monsterCG <名字>", "怪物战斗 CG 原图"),
     ]),
     ("🧝", "英雄图鉴", [
@@ -279,7 +279,28 @@ def _monster_names() -> list[str]:
         for v in (x.get("name"), x.get("title")):
             if v and v not in out:
                 out.append(v)
+        # 俗名也进候选：茶壶 / 嘎呜 / 猿神 这类叫法打错字时更容易被捞回来
+        for v in kb.monster_aliases(x.get("no")):
+            if v and v not in out:
+                out.append(v)
     return out
+
+
+def _monster_pick(joined: str):
+    """解析怪物名。返回 (怪物, 候选提示)；俗称对上多只怪时怪物为 None、提示非空。"""
+    hits = kb.monster_find_all(joined)
+    if not hits:
+        return None, None
+    # 「茶壶」「嘎呜」这类玩家叫法对应好几只怪：按名字去重后仍有多个，就让主人用编号挑
+    picked = {}
+    for h in hits:
+        picked.setdefault(h.get("name"), h)
+    if len(picked) > 1:
+        lines = [f"「{joined}」对应 {len(picked)} 只怪物，用编号或全名指定吧："]
+        for h in sorted(picked.values(), key=lambda x: str(x.get("no"))):
+            lines.append(f"· {h['no']} {h['name']}")
+        return None, "\n".join(lines)
+    return hits[0], None
 
 
 def _hero_names() -> list[str]:
@@ -604,7 +625,10 @@ class AstralPartyPilotPlugin(Star):
                 yield event.plain_result(f"渲染怪物总览出错了：{exc}")
             return
 
-        m = kb.monster(joined)
+        m, hint = _monster_pick(joined)
+        if hint:
+            yield event.plain_result(hint)
+            return
         if not m:
             names = _monster_names()
             yield event.plain_result(f"知识库里没有「{joined}」这只怪物呢{_suggest(joined, names)}")
@@ -625,7 +649,10 @@ class AstralPartyPilotPlugin(Star):
         if not joined:
             yield event.plain_result("要带上怪物名字哦，例如：/app monsterCG 小浣熊")
             return
-        m = kb.monster(joined)
+        m, hint = _monster_pick(joined)
+        if hint:
+            yield event.plain_result(hint)
+            return
         if not m:
             names = _monster_names()
             yield event.plain_result(f"知识库里没有「{joined}」这只怪物呢{_suggest(joined, names)}")
@@ -1063,7 +1090,9 @@ class AstralPartyPilotPlugin(Star):
             c = kb.card(joined)
             return fmt_card(c) if c else f"知识库里没有「{joined}」这张牌呢"
         if sub in ("怪", "怪物", "monster"):
-            m = kb.monster(joined)
+            m, hint = _monster_pick(joined)
+            if hint:
+                return hint
             return fmt_monster(m) if m else f"知识库里没有「{joined}」这只怪呢"
         if sub in ("地块", "地", "land"):
             l = kb.land_find(joined) if joined else None
