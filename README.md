@@ -4,9 +4,7 @@
 
 > AstrBot 插件：把《星引擎 Party / Astral Party》（国服《吉星派对》）的对局知识库、地图拓扑、决策函数与陪玩引擎搬进 QQ。
 
-[![AstrBot](https://img.shields.io/badge/AstrBot-plugin-2B579A.svg?style=flat-square)](#)
-[![Python](https://img.shields.io/badge/python-3.10%2B-3776AB.svg?style=flat-square&logo=python&logoColor=white)](#环境要求)
-[![Platform](https://img.shields.io/badge/platform-Windows-0078D4.svg?style=flat-square&logo=windows&logoColor=white)](#环境要求)
+[![AstrBot](https://img.shields.io/badge/AstrBot-plugin-2B579A.svg?style=flat-square)](#)[         ![Python](https://img.shields.io/badge/python-3.10%2B-3776AB.svg?style=flat-square&logo=python&logoColor=white)](#环境要求)[        ![Platform](https://img.shields.io/badge/platform-Windows-0078D4.svg?style=flat-square&logo=windows&logoColor=white)](#环境要求)
 
 游戏对局数据解析与自动化操作助手，围绕「读局 → 判断 → 执行」三段闭环构建：从游戏资源与运行时状态中取回地图、手牌与对局进度，用确定性规则算出当前最优动作，再以模拟鼠标输入交给游戏执行。
 
@@ -19,7 +17,7 @@
 - **成就图鉴**：139 个成就按数字 ID 排序，一张图看全插画，单卡给达成条件与奖励（货币原币 + 数量）
 - **实时查号**：按 UID 查玩家，在局内显示对局进度，不在局显示档案卡（等级 / 场次 / 胜率 / 获赞 / 拥有角色 / 最近战绩）；查本机登录的账号时额外给成就进度，任何人的卡都会显示其资料页展示的成就
 - **陪玩引擎**：威胁排序、寻路、手牌建议；三种操控模式 —— **全自动代打**（`/appa on`）、
-  **半自动代打**（`/appa card` 等把某一项交给 bot）、**玩家自主操控**（`/appa off`，bot 只看不动）
+  **半自动代打**（`/appa card` 等把某一项交给 bot）、**玩家自主操控**（`/appa off`）
 - **知识库**：手牌 71 张、Buff 311 条、筹码 89 种（含各地图专属）、成就 139 个、怪物 69 / 英雄 / 地图拓扑 21 张等，随插件分发、离线可查
 
 ---
@@ -28,45 +26,44 @@
 
 ### `/app` —— 图鉴与陪玩
 
-| 指令 | 说明 |
-|---|---|
-| `/app help` | 指令一览（渲染成图） |
-| `/app card` | 列出所有手牌中文名与序号 |
-| `/app card <名字>` | 渲染手牌简介卡（原图 + 说明） |
-| `/app map` | 列出所有地图中文名与序号 |
-| `/app map <序号\|名字>` | 渲染地图拓扑图 |
-| `/app land` | 全部地块（地形 26 种 + 角色地块） |
-| `/app land <数字\|名字>` | 地块卡（地形类型号或角色 ID 101~306） |
-| `/app buff` | 全部 Buff 图鉴（图标 + 名称） |
-| `/app buff <id\|名字>` | 单个 Buff 详解（效果 + 来源） |
-| `/app monster` | 按地图分类列出所有怪物 |
-| `/app monster <名字>` | 怪物简介卡（立绘 + 数值 + 机制，认俗名） |
-| `/app monsterCG <名字>` | 怪物战斗 CG 原图 |
-| `/app hero` | 全部英雄（局内小人，数字为角色 ID） |
-| `/app hero <名字>` | 角色简介卡（立绘 + 属性 + 技能，认俗名） |
-| `/app heroskins <名字>` | 皮肤总览 |
-| `/app heroCG <名字>` | 角色全部战斗 CG |
-| `/app heroemoji <名字\|ID>` | 角色表情包 |
-| `/app relic` | 全部筹码（按流派分组，图标 + 编号 + 名称） |
-| `/app relic <名字\|编号>` | 单个筹码详解（品质 + 流派 + 效果说明，认俗称） |
-| `/app achieve` | 全部成就（一张图，插画 + 名称 + 数字 ID） |
-| `/app achieve <名字\|ID>` | 单个成就详解（达成条件 + 奖励） |
-| `/app load` | 从游戏本体解包美术素材，填满外部图库（首次必做，见下文「美术图库」） |
-| `/app load check` | 只看图库现状（配置 / 素材根 / 各类张数 / 游戏位置），不解包 |
-| `/app <UID>` | 查玩家（在局→进度卡，不在局→档案卡） |
-| `/app 查 <UID>` | 同上（`/app uid 1551363` 也行） |
-| `/appa` | 查当前进度 + 我的角色状态（只看不动） |
-| `/appa on` | **全自动代打**：出牌 / 技能 / 移动 / 战斗全交给 bot |
-| `/appa off` | **玩家自主操控**：授权收回，鼠标完全归你，bot 只推建议 |
-| `/appa atk` | 攻击怪物（开战 + 不闪避） |
-| `/appa def` | 防御怪物（避战 + 闪避） |
-| `/appa skip` | 跳过商店 / 怪物 / 闪避 |
-| `/appa card` | **半自动代打**：只出牌（其余动作仍归你） |
-| `/appa skill` | 半自动：只开技能 |
-| `/appa go` | 半自动：只移动、选「继续移动」 |
-| `/appa choose` | 遇岔路自动选更优的一条 |
-| `/appa stop` | 停下来（不继续走） |
-| `/appa buy` | 商店买一张卡（买完离开）/ 挑一个筹码 |
+| 指令                        | 说明                                 |
+| ------------------------- | ---------------------------------- |
+| `/app help`               | 指令一览（渲染成图）                         |
+| `/app card`               | 列出所有手牌中文名与序号                       |
+| `/app card <名字>`          | 渲染手牌简介卡（原图 + 说明）                   |
+| `/app map`                | 列出所有地图中文名与序号                       |
+| `/app map <序号\|名字>`       | 渲染地图拓扑图                            |
+| `/app land`               | 全部地块（地形 26 种 + 角色地块）               |
+| `/app land <数字\|名字>`      | 地块卡（地形类型号或角色 ID 101~306）           |
+| `/app buff`               | 全部 Buff 图鉴（图标 + 名称）                |
+| `/app buff <id\|名字>`      | 单个 Buff 详解（效果 + 来源）                |
+| `/app monster`            | 按地图分类列出所有怪物                        |
+| `/app monster <名字>`       | 怪物简介卡（立绘 + 数值 + 机制，认俗名）            |
+| `/app monsterCG <名字>`     | 怪物战斗 CG 原图                         |
+| `/app hero`               | 全部英雄（局内小人，数字为角色 ID）                |
+| `/app hero <名字>`          | 角色简介卡（立绘 + 属性 + 技能，认俗名）            |
+| `/app heroskins <名字>`     | 皮肤总览                               |
+| `/app heroCG <名字>`        | 角色全部战斗 CG                          |
+| `/app heroemoji <名字\|ID>` | 角色表情包                              |
+| `/app relic`              | 全部筹码（按流派分组，图标 + 编号 + 名称）           |
+| `/app relic <名字\|编号>`     | 单个筹码详解（品质 + 流派 + 效果说明，认俗称）         |
+| `/app achieve`            | 全部成就（一张图，插画 + 名称 + 数字 ID）          |
+| `/app achieve <名字\|ID>`   | 单个成就详解（达成条件 + 奖励）                  |
+| `/app load`               | 从游戏本体解包美术素材，填满外部图库（首次必做，见下文「美术图库」） |
+| `/app load check`         | 只看图库现状（配置 / 素材根 / 各类张数 / 游戏位置），不解包 |
+| `/app <UID>`              | 查玩家（在局→进度卡，不在局→档案卡）                |
+| `/appa`                   | 查当前进度 + 我的角色状态（只看不动）               |
+| `/appa on`                | 全自动代打：出牌 / 技能 / 移动 / 战斗全交给 bot     |
+| `/appa off`               | 玩家自主操控：授权收回，鼠标完全归你，bot 只推建议        |
+| `/appa atk`               | 攻击怪物（开战 + 不闪避）                     |
+| `/appa def`               | 防御怪物（避战 + 闪避）                      |
+| `/appa skip`              | 跳过商店 / 怪物 / 闪避                     |
+| `/appa card`              | 半自动：只出牌                            |
+| `/appa skill`             | 半自动：只开技能                           |
+| `/appa go`                | 半自动：只移动、选「继续移动」                    |
+| `/appa choose`            | 遇岔路自动选更优的一条                        |
+| `/appa stop`              | 在停下来                               |
+| `/appa buy`               | 商店买一张卡（买完离开）/ 挑一个筹码                |
 
 > 每个子命令都是**独占**的：只开这一项，其余立刻收回，方便单项调试；
 > 进程在跑时切授权**不用重启**，下一帧就换挡。

@@ -82,7 +82,6 @@ HELP_SECTIONS = [
     ]),
     ("🔎", "查号（实时）", [
         ("/app <UID>", "查玩家：在局里→局内进度卡，不在局→档案卡"),
-        ("/app 查 <UID>", "同上（/app uid 1551363 也行）"),
     ]),
     ("🎮", "代打（三种模式：全自动 / 半自动 / 你自己操控）", [
         ("/appa", "查当前进度 + 我的角色状态（只看不动）"),
@@ -478,10 +477,6 @@ class AstralPartyPilotPlugin(Star):
             return
         if sub.isdigit() and len(sub) >= 4:
             async for result in self._app_uid(event, sub):
-                yield result
-            return
-        if sub in ("查", "查号", "查询", "uid", "who", "玩家", "资料"):
-            async for result in self._app_uid(event, joined):
                 yield result
             return
         if sub in ("card", "卡牌", "卡", "牌", "手牌"):
