@@ -20,9 +20,9 @@
     choose  岔路选路（点游戏自己的箭头）
     stop    停下来（5077 选「停」；与 go 互斥，只授权 stop 时才停）
     buy     商店买一张卡（买完就离开）/ 三选一筹码 / 买筹码询问
-    atk     攻击怪物：5047「是否开战」选打；5039 战斗中不闪避，正面接战
-    def     防御怪物：5047 选不打（避战）；5039 选「防御」
-    skip    跳过一切：商店不买直接走、5249 不买筹码、5047 不打、5039 选「防御」
+    atk     攻击怪物：5047「是否开战」选打；5039 被反击时不闪避（防御硬扛）
+    def     防御怪物：5047 选不打（避战）；5039 被反击/怪物回合被打时不闪避（防御）
+    skip    跳过一切：商店不买直接走、5249 不买筹码、5047 不打、5039 闪避躲伤害
     不给就是不授权 → 只看不动。
     每个子命令都是**独占**的：只开这一项，其余立刻收回，方便单项调试。
     /appa on 全自动 = card, skill, go, choose, buy, atk, def（不含 skip / stop）。
@@ -497,11 +497,12 @@ class Coach:
             5047  btn_PK = 打（is_battle=true）／ btn_Leave = 不打（false）
             5039  result=true = 闪避（btn_Dodge）／ result=false = 防御（btn_Defend）
 
-        三个授权的分工：
-            atk   5047 打；5039 防御（不闪，站着打完）
-            def   5047 不打（避战）；5039 闪避（躲伤害）
-            skip  跟 def 一样躲，另外还管商店和筹码（见 handle_shop / handle_relic）
-        atk 和 skip 同时给时以 atk 为准 —— 明确说了要打就别躲。
+        三个授权的分工（协议 RequestBattleChoiceC2S 只有一个 bool dodge）：
+            atk   5047 打；5039 防御（dodge=false，站着接下这次攻击）
+            def   5047 不打（避战）；5039 防御（dodge=false，不闪避）
+            skip  5047 不打（避战）；5039 闪避（dodge=true），另外还管商店和筹码
+        atk / def 都不闪（no_dodge），只有 skip 明确闪避（dodge）。
+        atk 与 skip / def 同时给时以 atk 为准 —— 明确说了要打就别躲。
         """
         aid = int(act.get("id") or 0)
         if aid not in (BATTLE_ASK_ID, BATTLE_CHOICE_ID):
@@ -529,8 +530,8 @@ class Coach:
                 time.sleep(0.25)
             return True
 
-        # 5039：atk 防御硬扛，def / skip 闪避躲开
-        dodge = not has_atk
+        # 5039：只有 skip 才闪避（dodge），atk / def 都防御硬扛（no_dodge）
+        dodge = has_skip and not has_atk and not has_def
         key = (aid, sn, dodge)
         if key == self._battle_key and now - self._battle_t < 4.0:
             return False
