@@ -105,10 +105,22 @@ _MON_BUST = re.compile(r"^UT_Monster_Bust_(\d+)_([01])\.png$")
 _EMOJI = re.compile(r"^UT_Item_Emoji_(\d+)_(\d+)(?:_([A-Za-z]+))?\.png$")
 
 
+# `_sfw` 是和谐版（与原图同款只是打码/裁剪），`_EN`/`_JP` 是表情包多语言版；
+# 浏览器下载重名会在扩展名前加 ` #数字` 尾巴。这些都不是独立皮肤，扫描时一律跳过。
+_IGNORE_SUFFIX = re.compile(r"_(?:sfw|en|jp)(?:_|\.)| #[0-9]+\.png$", re.IGNORECASE)
+
+
 def _files(kind: str):
     d = dir_of(kind)
     try:
-        return [f for f in os.listdir(d) if f.lower().endswith(".png")]
+        out = []
+        for f in os.listdir(d):
+            if not f.lower().endswith(".png"):
+                continue
+            if _IGNORE_SUFFIX.search(f):
+                continue
+            out.append(f)
+        return out
     except OSError:
         return []
 
