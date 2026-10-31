@@ -57,9 +57,7 @@ def _project_cfg(h: str) -> dict:
 
 
 def game_dir(cfg: dict | None = None) -> str:
-    g = str((cfg or {}).get("pilot_game_dir") or "").strip()
-    if g:
-        return g
+    # 顺序：环境变量（临时覆盖）→ 引擎工程的 config.json → Steam 自动探测 → 兜底
     env = str(os.environ.get("ASTRAL_GAME_DIR") or "").strip()
     if env:
         return env

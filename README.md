@@ -174,25 +174,48 @@
 
 1. 将本插件放入 AstrBot 的 `data/plugins/` 目录
 2. 在 AstrBot 插件管理页启用
-3. （可选）配置美术图库根目录与游戏目录，见下文「配置」
+3. 在插件配置里填 `art_root`（素材放哪），然后发 `/app load` 解包美术素材
 
 ---
 
 ## 配置
 
+插件只有 5 项配置，都在 AstrBot 面板 → 插件配置里：
+
+| 配置项 | 说明 |
+|---|---|
+| `art_root` | 美术素材库目录（父目录）。**留空＝没有图库，图鉴一律不出图** |
+| `card_font` | 卡面字体族（默认黑体） |
+| `live_client_ver` | 查号客户端版本号，留空自动读，一般不用填 |
+| `pilot_home` | 代打引擎目录，留空用插件自带的 `pilot/` |
+| `pilot_prefer` | 代打默认倾向（发育 / 进攻 / 防守） |
+
 ### 美术图库
 
-图鉴图片默认从外部图库读取（`art_root`，默认 `F:\pictures\Astral Party`），按英文子目录分类组织（`portrait` / `cg` / `emoji` / `land` / `card` / `buff` / `relic` / `achieve` / `item` / `cardback` / `headshot` 等）。插件本体只内置字体与 logo，不含游戏素材；图库缺图时会退化为纯文字卡片，不会报错。
+插件本体只带字体和 logo，**不含任何游戏素材**。图片全部来自外部图库：
+
+1. 在面板里把 `art_root` 填成想放素材的目录，例如 `F:\pictures`（填父目录，不用自己建子目录）
+2. 发 `/app load`
+3. bot 会从游戏本体（Steam 里的《星引擎 Party》）解包全部 `Texture2D`，写进
+   `<art_root>\Astral Party\<类别>\<资源名>.png`，同时在图库根目录留一份 `manifest.json` 记录这次的统计
+
+之后所有图鉴（`/app hero`、`/app card`、`/app relic`……）都从这个库出图。图库按英文子目录分类：`chibi` / `portrait` / `cg` / `emoji` / `land` / `card` / `buff` / `relic` / `achieve` / `cardback` / `headshot` 等三十来类。
+
+- `art_root` 留空时发 `/app load` 会直接报「加载失败」，提示去配置，不会假装成功
+- 已经存在的文件默认跳过，所以重复跑只补新素材；游戏更新后重新发一次即可
+- 全量解包 6688 个 bundle，多进程实测约 2 分钟，跑在后台，完成后 bot 主动把结果发回来
+- 想先看看现状不发车：`/app load check`
+- 图库缺图时会退化为纯文字卡片，不会报错
+- 从 1.9.1 起启动时会自动整理配置：删掉旧版废弃项（`art_source` / `*_dir` / `live_host` 等），`art_root` 若误填成 `…\Astral Party` 也会自动回退成父目录
 
 ### 游戏目录（陪玩用）
 
 陪玩引擎按以下优先级定位游戏实例目录，**无需手动填也能自动探测**：
 
-1. 插件配置 `pilot_game_dir`
-2. 环境变量 `ASTRAL_GAME_DIR`
-3. 工程 `config.json` 的 `game_dir`
-4. **自动探测**：读 Steam 注册表 + `libraryfolders.vdf` + `appmanifest` 定位 `common/Astral Party/<实例>`
-5. 硬编码兜底
+1. 环境变量 `ASTRAL_GAME_DIR`
+2. 引擎工程 `config.json` 的 `game_dir`
+3. **自动探测**：读 Steam 注册表 + `libraryfolders.vdf` + `appmanifest` 定位 `common/Astral Party/<实例>`
+4. 硬编码兜底
 
 ---
 

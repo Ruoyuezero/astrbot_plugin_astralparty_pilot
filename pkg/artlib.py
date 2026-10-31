@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """星趴美术素材库索引。
 
-素材放在**外部图库**（默认 `F:\\pictures\\Astral Party`，插件配置 art_root 可改），
-插件目录里不再打包任何图片。子目录用英文小写：
+素材放在**外部图库**：配置 `art_root` 指的父目录下面的 `Astral Party`，
+由 `/app load` 从游戏本体解包出来。插件目录里不再打包任何图片。子目录用英文小写：
 
 - chibi   ：UT_Hero_LevelUp_<英雄id>[_皮肤后缀].png       —— 英雄列表用
 - portrait：UT_Hero_Card_<英雄id>[_皮肤后缀].png
@@ -23,7 +23,7 @@ from . import assets as AS
 
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-DEFAULT_ROOT = r"F:\pictures\Astral Party"
+DEFAULT_ROOT = ""                       # 不再写死本机路径，图库位置只认配置 art_root
 # 子目录名统一由 assets 提供（全英文，另带旧中文名兼容），这里不再重写一份
 # 图鉴用的 SUBDIRS 之外，还要能取到解包出来的其它类别（成就 / 头像 / 奖励图标等）
 SUBDIR = {**AS.ALL_SUBDIRS, **AS.SUBDIRS}
@@ -38,43 +38,39 @@ _index_cache: dict | None = None
 
 
 def configure(cfg: dict | None) -> None:
-    """由插件传入配置（art_root / chibi_dir / portrait_dir / cg_dir）。"""
+    """由插件传入配置（目前只认 art_root）。"""
     global _cfg, _index_cache
     _cfg = dict(cfg or {})
     _index_cache = None
 
 
 def root() -> str:
-    return str(_cfg.get("art_root") or DEFAULT_ROOT)
+    return AS.root()
 
 
 def dir_of(kind: str) -> str:
     """图库目录。
 
-    默认读 `art_root` 指向的**外部图库**（插件里不再打包美术素材）；
-    配置 `art_source = bundled` 时才优先用插件内的 `images/art/<子目录>`。
-    两者都不存在时退回 `images/art/<kind>`，由调用方判空。
+    只看 `art_root` 指向的外部图库（插件里不再打包美术素材）。
+    外部还认改名前的旧中文目录名；两边都没有就返回按命名规则算出的路径，
+    由调用方判空跳过。
     """
-    key = {"chibi": "chibi_dir", "portrait": "portrait_dir",
-           "cg": "cg_dir", "emoji": "emoji_dir",
-           "relic": "relic_dir", "buff": "buff_dir"}.get(kind)
-    sub = str((_cfg.get(key) if key else "") or AS._sub(kind))
-    if os.path.isabs(sub):
-        return sub if os.path.isdir(sub) else os.path.join(HERE, "images", "art", kind)
+    sub = AS._sub(kind)
+    r = root()
+    ext = os.path.join(r, sub) if r else ""
+    if ext and os.path.isdir(ext):
+        return ext
 
-    bundled = os.path.join(HERE, "images", "art", sub)
-    external = os.path.join(root(), sub)
-    order = (bundled, external) if str(_cfg.get("art_source") or "").lower() == "bundled" \
-        else (external, bundled)
-    for p in order:
-        if os.path.isdir(p):
-            return p
     legacy = AS.LEGACY.get(kind) or AS.LEGACY_ALL.get(kind)   # 图库还没改名时认旧中文目录
-    if legacy:
-        old = os.path.join(root(), legacy)
+    if legacy and r:
+        old = os.path.join(r, legacy)
         if os.path.isdir(old):
             return old
-    return os.path.join(HERE, "images", "art", sub)
+
+    bun = os.path.join(HERE, "images", "art", sub)
+    if os.path.isdir(bun):
+        return bun
+    return ext
 
 
 # 判断「有没有美术素材」只看图鉴必需的那几类，不看解包出来的其它杂项目录
@@ -86,11 +82,15 @@ def available() -> bool:
 
 
 def describe() -> str:
-    """一行摘要，便于启动日志/报错提示：显示实际生效的四个目录。"""
+    """一行摘要，便于启动日志/报错提示：显示实际生效的目录。"""
+    if not AS.configured():
+        return "（未配置 art_root，图鉴不出图，发 /app load 看说明）"
+    if not AS.home():
+        return "（art_root 为空）"
     parts = []
     for k in ("chibi", "portrait", "cg", "emoji"):
         d = dir_of(k)
-        parts.append(f"{k}={'✔' if os.path.isdir(d) else '✘'} {d}")
+        parts.append(f"{k}={'✔' if d and os.path.isdir(d) else '✘'} {d or '-'}")
     return " | ".join(parts)
 
 

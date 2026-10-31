@@ -27,6 +27,7 @@ from .pkg import maprender as MR
 from .pkg import buffrender as BR
 from .pkg import artlib as AL
 from .pkg import artrender as AR
+from .pkg import artload as ARTL
 from .pkg import landrender as LR
 from .pkg import liveapi as LV
 from .pkg import livestate as LS
@@ -74,6 +75,10 @@ HELP_SECTIONS = [
     ("🏆", "成就图鉴", [
         ("/app achieve", "全部成就（一张图，图 + 名称 + 数字 ID）"),
         ("/app achieve <名字|ID>", "单个成就详解（达成条件 + 奖励）"),
+    ]),
+    ("🖼", "美术图库", [
+        ("/app load", "从游戏本体解包美术素材，填满图库（首次必做）"),
+        ("/app load check", "只看图库现状，不解包"),
     ]),
     ("🔎", "查号（实时）", [
         ("/app <UID>", "查玩家：在局里→局内进度卡，不在局→档案卡"),
@@ -418,6 +423,7 @@ class AstralPartyPilotPlugin(Star):
     def __init__(self, context: Context, config: dict | None = None) -> None:
         super().__init__(context)
         self.config = config or {}
+        self._tidy_conf()                  # 清掉旧版遗留配置 + 纠正 art_root 语义
         AL.configure(self.config)
         AS.configure(self.config)          # 素材目录（外部图库）也吃同一份配置
         fam = CR.set_family(self._conf_str("card_font", ""))   # 卡面字体族（留空＝微软雅黑）
@@ -425,6 +431,10 @@ class AstralPartyPilotPlugin(Star):
         self._push_task: asyncio.Task | None = None
         self._push_umo: str = ""
         self._push_seen: int = 0
+        # /app load 的后台解包任务
+        self._load_task: asyncio.Task | None = None
+        self._load_prog: int = 0
+        self._load_umo: str = ""
         logger.info("[星趴] 插件已加载，知识库条数：" + str(kb.index().get("counts", {})))
         logger.info("[星趴] 图库目录：" + AL.describe() + " 可用=" + str(AL.available()))
 
@@ -520,6 +530,10 @@ class AstralPartyPilotPlugin(Star):
             return
         if sub in ("achieve", "achievement", "achievements", "成就"):
             async for result in self._app_achieve(event, joined):
+                yield result
+            return
+        if sub in ("load", "载入", "加载", "解包", "图库"):
+            async for result in self._app_load(event, joined):
                 yield result
             return
         if sub in ("auto", "代打", "自动", "自动驾驶"):
@@ -622,8 +636,7 @@ class AstralPartyPilotPlugin(Star):
     async def _app_land(self, event: AstrMessageEvent, joined: str):
         # 不带参数：地形地块 + 角色地块，一起排成一张总览图
         if not LR.available():
-            yield event.plain_result("bot 找不到地块素材呢，现在找的是：\n" + LR.describe()
-                                     + "\n（素材库目录在配置 art_root 里改）")
+            yield event.plain_result(self._art_hint())
             return
 
         if not joined:
@@ -695,12 +708,152 @@ class AstralPartyPilotPlugin(Star):
             yield event.plain_result(f"渲染「{entry['name']}」简介卡出错了：{exc}")
 
     # ------------------------------------------------ 怪物 / 英雄（美术卡） ----
+    # ------------------------------------------------ 美术素材（解包） ----
+    def _art_hint(self) -> str:
+        """图库不能用时给的一句话（区分「没配路径」和「配了但空」）。"""
+        if not AS.configured():
+            return ("🖼 bot 还没有美术图库呢。\n"
+                    "插件配置里的「美术素材库目录」（art_root）是空的 —— 填一个目录"
+                    "（例如 F:\\pictures），再发 /app load，bot 会把游戏素材解包到"
+                    "「<该目录>\\Astral Party」，之后图鉴都从那里出图。")
+        return (f"🖼 图库还是空的：{AS.home()}\n"
+                "发 /app load，bot 会从游戏本体解包素材过来（几分钟）。")
+
+    def _load_report(self) -> str:
+        """图库现状：配置 / 目录 / 各类张数 / 游戏位置。"""
+        lines = ["🖼 美术图库现状", ""]
+        base = AS.base()
+        if not base:
+            lines.append("❌ 配置 art_root：没填 —— 图鉴出不了图")
+            lines.append("   去面板 → 插件配置 → 星趴助手，填一个目录后保存。")
+        else:
+            lines.append(f"配置 art_root：{base}")
+        home = AS.home()
+        if home:
+            lines.append(f"素材根：{home}")
+            if os.path.isdir(home):
+                cnt = ARTL.count_files(home)
+                total = sum(cnt.values())
+                lines.append(f"状态：✅ 已存在，共 {total} 张图")
+                if cnt:
+                    # 先报图鉴真正在用的那几个目录，剩下的（牌背/头像/骰子/杂项）只报总数
+                    used = [v for v in dict.fromkeys(AS.SUBDIRS.values()) if cnt.get(v)]
+                    if used:
+                        lines.append("   图鉴在用：" + " · ".join(f"{k} {cnt[k]}" for k in used))
+                    rest = total - sum(cnt[k] for k in used)
+                    if rest > 0:
+                        lines.append(f"   其余素材：{rest} 张（牌背/头像/成就/骰子等，图鉴暂未接）")
+            else:
+                lines.append("状态：❌ 目录还不存在（发 /app load 让 bot 建）")
+        g = ARTL.game_dir()
+        if g:
+            n = len(ARTL.list_bundles(g))
+            lines.append(f"游戏目录：{g}")
+            lines.append(f"bundle：{n} 个" + ("" if n else "（一个都没找到，游戏装全了吗）"))
+        else:
+            lines.append("游戏目录：❌ 没找到（从游戏解包的前提是游戏装着）")
+        if self._load_task and not self._load_task.done():
+            lines.append(f"⏳ 正在解包：{self._load_prog}%")
+        return "\n".join(lines)
+
+    async def _app_load(self, event: AstrMessageEvent, joined: str):
+        """/app load：把游戏美术素材解包到图库。"""
+        if (joined or "").strip().lower() in ("check", "查", "查看", "状态", "status", "info"):
+            yield event.plain_result(self._load_report())
+            return
+
+        if self._load_task and not self._load_task.done():
+            yield event.plain_result(f"⏳ 正在解包呢（{self._load_prog}%），好了 bot 会说一声。")
+            return
+
+        if not AS.configured():
+            yield event.plain_result(
+                "❌ 加载失败：插件配置里的「美术素材库目录」（art_root）没写路径。\n\n"
+                "去 AstrBot 面板 → 插件配置 → 星趴助手，把 art_root 填成想放素材的目录"
+                "（例如 F:\\pictures），保存后再发 /app load。\n"
+                "bot 会在那个目录下建 Astral Party 文件夹，把游戏美术素材解包进去；"
+                "之后整个图鉴都用这个库。")
+            return
+
+        gdir = await asyncio.to_thread(ARTL.game_dir)
+        if not gdir:
+            yield event.plain_result(
+                "❌ 加载失败：找不到游戏目录。\n"
+                "素材要从游戏本体解包，bot 没在 Steam 里找到《星引擎 Party / Astral Party》。\n"
+                "确认游戏装好、Steam 库没换过盘再试。")
+            return
+        if not os.path.isdir(gdir):
+            yield event.plain_result(f"❌ 加载失败：游戏目录不存在：{gdir}")
+            return
+
+        out = AS.home()
+        self._load_prog = 0
+        self._load_umo = getattr(event, "unified_msg_origin", "") or ""
+        loop = asyncio.get_running_loop()
+        self._load_task = loop.create_task(self._do_load(gdir, out))
+        yield event.plain_result(
+            "📦 开始解包美术素材\n"
+            f"· 游戏：{gdir}\n"
+            f"· 输出：{out}\n"
+            "· 过程几分钟，完了 bot 主动说结果～（中途发 /app load check 可以看进度）")
+
+    async def _do_load(self, gdir: str, out: str):
+        """后台解包；完了把结果推回发起命令的会话。"""
+        from astrbot.api.event import MessageChain
+        from astrbot.api.message_components import Plain
+
+        state = {"p": -1, "notified": -1}
+
+        def prog(done: int, total: int, ok: int, skip: int) -> None:
+            p = int(done * 100 / max(1, total))
+            self._load_prog = p
+            if p // 20 != state["notified"] // 20:      # 每 20% 记一次日志，别刷爆
+                state["notified"] = p
+                logger.info(f"[星趴] 解包 {p}%（bundle {done}/{total}）已出图 {ok} 跳过 {skip}")
+
+        try:
+            st = await asyncio.to_thread(ARTL.run, out, gdir, 0, True, prog)
+        except Exception as exc:                        # noqa: BLE001
+            logger.error(f"[星趴] 解包失败：{exc}")
+            st = {"ok": False, "why": f"解包时出错：{exc}"}
+        self._load_prog = 100
+
+        text = self._load_result_text(st)
+        logger.info("[星趴] " + text.replace("\n", " / "))
+        umo = self._load_umo
+        if umo:
+            try:
+                await self.context.send_message(umo, MessageChain([Plain(text)]))
+                return
+            except Exception as exc:                    # noqa: BLE001
+                logger.error(f"[星趴] 解包结果推送失败：{exc}")
+        # 推不出去就只能写日志了（命令那边已经回过「开始」，主人回头发 /app load check 看）
+
+    def _load_result_text(self, st: dict) -> str:
+        if not st.get("ok"):
+            return ("❌ 解包失败：" + str(st.get("why") or "未知原因")
+                    + "\n图鉴还是用不了，修好后重发 /app load。")
+        sec = st.get("seconds") or 0
+        head = (f"✅ 美术素材解包完成（{sec:.0f} 秒）\n"
+                f"· 输出：{st.get('out')}\n"
+                f"· bundle {st.get('bundles')} 个｜新出图 {st.get('written')} 张"
+                f"｜已有跳过 {st.get('skipped')} 张")
+        lines = [head]
+        cnt = ARTL.count_files(st.get("out") or "")
+        if cnt:
+            total = sum(cnt.values())
+            top = sorted(cnt.items(), key=lambda x: -x[1])[:10]
+            lines.append(f"· 图库合计 {total} 张：" + " · ".join(f"{k} {v}" for k, v in top))
+        errs = st.get("errors") or []
+        if errs:
+            lines.append("· 有 {} 条异常，样例：{}".format(len(errs), errs[0][:120]))
+        lines.append("现在 /app hero、/app card、/app relic 这些都能出图了。")
+        return "\n".join(lines)
+
     def _art_check(self) -> str:
         if AL.available():
             return ""
-        return ("bot 找不到图片库呢，现在找的是：\n" + AL.describe() + "\n"
-                "插件已不再内置美术素材，请把「星趴图库目录」（art_root）指向素材库根目录，"
-                "里面要有 chibi / portrait / cg / emoji 四个子目录～")
+        return ("bot 找不到图片库呢。\n" + self._art_hint())
 
     async def _app_monster(self, event: AstrMessageEvent, joined: str):
         bad = self._art_check()
@@ -967,8 +1120,7 @@ class AstralPartyPilotPlugin(Star):
             try:
                 d = await asyncio.to_thread(
                     LV.query, uid,
-                    "", self._conf_str("live_client_ver", ""), 12.0,
-                    self._conf_str("live_host", ""), self._conf_int("live_port", 0))
+                    "", self._conf_str("live_client_ver", ""), 12.0)
                 _LIVE_CACHE[uid] = (now, d)
             except LV.LiveError as exc:
                 err = exc
@@ -1360,16 +1512,57 @@ class AstralPartyPilotPlugin(Star):
             logger.info("[星趴] 陪玩推送已停止")
             raise
 
+    # ------------------------------------------------------------ 配置整理 ----
+    def _tidy_conf(self) -> None:
+        """把配置对齐到 _conf_schema.json：删掉废弃键，纠正旧版 art_root。
+
+        旧版 art_root 填的是「素材库自己」（…\\Astral Party），新版填的是父目录
+        （…\\pictures），库名固定由代码拼。老配置直接沿用会变成
+        `…\\Astral Party\\Astral Party`，所以在启动时就地回退一层。
+        """
+        schema = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                              "_conf_schema.json")
+        try:
+            with open(schema, encoding="utf-8") as f:
+                valid = set(json.load(f) or {})
+        except Exception:                               # noqa: BLE001
+            valid = set()
+
+        changed = []
+        if valid:
+            for k in [k for k in list(self.config) if k not in valid]:
+                self.config.pop(k, None)
+                changed.append("删 %s" % k)
+
+        root = str(self.config.get("art_root") or "").strip()
+        if root:
+            bare = root.rstrip("\\/")
+            home = os.path.join(bare, AS.HOME_DIRNAME)
+            if os.path.basename(bare) == AS.HOME_DIRNAME and not os.path.isdir(home):
+                parent = os.path.dirname(bare)
+                self.config["art_root"] = parent
+                changed.append("art_root 回退一层 -> %s" % parent)
+
+        if changed:
+            logger.info("[星趴] 配置已整理：" + "；".join(changed))
+            self._save_conf()
+
+    def _save_conf(self) -> None:
+        """写回 data/config/<插件名>_config.json；失败只警告，内存已是对的。"""
+        try:
+            here = os.path.abspath(__file__)            # …/data/plugins/<插件>/main.py
+            data = os.path.dirname(os.path.dirname(os.path.dirname(here)))
+            path = os.path.join(data, "config",
+                                "astrbot_plugin_astralparty_pilot_config.json")
+            with open(path, "w", encoding="utf-8") as f:
+                json.dump(self.config, f, ensure_ascii=False, indent=2)
+        except Exception as e:                          # noqa: BLE001
+            logger.warning(f"[星趴] 配置回写失败（不影响使用）：{e}")
+
     def _conf_str(self, key: str, default: str = "") -> str:
         try:
             v = self.config.get(key)
             return str(v) if v is not None else default
-        except Exception:
-            return default
-
-    def _conf_int(self, key: str, default: int = 0) -> int:
-        try:
-            return int(self.config.get(key) or default)
         except Exception:
             return default
 

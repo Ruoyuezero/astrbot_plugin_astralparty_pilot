@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 """素材目录的唯一解析口：图片全部放在外部图库，插件内不再打包。
 
-外部根目录默认 `F:\\pictures\\Astral Party`（插件配置 art_root 可改），
+图库位置由插件配置 `art_root` 决定 —— 填的是**父目录**（例如 `F:\\pictures`），
+真正的素材根是 `<art_root>\\Astral Party`，由 `/app load` 解包时创建。
+没配 `art_root` 就等于没有图库，所有图鉴都出不了图。
+
 子目录一律用英文小写命名，对应用途：
 
     chibi     —— UT_Hero_LevelUp_*       局内小人（英雄列表）
@@ -23,7 +26,10 @@ from __future__ import annotations
 
 import os
 
-DEFAULT_ROOT = r"F:\pictures\Astral Party"
+DEFAULT_ROOT = ""                       # 不再写死任何本机路径，必须靠配置给
+
+# 素材库固定叫这个名字，建在 art_root 下面
+HOME_DIRNAME = "Astral Party"
 
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BUNDLED = os.path.join(HERE, "images")
@@ -110,8 +116,33 @@ def configure(cfg: dict | None) -> None:
     _cfg = dict(cfg or {})
 
 
+def base() -> str:
+    """配置里写的那个目录（art_root 原样）。空字符串＝没配。"""
+    return str(_cfg.get("art_root") or "").strip()
+
+
+def configured() -> bool:
+    """有没有配图库位置 —— 没配就别费劲找图了，直接告诉主人去配。"""
+    return bool(base())
+
+
+def home() -> str:
+    """真正的素材根：`<art_root>\\Astral Party`。
+
+    容错：配置里已经写到 `...\\Astral Party` 这一层的，不再套一层同名目录
+    （否则会变成 `Astral Party\\Astral Party`）。
+    """
+    b = base()
+    if not b:
+        return ""
+    b = os.path.normpath(os.path.expanduser(b))
+    if os.path.basename(b).lower() == HOME_DIRNAME.lower():
+        return b
+    return os.path.join(b, HOME_DIRNAME)
+
+
 def root() -> str:
-    return str(_cfg.get("art_root") or DEFAULT_ROOT)
+    return home() or DEFAULT_ROOT
 
 
 def _sub(kind: str) -> str:
@@ -120,12 +151,10 @@ def _sub(kind: str) -> str:
 
 
 def _external(kind: str) -> str:
-    key = {"chibi": "chibi_dir", "portrait": "portrait_dir",
-           "cg": "cg_dir", "emoji": "emoji_dir"}.get(kind)
-    sub = str((_cfg.get(key) or "") if key else "").strip() or _sub(kind)
-    if os.path.isabs(sub):
-        return sub
-    return os.path.join(root(), sub)
+    r = root()
+    if not r:
+        return ""
+    return os.path.join(r, _sub(kind))
 
 
 def _bundled(kind: str) -> str:
@@ -140,11 +169,12 @@ def _bundled(kind: str) -> str:
 def dir_of(kind: str) -> str:
     """外部优先，插件内旧目录兜底；外部还认改名前的旧中文目录名。"""
     ext = _external(kind)
-    if os.path.isdir(ext):
+    if ext and os.path.isdir(ext):
         return ext
     legacy = LEGACY.get(kind) or LEGACY_ALL.get(kind)
-    if legacy and not os.path.isabs(_sub(kind)):
-        old = os.path.join(root(), legacy)
+    r = root()
+    if legacy and r:
+        old = os.path.join(r, legacy)
         if os.path.isdir(old):
             return old
     bun = _bundled(kind)
@@ -154,12 +184,16 @@ def dir_of(kind: str) -> str:
 
 
 def path(kind: str, name: str) -> str:
-    return os.path.join(dir_of(kind), name)
+    d = dir_of(kind)
+    return os.path.join(d, name) if d else ""
 
 
 def exists(kind: str, name: str) -> bool:
-    return os.path.exists(path(kind, name))
+    p = path(kind, name)
+    return bool(p) and os.path.exists(p)
 
 
 def describe() -> str:
+    if not configured():
+        return "（未配置 art_root，图鉴不出图）"
     return " · ".join(f"{k}={dir_of(k)}" for k in SUBDIRS)
