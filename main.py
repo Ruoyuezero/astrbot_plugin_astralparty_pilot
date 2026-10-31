@@ -9,6 +9,7 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import os
 import re
 import tempfile
@@ -78,15 +79,19 @@ HELP_SECTIONS = [
         ("/app <UID>", "查玩家：在局里→局内进度卡，不在局→档案卡"),
         ("/app 查 <UID>", "同上（/app uid 1551363 也行）"),
     ]),
-    ("🎮", "陪玩（游戏开着、插件在跑才有用）", [
-        ("/app auto", "bot 自主代打：出牌 / 开技能 / 移动"),
-        ("/app auto dry", "只算不点（演练，不动鼠标）"),
-        ("/app pilot", "辅助：轮到我推建议卡，只看不动"),
-        ("/app pilot card", "让 bot 代出牌（只出无需选目标的牌）"),
-        ("/app pilot skill", "让 bot 代开技能"),
-        ("/app pilot go", "让 bot 代移动（点移动键推进）"),
-        ("/app pilot 攻/守/发育", "切换倾向，可和 card / skill / go 叠着写"),
-        ("/app noauto", "取消辅助，完全由你自己决定"),
+    ("🎮", "代打（游戏开着、插件在跑才有用）", [
+        ("/appa", "查当前进度 + 我的角色状态（只看不动）"),
+        ("/appa on", "开全自动代打，完全由AI决策"),
+        ("/appa off", "关闭代打，完全由你自己控制"),
+        ("/appa atk", "攻击怪物（开战 + 不闪避）"),
+        ("/appa def", "防御怪物（避战 + 闪避）"),
+        ("/appa skip", "跳过商店 / 怪物 / 闪避"),
+        ("/appa card", "只出牌"),
+        ("/appa skill", "只开技能"),
+        ("/appa go", "只移动 / 选「继续移动」"),
+        ("/appa choose", "遇岔路自动选更优的一条"),
+        ("/appa stop", "停下来（不继续走）"),
+        ("/appa buy", "商店买一张卡（买完离开）/ 挑一个筹码"),
     ]),
 ]
 
@@ -99,13 +104,42 @@ PREFER_ALIAS = {
     "auto": "auto", "自动": "auto", "默认": "auto",
 }
 
-# /app pilot card|skill|go：把某一类动作交给bot 代动
+# /appa card|skill|go|choose|stop|buy|atk|def|skip：把某一类动作交给 bot 代动
 PILOT_ACT_ALIAS = {
     "card": "card", "牌": "card", "出牌": "card", "打牌": "card", "出张牌": "card",
     "skill": "skill", "技能": "skill", "开技能": "skill", "放技能": "skill",
     "go": "go", "move": "go", "移动": "go", "走": "go", "走路": "go", "挪": "go",
+    "choose": "choose", "选路": "choose", "岔路": "choose", "岔路口": "choose",
+    "路线": "choose", "选方向": "choose", "方向": "choose",
+    "stop": "stop", "停下": "stop", "停下来": "stop", "停留": "stop", "停": "stop",
+    "不走了": "stop",
+    "buy": "buy", "买": "buy", "购买": "buy", "买卡": "buy", "商店": "buy", "筹码": "buy",
+    # 战斗三件套
+    "atk": "atk", "attack": "atk", "打怪": "atk", "攻击": "atk", "打它": "atk",
+    "开战": "atk", "干它": "atk",
+    "def": "def", "defend": "def", "防御": "def", "防守": "def", "防": "def", "苟": "def",
+    "skip": "skip", "跳过": "skip", "跳": "skip", "略过": "skip", "不管": "skip",
+    "无视": "skip",
 }
-PILOT_ACT_CN = {"card": "出牌", "skill": "开技能", "go": "移动"}
+PILOT_ACT_CN = {"card": "出牌", "skill": "开技能", "go": "移动/继续", "choose": "岔路选路",
+                "stop": "停下", "buy": "商店购买", "atk": "攻击怪物", "def": "防御怪物",
+                "skip": "跳过"}
+
+APPA_HELP = (
+    "🎮 代打指令（每个只管一件事，方便单项调试）\n"
+    "/appa ········· 查当前进度 + 我的角色状态（只看不动）\n"
+    "/appa on ······ 开全自动，完全由AI决策\n"
+    "/appa off ····· 关掉，完全由你自己控制\n"
+    "/appa atk ····· 攻击怪物（开战 + 不闪避）\n"
+    "/appa def ····· 防御怪物（避战 + 闪避）\n"
+    "/appa skip ···· 跳过商店 / 怪物 / 闪避\n"
+    "/appa card ···· 只出牌\n"
+    "/appa skill ··· 只开技能\n"
+    "/appa go ······ 只移动、选「继续移动」\n"
+    "/appa choose ·· 遇岔路自动选更优的一条\n"
+    "/appa stop ···· 停下来（不继续走）\n"
+    "/appa buy ····· 商店买一张卡（买完离开）/ 挑一个筹码"
+)
 
 HELP = (
     "🎲 星趴助手\n"
@@ -290,6 +324,17 @@ def _monster_pick(joined: str):
     """解析怪物名。返回 (怪物, 候选提示)；俗称对上多只怪时怪物为 None、提示非空。"""
     hits = kb.monster_find_all(joined)
     if not hits:
+        # 名字差一点也直接对：省得主人来回确认
+        names = []
+        for m in kb.monsters():
+            for v in [m.get("name"), m.get("title")] + kb.monster_aliases(m.get("no")):
+                if v and v not in names:
+                    names.append(v)
+        g = _guess_name(joined, names)
+        hits = kb.monster_find_all(g) if g else []
+        if hits:
+            logger.info(f"[星趴] 「{joined}」按「{g}」理解 → {hits[0].get('name')}")
+    if not hits:
         return None, None
     # 「茶壶」「嘎呜」这类玩家叫法对应好几只怪：按名字去重后仍有多个，就让主人用编号挑
     picked = {}
@@ -316,13 +361,47 @@ def _hero_names() -> list[str]:
     return out
 
 
-def _suggest(q: str, names: list[str], n: int = 4) -> str:
-    """给没查到的名字提几个相近的候选。"""
+def _guess_name(q: str, names: list[str]) -> str | None:
+    """从候选里挑一个最像的名字，挑不出才返回 None。
+
+    只在原样查不到时用：主人写「牢修姐」「蒸蛋宝」这类拖了尾巴的叫法，
+    直接对到「牢修」「蒸蛋」，不让他再确认一遍。
+    """
     import difflib
-    hits = difflib.get_close_matches(q, names, n=n, cutoff=0.25)
-    if not hits:
-        hits = [x for x in names if q and (q[:1] in x or x[:1] == q[:1])][:n]
-    return ("，是不是要找：" + " / ".join(hits)) if hits else ""
+    q = str(q or "").strip()
+    if not q:
+        return None
+    ql = q.casefold()
+    cand = [n for n in names if n]
+    # ① 候选被 q 包住（「社恐修女姐姐」里的「修女」）：取最长的那个，"修女"优先于"女"
+    #    单字符纯英文/数字（「0」「z」）不当碎片用，否则「30001」会被拆出一个「0」来
+    inner = [n for n in cand
+             if n.casefold() in ql and not (len(n) == 1 and n.isascii())]
+    if inner:
+        return max(inner, key=len)
+    # ② 差一两个字的：编辑距离兜底
+    hit = difflib.get_close_matches(q, cand, n=1, cutoff=0.25)
+    return hit[0] if hit else None
+
+
+def _hero_resolve(q: str):
+    """解析英雄：查不到就直接把最像的候选当答案，返回 (英雄, 猜中的名字)。
+
+    以前会回「知识库里没有「牢修」呢，是不是要找：修女」让主人再点一次；
+    现在「牢修」本来就是阿兰娜的俗名，拖尾巴的写法也一并吃掉。
+    """
+    h = kb.hero(q)
+    if h:
+        return h, ""
+    names = _hero_names()
+    g = _guess_name(q, names)
+    if g:
+        h = kb.hero(g)
+        if h:
+            logger.info(f"[星趴] 「{q}」按「{g}」理解 → {h.get('name')}")
+            return h, g
+    return None, ""
+
 
 
 def _tail(event: AstrMessageEvent, sub: str | None) -> str:
@@ -492,6 +571,12 @@ class AstralPartyPilotPlugin(Star):
         # 带参数：查卡、渲染简介卡
         c = kb.card(joined)
         if not c:
+            # 名字差几个字也直接给，别让主人再确认一遍
+            g = _guess_name(joined, [x["name"] for x in kb.cards()])
+            c = kb.card(g) if g else None
+            if c:
+                logger.info(f"[星趴] 「{joined}」按「{g}」理解 → {c['name']}")
+        if not c:
             yield event.plain_result(f"知识库里没有「{joined}」这张牌呢")
             return
         if not CR._card_image_path(c):
@@ -556,9 +641,18 @@ class AstralPartyPilotPlugin(Star):
         try:
             kind, item = LR.find(joined)
         except KeyError:
-            names = [l["name"] for l in kb.lands()] + _hero_names()
-            yield event.plain_result(f"没有找到「{joined}」这个地块呢{_suggest(joined, names)}")
-            return
+            # 名字差一点就直接用最像的那个，不回「是不是要找」
+            g = _guess_name(joined, [l["name"] for l in kb.lands()] + _hero_names())
+            found = False
+            if g:
+                try:
+                    kind, item = LR.find(g)
+                    found = True
+                except KeyError:
+                    found = False
+            if not found:
+                yield event.plain_result(f"没有找到「{joined}」这个地块呢")
+                return
 
         try:
             fd, tmp = tempfile.mkstemp(suffix=".png", prefix="app_land_")
@@ -630,8 +724,7 @@ class AstralPartyPilotPlugin(Star):
             yield event.plain_result(hint)
             return
         if not m:
-            names = _monster_names()
-            yield event.plain_result(f"知识库里没有「{joined}」这只怪物呢{_suggest(joined, names)}")
+            yield event.plain_result(f"知识库里没有「{joined}」这只怪物呢")
             return
         if not any(AL.monster_portrait(f["no"]) for f in kb.monster_forms(m)):
             yield event.plain_result("（这只怪物暂无立绘）\n" + fmt_monster(m))
@@ -654,8 +747,7 @@ class AstralPartyPilotPlugin(Star):
             yield event.plain_result(hint)
             return
         if not m:
-            names = _monster_names()
-            yield event.plain_result(f"知识库里没有「{joined}」这只怪物呢{_suggest(joined, names)}")
+            yield event.plain_result(f"知识库里没有「{joined}」这只怪物呢")
             return
         cg = AL.monster_cg(m["no"])
         if cg:
@@ -685,10 +777,9 @@ class AstralPartyPilotPlugin(Star):
                 yield event.plain_result(f"渲染英雄总览出错了：{exc}")
             return
 
-        h = kb.hero(joined)
+        h, _via = _hero_resolve(joined)
         if not h:
-            names = _hero_names()
-            yield event.plain_result(f"知识库里没有「{joined}」这位英雄呢{_suggest(joined, names)}")
+            yield event.plain_result(f"知识库里没有「{joined}」这位英雄呢")
             return
         if not AL.hero_portraits(h["id"]):
             yield event.plain_result("（这位英雄暂无立绘）\n" + fmt_hero(h))
@@ -706,10 +797,9 @@ class AstralPartyPilotPlugin(Star):
         if not joined:
             yield event.plain_result("要带上角色名字哦，例如：/app heroskins 照")
             return
-        h = kb.hero(joined)
+        h, _via = _hero_resolve(joined)
         if not h:
-            names = _hero_names()
-            yield event.plain_result(f"知识库里没有「{joined}」这位英雄呢{_suggest(joined, names)}")
+            yield event.plain_result(f"知识库里没有「{joined}」这位英雄呢")
             return
         try:
             fd, tmp = tempfile.mkstemp(suffix=".png", prefix="app_skins_")
@@ -724,10 +814,9 @@ class AstralPartyPilotPlugin(Star):
         if not joined:
             yield event.plain_result("要带上角色名字哦，例如：/app heroCG 照")
             return
-        h = kb.hero(joined)
+        h, _via = _hero_resolve(joined)
         if not h:
-            names = _hero_names()
-            yield event.plain_result(f"知识库里没有「{joined}」这位英雄呢{_suggest(joined, names)}")
+            yield event.plain_result(f"知识库里没有「{joined}」这位英雄呢")
             return
         try:
             fd, tmp = tempfile.mkstemp(suffix=".png", prefix="app_cg_")
@@ -742,10 +831,9 @@ class AstralPartyPilotPlugin(Star):
         if not joined:
             yield event.plain_result("要带上角色名字或编号哦，例如：/app heroemoji 124")
             return
-        h = kb.hero(joined)
+        h, _via = _hero_resolve(joined)
         if not h:
-            names = _hero_names()
-            yield event.plain_result(f"知识库里没有「{joined}」这位英雄呢{_suggest(joined, names)}")
+            yield event.plain_result(f"知识库里没有「{joined}」这位英雄呢")
             return
         if not AL.hero_emojis(h["id"]):
             yield event.plain_result(f"素材库里没有「{h['name']}」的表情包呢")
@@ -779,8 +867,13 @@ class AstralPartyPilotPlugin(Star):
                 for v in [r.get("name")] + kb.relic_aliases(r.get("name")):
                     if v and v not in names:
                         names.append(v)
-            yield event.plain_result(f"知识库里没有「{joined}」这个筹码呢{_suggest(joined, names)}")
-            return
+            g = _guess_name(joined, names)
+            hits = kb.relic_find_all(g) if g else []
+            if hits:
+                logger.info(f"[星趴] 「{joined}」按「{g}」理解")
+            else:
+                yield event.plain_result(f"知识库里没有「{joined}」这个筹码呢")
+                return
         if len(hits) > 1:
             # 名字没对上唯一一条（套系 / 共用编号），列出候选让主人再点一次
             lines = [f"「{joined}」匹配到 {len(hits)} 个筹码，带上完整名字再试一次："]
@@ -825,8 +918,13 @@ class AstralPartyPilotPlugin(Star):
         hits = kb.achieve_find_all(joined)
         if not hits:
             names = [r.get("name") or "" for r in kb.achievements()]
-            yield event.plain_result(f"知识库里没有「{joined}」这个成就呢{_suggest(joined, names)}")
-            return
+            g = _guess_name(joined, names)
+            hits = kb.achieve_find_all(g) if g else []
+            if hits:
+                logger.info(f"[星趴] 「{joined}」按「{g}」理解")
+            else:
+                yield event.plain_result(f"知识库里没有「{joined}」这个成就呢")
+                return
         if len(hits) > 1:
             lines = [f"「{joined}」匹配到 {len(hits)} 个成就，带上完整名字或 ID 再试一次："]
             for r in hits[:12]:
@@ -993,14 +1091,15 @@ class AstralPartyPilotPlugin(Star):
                 lines.append("· 开技能：轮到你且有技能可开时，bot 点技能键。")
             if "go" in allow:
                 lines.append("· 移动：出牌推不动 / 移动阶段，bot 点移动键推进。")
-            lines.append("要收回：/app pilot 回到只看；整个停掉：/app noauto")
+            lines.append("要收回：/app pilot 回到只看；整个停掉：/appa off")
         else:
             lines.append("bot 只看不动：每次轮到我推一张建议卡（出牌 / 移动）。")
             if revoked:
                 lines.append("已收回刚才的授权，回到只看不建议动。")
             else:
                 lines.append("想让bot 代某一类：/app pilot card（出牌）· skill（开技能）· go（移动），可叠加")
-        lines.append(f"倾向：{prefer}（可写「/app pilot 攻」临时切换）")
+        lines.append(f"倾向：{prefer}")
+        lines.append("💡 旧入口，已经拆成 /appa 一族（/appa on · card · skill · go · choose · stop · buy · atk · def · skip）")
         if not game_on:
             lines.append("💡 现在没检测到游戏进程，进对局后才会开始判定。")
         yield event.plain_result("\n".join(lines))
@@ -1021,7 +1120,195 @@ class AstralPartyPilotPlugin(Star):
         msg = await asyncio.to_thread(CO.stop, self.config)
         self._stop_push()
         yield event.plain_result(
-            f"🔇 已取消辅助：{msg}\n授权也一并收回，从现在起完全由你自己决定，bot 不看不点。")
+            f"🔇 已取消辅助：{msg}\n授权也一并收回，从现在起完全由你自己决定，bot 不看不点。\n"
+            "（陪玩入口已并入 /appa，以后直接发 /appa on / /appa off 就行）")
+
+    # ------------------------------------------------------------ /appa ----
+    @filter.command("appa")
+    async def appa(self, event: AstrMessageEvent):
+        """代打总入口：/appa 查状态，/appa on 全自动，/appa <项> 只做那一件事。"""
+        raw = (event.message_str or "").strip()
+        words = re.sub(r"^[/／]?\s*appa", "", raw).strip().split()
+        sub = words[0].lower() if words else ""
+        joined = " ".join(words[1:])
+
+        if sub in ("help", "h", "帮助", "?", "？", "菜单", "说明"):
+            yield event.plain_result(APPA_HELP)
+            return
+        if sub in ("off", "no", "关", "关闭", "取消", "退出", "noc"):
+            async for result in self._appa_off(event):
+                yield result
+            return
+        if sub in ("on", "all", "start", "开", "全开", "自动", "全自动"):
+            async for result in self._appa_on(event, list(CO.FULL_ALLOW), full=True):
+                yield result
+            return
+        if sub in ("", "st", "status", "state", "查", "状态", "进度", "看"):
+            async for result in self._appa_status(event):
+                yield result
+            return
+
+        act = PILOT_ACT_ALIAS.get(sub)
+        if not act:
+            yield event.plain_result(f"「{sub}」不是代打子命令呢～\n{APPA_HELP}")
+            return
+        async for result in self._appa_on(event, [act], full=False):
+            yield result
+
+    # ------------------------------------------------------------ 状态查询 ----
+    def _name_of(self, kind: str, ident) -> str:
+        """把 id 换成名字，查不到就退回数字（查名失败绝不能把查询搞崩）。"""
+        try:
+            if kind == "card":
+                c = kb.card(ident)
+                return str(c.get("name") or ident) if c else str(ident)
+            if kind == "hero":
+                h = kb.hero(str(ident))
+                return str(h.get("name") or ident) if h else f"英雄{ident}"
+            if kind == "relic":
+                d = kb.relics()
+                items = d if isinstance(d, list) else (d.get("relics") or [])
+                for r in items:
+                    if isinstance(r, dict) and str(r.get("id") or r.get("no")) == str(ident):
+                        return str(r.get("name") or ident)
+                return str(ident)
+        except Exception:  # noqa: BLE001
+            pass
+        return str(ident)
+
+    async def _appa_status(self, event: AstrMessageEvent):
+        """查当前进度 + 我的角色状态。只读 state.json / act.json，不发任何指令。"""
+        st = await asyncio.to_thread(LS.read)
+        cur = await asyncio.to_thread(CO.current, self.config)
+        allow_cn = "、".join(PILOT_ACT_CN[a] for a in cur["allow"] if a in PILOT_ACT_CN)
+
+        if not st:
+            running = await asyncio.to_thread(LS.running)
+            tip = ("游戏开着，但还没进对局（或者插件没在写 state.json）"
+                   if running else "没检测到游戏进程 —— 先把游戏开起来")
+            lines = [f"🎮 没有对局数据：{tip}"]
+            if cur["running"]:
+                lines.append(f"🤖 代打进程还在跑（pid {cur['pid']}），授权：{allow_cn or '无'}")
+            else:
+                lines.append("🤖 代打没开 —— 想全自动发 /appa on")
+            yield event.plain_result("\n".join(lines))
+            return
+
+        me = LS.self_player(st) or {}
+        ps = LS.players(st)
+        pid = int(me.get("pid") or 0)
+        my = int(st.get("my") or 0) == 1 and int(st.get("cur") or 0) == pid
+        stage = st.get("stage") or "?"
+        stage_cn = {"card": "出牌 / 技能", "move": "移动", "none": "空闲（等别人）",
+                    "target_card": "选目标（牌）", "target_skill": "选目标（技能）"}.get(stage, stage)
+
+        hid = me.get("heroId")
+        who = self._name_of("hero", hid) if hid else "未知角色"
+        lines = [f"🎲 局内实况 · {st.get('ts') or ''}".rstrip(" ·")]
+
+        flag = "轮到我 ✅" if my else "等别人"
+        if st.get("battle"):
+            flag += " ｜ 战斗中 ⚔️"
+        lines.append(f"📌 阶段：{stage_cn} ｜ {flag}")
+
+        hp, mhp = me.get("hp"), me.get("maxhp")
+        lines.append(f"👤 我：{who}（HP {hp}/{mhp} ｜ 攻 {me.get('atk')} ｜ 防 {me.get('def')}"
+                     f" ｜ 金 {me.get('gold')}）")
+
+        cards = me.get("cards") or []
+        hand = "、".join(self._name_of("card", c.get("id")) for c in cards[:4])
+        if len(cards) > 4:
+            hand += f"…（共 {len(cards)} 张）"
+        seg = [f"位置 #{me.get('node')}", f"手牌 {len(cards)} 张" + (f"：{hand}" if cards else "")]
+        if me.get("skillCD"):
+            seg.append(f"技能 CD {me.get('skillCD')}")
+        lines.append("   " + " ｜ ".join(seg))
+
+        rels = me.get("relics") or []
+        if rels:
+            names = "、".join(self._name_of("relic", r) for r in rels[:6])
+            lines.append(f"   筹码 {len(rels)} 个：{names}")
+        buffs = [b.get("name") for b in (me.get("buffs") or []) if b.get("name")]
+        if buffs:
+            lines.append("   状态：" + "、".join(buffs[:6]))
+
+        others = [p for p in ps if int(p.get("pid") or 0) != pid]
+        if others:
+            lines.append("👥 桌上")
+            for p in others[:4]:
+                nm = self._name_of("hero", p.get("heroId")) if p.get("heroId") else f"玩家{p.get('pid')}"
+                lines.append(f"   · {nm} HP {p.get('hp')}/{p.get('maxhp')} ｜ 金 {p.get('gold')}"
+                             f" ｜ 位置 #{p.get('node')}")
+
+        # 插件当前卡在哪个动作（游戏在等谁回话）—— 直接读 act.json，
+        # 不依赖 coach 引擎，没开代打也能看到
+        a = {}
+        p = await asyncio.to_thread(LS.state_path)
+        if p:
+            aj = os.path.join(os.path.dirname(p), "act.json")
+            try:
+                with open(aj, encoding="utf-8-sig") as f:
+                    a = json.load(f) or {}
+            except (OSError, ValueError):
+                a = {}
+            a = {"id": a.get("id"), "name": a.get("name")}
+        try:
+            if int(a.get("id") or 0) <= 0:      # 插件用 -1 表示「现在没有待回应的动作」
+                a = {}
+        except (TypeError, ValueError):
+            a = {}
+        if a.get("id"):
+            lines.append(f"🎯 当前动作：{a.get('name') or a.get('id')}（id={a.get('id')}）")
+        elif cur["running"]:
+            adv = await asyncio.to_thread(CO.read, self.config)
+            ev = (adv or {}).get("event") or {}
+            if ev.get("title"):
+                lines.append(f"🎯 bot 看到：{ev['title']}")
+
+        if cur["running"]:
+            lines.append(f"🤖 代打：运行中（pid {cur['pid']}）｜ 授权：{allow_cn or '无（只看不动）'}")
+        else:
+            lines.append("🤖 代打：没开 —— 想全自动发 /appa on")
+
+        if not my and stage == "none" and not a.get("id"):
+            lines.append("💡 现在没轮到你，也没有待回应的弹窗。")
+        yield event.plain_result("\n".join(lines))
+
+    async def _appa_on(self, event: AstrMessageEvent, allow: list, full: bool = False):
+        """把授权写进控制文件（进程在跑就不重启，下一帧自己换挡）。
+
+        倾向不在这里调了：/appa 只负责「谁动手」，prefer 一律沿用控制文件 / 配置里的值。
+        """
+        picks = [a for a in CO.ACTIONS if a in allow]
+        prefer = self._conf_str("pilot_prefer", "eco") or "eco"
+
+        cur = await asyncio.to_thread(CO.current, self.config)
+        if cur["running"]:
+            await asyncio.to_thread(CO.set_allow, self.config, picks, None)
+            msg = f"沿用原进程（pid {cur['pid']}），下一帧生效"
+        else:
+            msg = await asyncio.to_thread(CO.start, self.config, "pilot", False, prefer, picks)
+
+        names = "、".join(PILOT_ACT_CN[a] for a in picks)
+        lines = []
+        if full:
+            lines.append(f"🎮 全自动代打开着 —— {msg}")
+            lines.append(f"交给 bot：{names}")
+            lines.append("遇到怪物默认打、被打不闪避；不代「停下来」，想停发 /appa stop")
+            lines.append("想看当前进度就发 /appa（不带参数）")
+        else:
+            lines.append(f"🎯 只代「{names}」—— {msg}")
+            lines.append("其余全部归你自己，bot 不看不点")
+        if not await asyncio.to_thread(LS.running):
+            lines.append("💡 现在没检测到游戏进程，进对局后才会动。")
+        lines.append("要回手：/appa off")
+        yield event.plain_result("\n".join(lines))
+
+    async def _appa_off(self, event: AstrMessageEvent):
+        msg = await asyncio.to_thread(CO.stop, self.config)
+        self._stop_push()
+        yield event.plain_result(
+            f"🔇 代打已关闭：{msg}\n授权一并收回，从现在起完全由你自己操作，bot 不看也不点。")
 
     def _ensure_push(self, event: AstrMessageEvent) -> None:
         umo = getattr(event, "unified_msg_origin", "") or ""
@@ -1092,6 +1379,9 @@ class AstralPartyPilotPlugin(Star):
 
         if sub in ("卡", "卡片", "card"):
             c = kb.card(joined)
+            if not c:
+                g = _guess_name(joined, [x["name"] for x in kb.cards()])
+                c = kb.card(g) if g else None
             return fmt_card(c) if c else f"知识库里没有「{joined}」这张牌呢"
         if sub in ("怪", "怪物", "monster"):
             m, hint = _monster_pick(joined)

@@ -81,7 +81,10 @@ def ctl_file(cfg: dict | None = None) -> str:
     return os.path.join(game_dir(cfg), "coach_ctl.json")
 
 
-ACTIONS = ("card", "skill", "go")
+ACTIONS = ("card", "skill", "go", "choose", "stop", "buy", "atk", "def", "skip")
+# /appa on 全自动的授权：go 在就不含 stop（要停手动 /appa stop）；
+# 不含 skip（全自动该打的怪要打）
+FULL_ALLOW = ("card", "skill", "go", "choose", "buy", "atk", "def")
 
 
 def ctl_allow(cfg: dict | None = None) -> list[str]:
@@ -96,12 +99,28 @@ def ctl_allow(cfg: dict | None = None) -> list[str]:
     return [x for x in ACTIONS if x in a]
 
 
-def set_allow(cfg: dict | None = None, allow: list[str] | None = None) -> bool:
+def set_allow(cfg: dict | None = None, allow: list[str] | None = None,
+              prefer: str | None = None) -> bool:
+    """写授权（引擎每帧读一次，改完下一帧就换挡，不用重启进程）。
+
+    prefer 只在启动时用；运行中传 None 表示沿用控制文件里原来的倾向。
+    """
     allow = [x for x in ACTIONS if x in (allow or [])]
+    old: dict = {}
+    try:
+        with open(ctl_file(cfg), encoding="utf-8") as f:
+            old = json.load(f) or {}
+    except (OSError, ValueError):
+        old = {}
+    d = {"allow": allow, "at": time.strftime("%Y-%m-%d %H:%M:%S")}
+    p = prefer if prefer in ("atk", "def", "eco") else old.get("prefer")
+    if p in ("atk", "def", "eco"):
+        d["prefer"] = p
+    if isinstance(old.get("auto_skill"), bool):
+        d["auto_skill"] = old["auto_skill"]
     try:
         with open(ctl_file(cfg), "w", encoding="utf-8") as f:
-            json.dump({"allow": allow, "at": time.strftime("%Y-%m-%d %H:%M:%S")},
-                      f, ensure_ascii=False)
+            json.dump(d, f, ensure_ascii=False)
         return True
     except OSError:
         return False
@@ -196,7 +215,7 @@ def start(cfg: dict | None = None, mode: str = "pilot", dry: bool = False,
     if dry:
         args.append("--dry")
     picks = [x for x in ACTIONS if x in (allow or [])]
-    if mode == "pilot" and picks:
+    if picks:
         args += ["--allow", ",".join(picks)]
     # 游戏目录靠环境变量传给引擎（pilot/paths.py 第一优先级就是它），
     # 这样插件里不用再放一份 config.json

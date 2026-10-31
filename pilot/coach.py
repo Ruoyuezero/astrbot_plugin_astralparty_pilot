@@ -46,6 +46,7 @@ sys.path.insert(0, HERE)
 import autopilot as AP          # noqa: E402  回合判定 / 决策 / 地图识别都在这里
 import decision as D            # noqa: E402
 import playcard as PC           # noqa: E402  鼠标出牌 / 点移动键
+import popup as POP             # noqa: E402  二选一弹窗（继续移动/停留、是否攻击）
 
 STAGE_CN = {"card": "出牌 / 技能", "move": "移动", "target_card": "选目标（牌）",
             "target_skill": "选目标（技能）", "none": "空闲"}
@@ -97,6 +98,10 @@ class Coach:
         self.last_act_t = 0.0
         self.acted = {}
         self.skill_btn = None       # 技能键舞台坐标（找到一次就记住）
+        self.skill_turn = None      # 本回合（sn）已经按过技能键，别再连按
+        self.auto_skill = True      # 轮到自己就按一次「发动技能」（coach_ctl.json 可关）
+        self.last_popup_t = 0.0     # 弹窗点击冷却
+        self.last_idle_note_t = 0.0  # 「卡住」诊断日志冷却
         # auto 全权；pilot 只吃命令行 / 控制文件给的授权
         given = {a for a in allow if a in ACTIONS}
         self.allow = set(ACTIONS) if mode == "auto" else given
@@ -129,10 +134,14 @@ class Coach:
         d = read_json_fast(self.ctl)
         if not isinstance(d, dict):
             return
-        pr = d.get("prefer")
-        if pr in ("atk", "def", "eco") and pr != self.prefer:
-            self.prefer = pr
-            self.say(f"[倾向] → {pr}")
+        pr_ = d.get("prefer")
+        if pr_ in ("atk", "def", "eco") and pr_ != self.prefer:
+            self.prefer = pr_
+            self.say(f"[倾向] → {pr_}")
+        if isinstance(d.get("auto_skill"), bool):
+            if d["auto_skill"] != self.auto_skill:
+                self.auto_skill = d["auto_skill"]
+                self.say(f"[技能] 自动发动 = {'开' if self.auto_skill else '关'}")
         if self.mode == "auto":
             return
         if not isinstance(d.get("allow"), list):
@@ -201,6 +210,55 @@ class Coach:
         PC.do_click(hwnd, origin, scale, btn["cx"], btn["cy"], label="技能键 ")
         return True, f"点了技能键（{btn['cx']:.0f},{btn['cy']:.0f} 舞台）"
 
+    # ---------------- 弹窗 ----------------
+    def handle_popup(self):
+        """游戏停在二选一确认框时替主人按下去（继续移动 / 是否攻击）。
+
+        这类弹窗不在 FairyGUI 树里（uitree 抓不到控件名），只能靠屏幕取色：
+        左边永远是主操作（继续移动、攻击），右边是取消（停留、不攻击）。
+        所以默认点左边；主人想「该停就停」时把 prefer 设成 def 再说。
+        """
+        now = time.time()
+        if now - self.last_popup_t < 0.9:
+            return False
+        pr = POP.probe()
+        if not pr:
+            return False
+        if not pr.get("two"):
+            return False
+        self.last_popup_t = now
+        ok, note = POP.click_choice("left", dry=self.dry)
+        if ok:
+            self.say(f"[auto] 检测到二选一弹窗（蓝 {pr.get('left_ratio')} / 粉 {pr.get('right_ratio')}）→ {note}")
+            self.acted = {"what": "弹窗：继续移动/确认", "note": note}
+        else:
+            self.say(f"[auto] 弹窗点击失败：{note}")
+        return ok
+
+    def confirm_if_any(self):
+        """选目标阶段：树里有确定的确认键就按，没有就不乱点。"""
+        try:
+            cs, err = PC._cands()
+        except Exception as e:  # noqa: BLE001
+            return False, f"取 UI 树失败：{e}"
+        if cs is None:
+            return False, err or "取不到 UI 树"
+        import re as _re
+        pat = _re.compile(r"^(btn_?sure|btn_?ok|btn_?confirm|btn_?yes)$", _re.I)
+        cand = [c for c in cs if pat.match(c["name"] or "") and c["w"] > 40 and c["h"] > 20]
+        if not cand:
+            return False, "树里没有可确认的按钮"
+        cand.sort(key=lambda c: c["w"] * c["h"], reverse=True)
+        btn = cand[0]
+        r = PC.setup()
+        if not r:
+            return False, "游戏窗口没找到"
+        hwnd, origin, scale, _ui = r
+        if self.dry:
+            return True, f"dry：会点 {btn['name']}"
+        PC.do_click(hwnd, origin, scale, btn["cx"], btn["cy"], label=f"{btn['name']} ")
+        return True, f"点了 {btn['name']}（{btn['cx']:.0f},{btn['cy']:.0f} 舞台）"
+
     # ---------------- 一帧 ----------------
     def tick(self, st):
         self.load_ctl()
@@ -237,6 +295,22 @@ class Coach:
         if not my:
             return payload
 
+        # 游戏停在二选一确认框（继续移动 / 停留、是否攻击）时，state 的 stage 是 none，
+        # 决策层永远给不出动作 —— 先按掉，按不掉再走正常流程。
+        if self.allow and stage in ("none", "move") and "go" in self.allow:
+            if self.handle_popup():
+                return payload
+
+        # 轮到我了却卡在 none、又没认出来的弹窗：留一行诊断，方便下次对症补
+        if stage == "none" and self.allow:
+            now = time.time()
+            if now - self.last_idle_note_t > 8:
+                self.last_idle_note_t = now
+                pr = POP.probe() or {}
+                self.say(f"[诊断] 轮到我但 stage=none，未匹配到已知弹窗"
+                         f"（蓝 {pr.get('left_ratio', 0)} / 粉 {pr.get('right_ratio', 0)}）"
+                         f" → 若是新弹窗，把这一行发塞拉")
+
         key = (st.get("ts"), st.get("sn"), stage)
         if key == self.last_act_key:
             return payload
@@ -263,16 +337,47 @@ class Coach:
 
             if self.allow:
                 did = False
-                if "card" in self.allow and action and action.get("kind") == "play":
+                sn = st.get("sn") or 0
+                want_play = bool("card" in self.allow and action
+                                 and action.get("kind") == "play")
+                buff_first = False
+                if want_play:
+                    try:
+                        buff_first = AP.is_buff_card(self.gi.cinfo(action["id"]))
+                    except Exception:       # noqa: BLE001
+                        buff_first = False
+
+                # ① 增益牌先出：后开的技能才吃得到加成（唯一「牌先于技能」的情况）
+                if want_play and buff_first:
                     ok, note = self.act_play(action["id"])
                     if ok:
-                        self.acted = {"what": f"出牌 {action.get('name') or action['id']}", "note": note}
+                        self.acted = {"what": f"出牌 {action.get('name') or action['id']}",
+                                      "note": note}
                         did = True
-                if not did and "skill" in self.allow and st.get("skills"):
+
+                # ② 技能：state.skills 为空也照样按一次「发动技能」
+                #    插件偶尔读不到 SkillInstanceDict（实测有整局都空的情况），
+                #    但 UI 上按钮在就说明能开 —— 只认 state 会整局漏开技能。
+                if (not did and "skill" in self.allow and self.auto_skill
+                        and self.skill_turn != sn and int(me.get("skillCD") or 0) == 0):
                     ok, note = self.act_skill()
+                    self.skill_turn = sn
                     if ok:
                         self.acted = {"what": "开技能", "note": note}
                         did = True
+                        # 技能没生效时 state 不会变，别让去重把整回合卡死
+                        time.sleep(0.45)
+                        self.last_act_key = None
+
+                # ③ 其余牌
+                if not did and want_play:
+                    ok, note = self.act_play(action["id"])
+                    if ok:
+                        self.acted = {"what": f"出牌 {action.get('name') or action['id']}",
+                                      "note": note}
+                        did = True
+
+                # ④ 没牌没技能 → 结束出牌
                 if not did and "go" in self.allow:
                     ok, note = self.act_move()
                     self.acted = {"what": "结束出牌", "note": note}
@@ -299,6 +404,13 @@ class Coach:
         # 情形三：选目标阶段
         if stage in ("target_card", "target_skill"):
             self.push_event("target", "需要选目标", [why or "当前阶段需要选目标，bot 先停手"])
+            # 有些技能/牌是「默认目标 + 确认」，树里有 btn_Sure/btn_OK 就替主人按了；
+            # 真要手动点目标时这里按不动，日志会留下来，再针对性补。
+            if self.allow and "skill" in self.allow:
+                ok, note = self.confirm_if_any()
+                self.say(f"[auto] 选目标阶段：{note}")
+                if ok:
+                    self.acted = {"what": "选目标确认", "note": note}
             return payload
 
         return payload

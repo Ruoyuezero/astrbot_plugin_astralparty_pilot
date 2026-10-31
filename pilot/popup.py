@@ -1,0 +1,160 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""二选一弹窗识别 —— 靠屏幕取色，不依赖 UI 树。
+
+为什么不用 UI 树：分叉点「继续移动 / 停留」、落地后「是否攻击」这类确认框
+**不在 FairyGUI 树里**（uitree 抓不到），但它们的按钮位置和配色是固定的。
+
+2026-10-31 实测（客户区 2560x1440 / 舞台 1920x1080，缩放 1.3333）：
+    继续移动：纯蓝 #3265FF，舞台中心 (746, 736)，约 305x92
+    停留    ：洋红 #FF2B91，舞台中心 (1142, 736)，约 313x91
+舞台坐标与分辨率无关（客户区变大缩小只是乘缩放），所以这两个点可以直接用。
+
+判定方法：在两个按钮中心各取一小块，统计命中「那个颜色」的像素比例。
+比例过阈值才算在，避免被地图上的蓝/粉背景骗到。
+"""
+
+import ctypes
+import time
+from ctypes import wintypes
+
+import click as CL
+
+user32 = ctypes.windll.user32
+gdi32 = ctypes.windll.gdi32
+
+try:
+    ctypes.windll.shcore.SetProcessDpiAwareness(2)
+except Exception:  # noqa: BLE001
+    try:
+        user32.SetProcessDPIAware()
+    except Exception:  # noqa: BLE001
+        pass
+
+# 舞台坐标（1920x1080 基准）—— 实测所得，别凭感觉改
+LEFT_BTN = (746.0, 736.0)
+RIGHT_BTN = (1142.0, 736.0)
+# 取样小块（舞台单位）。按钮中间压着白字，所以避开中心，取上下/左右四条边附近
+PATCH_W, PATCH_H = 60.0, 14.0
+OFFSETS = ((0.0, -32.0), (0.0, 32.0), (-105.0, 0.0), (105.0, 0.0), (0.0, 0.0))
+
+# 实测按钮填充色（RGB）
+LEFT_RGB = (50, 101, 255)     # 继续移动 / 攻击
+RIGHT_RGB = (255, 43, 145)    # 停留 / 放弃
+TOL = 40                      # 每通道容差（按钮是渐变，容差小了整块都判不中）
+MIN_RATIO = 0.6               # 命中比例阈值（实测弹窗在=1.00，不在=0.00）
+
+
+class _BMIH(ctypes.Structure):
+    _fields_ = [("biSize", wintypes.DWORD), ("biWidth", wintypes.LONG),
+                ("biHeight", wintypes.LONG), ("biPlanes", wintypes.WORD),
+                ("biBitCount", wintypes.WORD), ("biCompression", wintypes.DWORD),
+                ("biSizeImage", wintypes.DWORD), ("biXPelsPerMeter", wintypes.LONG),
+                ("biYPelsPerMeter", wintypes.LONG), ("biClrUsed", wintypes.DWORD),
+                ("biClrImportant", wintypes.DWORD)]
+
+
+class _BMI(ctypes.Structure):
+    _fields_ = [("bmiHeader", _BMIH), ("bmiColors", wintypes.DWORD * 3)]
+
+
+def grab(x, y, w, h):
+    """抓屏幕一块，返回 (bytes(BGR 逐行, 自上而下), 宽, 高)。失败返回 (None, 0, 0)。"""
+    if w <= 0 or h <= 0:
+        return None, 0, 0
+    hdc = user32.GetDC(0)
+    mem = gdi32.CreateCompatibleDC(hdc)
+    bmp = gdi32.CreateCompatibleBitmap(hdc, w, h)
+    old = gdi32.SelectObject(mem, bmp)
+    try:
+        gdi32.BitBlt(mem, 0, 0, w, h, hdc, int(x), int(y), 0x00CC0020)
+        bi = _BMI()
+        bi.bmiHeader.biSize = ctypes.sizeof(_BMIH)
+        bi.bmiHeader.biWidth = w
+        bi.bmiHeader.biHeight = -h          # 负 = 自上而下，省得翻
+        bi.bmiHeader.biPlanes = 1
+        bi.bmiHeader.biBitCount = 24
+        bi.bmiHeader.biCompression = 0
+        buf = ctypes.create_string_buffer(w * h * 3)
+        gdi32.GetDIBits(mem, bmp, 0, h, buf, ctypes.byref(bi), 0)
+        return buf.raw, w, h
+    finally:
+        gdi32.SelectObject(mem, old)
+        gdi32.DeleteObject(bmp)
+        gdi32.DeleteDC(mem)
+        user32.ReleaseDC(0, hdc)
+
+
+def _ratio(raw, w, h, rgb):
+    """统计接近 rgb 的像素比例。"""
+    if not raw:
+        return 0.0
+    tr, tg, tb = rgb
+    hit = 0
+    total = 0
+    for i in range(0, len(raw) - 2, 3):
+        b, g, r = raw[i], raw[i + 1], raw[i + 2]
+        total += 1
+        if abs(r - tr) <= TOL and abs(g - tg) <= TOL and abs(b - tb) <= TOL:
+            hit += 1
+    return hit / total if total else 0.0
+
+
+def geometry():
+    """(hwnd, 客户区原点, 缩放)；拿不到返回 None。"""
+    w = CL.find_window()
+    if not w:
+        return None
+    hwnd = w[0]
+    ui = CL.load_ui() or {}
+    origin, _stage, scale = CL.geom(ui, hwnd)
+    return hwnd, origin, scale
+
+
+def probe():
+    """看屏幕上有没有那个二选一弹窗。
+
+    返回 {"left": 蓝在不在, "right": 粉在不在, "two": 两个都在}；抓不到屏返回 None。
+    """
+    g = geometry()
+    if not g:
+        return None
+    _hwnd, (ox, oy), scale = g
+    out = {}
+    for key, (cx, cy), rgb in (("left", LEFT_BTN, LEFT_RGB),
+                               ("right", RIGHT_BTN, RIGHT_RGB)):
+        best = 0.0
+        w = max(6, int(PATCH_W * scale))
+        h = max(6, int(PATCH_H * scale))
+        for dx, dy in OFFSETS:
+            sx = int(round(ox + (cx + dx) * scale - w / 2))
+            sy = int(round(oy + (cy + dy) * scale - h / 2))
+            raw, ww, hh = grab(sx, sy, w, h)
+            if raw:
+                best = max(best, _ratio(raw, ww, hh, rgb))
+        out[key] = best >= MIN_RATIO
+        out[key + "_ratio"] = round(best, 2)
+    out["two"] = bool(out["left"] and out["right"])
+    return out
+
+
+def click_choice(which, dry=False):
+    """点左/右按钮。which in ("left", "right")。返回 (ok, 说明)。"""
+    g = geometry()
+    if not g:
+        return False, "找不到游戏窗口"
+    hwnd, origin, scale = g
+    cx, cy = LEFT_BTN if which == "left" else RIGHT_BTN
+    sx, sy = CL.to_screen(origin, scale, cx, cy)
+    if dry:
+        return True, f"dry：会点 {which} 屏幕({sx},{sy})"
+    CL.focus(hwnd)
+    CL.click(sx, sy)
+    return True, f"点了 {which} 屏幕({sx},{sy}) 舞台({cx:.0f},{cy:.0f})"
+
+
+if __name__ == "__main__":
+    print("探测中…")
+    for _ in range(3):
+        print(probe())
+        time.sleep(0.4)
