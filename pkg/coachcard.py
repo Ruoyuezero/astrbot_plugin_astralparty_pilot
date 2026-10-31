@@ -12,8 +12,10 @@ from .cardrender import ACCENT, BG, BODY, MUTE, PANEL_BG, RULE, TITLE, _font
 from .artrender import Blocks, _draw_chips, _open
 from .livecard import BLUE, GOLD, GREEN, W, PAD, _chibi, _hero_name
 
-MODE_CN = {"auto": "自主代打", "pilot": "辅助建议"}
+# 三种操控模式按「实际交给 bot 多少」判定，不看引擎内部 mode：
+#   全给   = 全自动代打   给一部分 = 半自动代打   一个都没给 = 玩家自己操控
 ACT_CN = {"card": "出牌", "skill": "开技能", "go": "移动"}
+CORE_ACTS = ("card", "skill", "go")
 
 
 def _chip_rows(me: dict) -> list:
@@ -35,9 +37,11 @@ def render_advice(d: dict, out_path: str) -> str:
     b.items.append(("t", title, _font(28, True), TITLE, PAD, b.y, 40))
     b.y += 40
 
-    allow = [a for a in ("card", "skill", "go") if a in (d.get("allow") or [])]
-    badges = [MODE_CN.get(mode, mode)]
-    if mode != "auto" and allow:
+    granted = set(d.get("allow") or [])
+    allow = [a for a in CORE_ACTS if a in granted]
+    auto = mode == "auto" or (granted and all(a in granted for a in CORE_ACTS))
+    badges = ["全自动代打" if auto else ("半自动代打" if allow else "玩家自主操控")]
+    if not auto and allow:
         badges.append("代动 " + "/".join(ACT_CN[a] for a in allow))
     if d.get("dry"):
         badges.append("演练（不动鼠标）")
@@ -88,12 +92,12 @@ def render_advice(d: dict, out_path: str) -> str:
         b.text(f"bot 刚动作：{acted.get('what')} —— {acted.get('note') or ''}",
                _font(14), MUTE, line_h=24, before=10)
 
-    if mode == "auto":
-        note = "代打模式：bot 会自己动鼠标"
+    if auto:
+        note = "全自动代打：bot 自己出牌 / 开技能 / 推进"
     elif allow:
-        note = "辅助模式：只代动 " + "、".join(ACT_CN[a] for a in allow) + "，其余只看不动"
+        note = "半自动代打：只代动 " + "、".join(ACT_CN[a] for a in allow) + "，其余你自己点"
     else:
-        note = "辅助模式：只看不动"
+        note = "玩家自主操控：bot 只看不动，只推建议"
     b.text(f"{note} · 数据时间 {d.get('ts') or ''}", _font(13), MUTE, line_h=22, before=10)
 
     img = _chibi(hid) if hid else None

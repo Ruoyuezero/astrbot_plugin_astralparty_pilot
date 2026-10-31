@@ -1,9 +1,9 @@
 """星趴（Astral Party）助手插件入口。
 
-知识库（kb/）与决策逻辑（pkg/）全部来自本地项目 AstralPartyPilot 的**只读拷贝**，
-本插件只负责把它变成 QQ 里的查询与决策助手，不改动原项目。
+知识库（kb/）、决策逻辑（pkg/）与陪玩引擎（pilot/）都随插件一起分发，
+插件负责把它们变成 QQ 里的图鉴查询、决策建议与代打操控。
 
-用法：/星趴 <子命令> ...
+代打三种模式：全自动（/appa on）、半自动（/appa card 等）、玩家自主操控（/appa off）。
 """
 
 from __future__ import annotations
@@ -84,14 +84,14 @@ HELP_SECTIONS = [
         ("/app <UID>", "查玩家：在局里→局内进度卡，不在局→档案卡"),
         ("/app 查 <UID>", "同上（/app uid 1551363 也行）"),
     ]),
-    ("🎮", "代打（游戏开着、插件在跑才有用）", [
+    ("🎮", "代打（三种模式：全自动 / 半自动 / 你自己操控）", [
         ("/appa", "查当前进度 + 我的角色状态（只看不动）"),
-        ("/appa on", "开全自动代打，完全由AI决策"),
-        ("/appa off", "关闭代打，完全由你自己控制"),
+        ("/appa on", "全自动代打：出牌、技能、移动、战斗全交给 bot"),
+        ("/appa card", "半自动代打：把这一项交给 bot（一次一项，其余归你）"),
+        ("/appa off", "玩家自主操控：bot 只推建议，鼠标不碰"),
         ("/appa atk", "攻击怪物（开战 + 不闪避）"),
         ("/appa def", "防御怪物（避战 + 闪避）"),
         ("/appa skip", "跳过商店 / 怪物 / 闪避"),
-        ("/appa card", "只出牌"),
         ("/appa skill", "只开技能"),
         ("/appa go", "只移动 / 选「继续移动」"),
         ("/appa choose", "遇岔路自动选更优的一条"),
@@ -131,16 +131,16 @@ PILOT_ACT_CN = {"card": "出牌", "skill": "开技能", "go": "移动/继续", "
                 "skip": "跳过"}
 
 APPA_HELP = (
-    "🎮 代打指令（每个只管一件事，方便单项调试）\n"
+    "🎮 代打指令（三种模式）\n"
+    "① 全自动代打 ··· /appa on —— 出牌 / 技能 / 移动 / 战斗都交给 bot\n"
+    "② 半自动代打 ··· /appa card（出牌）· skill（技能）· go（移动）等，一次交给 bot 一项\n"
+    "③ 你自己操控 ··· /appa off —— bot 只推建议，鼠标不碰\n"
+    "\n"
+    "其余单项（每个只管一件事，方便单独调）\n"
     "/appa ········· 查当前进度 + 我的角色状态（只看不动）\n"
-    "/appa on ······ 开全自动，完全由AI决策\n"
-    "/appa off ····· 关掉，完全由你自己控制\n"
     "/appa atk ····· 攻击怪物（开战 + 不闪避）\n"
     "/appa def ····· 防御怪物（避战 + 闪避）\n"
     "/appa skip ···· 跳过商店 / 怪物 / 闪避\n"
-    "/appa card ···· 只出牌\n"
-    "/appa skill ··· 只开技能\n"
-    "/appa go ······ 只移动、选「继续移动」\n"
     "/appa choose ·· 遇岔路自动选更优的一条\n"
     "/appa stop ···· 停下来（不继续走）\n"
     "/appa buy ····· 商店买一张卡（买完离开）/ 挑一个筹码"
@@ -536,23 +536,11 @@ class AstralPartyPilotPlugin(Star):
             async for result in self._app_load(event, joined):
                 yield result
             return
-        if sub in ("auto", "代打", "自动", "自动驾驶"):
-            async for result in self._app_pilot_mode(event, joined, "auto"):
-                yield result
-            return
-        if sub in ("pilot", "辅助", "建议", "教练"):
-            async for result in self._app_pilot_mode(event, joined, "pilot"):
-                yield result
-            return
-        if sub in ("noauto", "off", "stop", "停", "停止", "取消", "noc"):
-            async for result in self._app_noauto(event):
-                yield result
-            return
-
         yield event.plain_result(
             f"bot 没看懂「{sub}」这个图鉴子命令呢～\n"
-            "可用：card / map / land / buff / monster / monsterCG / hero / heroskins / heroCG / heroemoji / relic / achieve\n"
+            "可用：card / map / land / buff / monster / monsterCG / hero / heroskins / heroCG / heroemoji / relic / achieve / load\n"
             "查玩家：/app <UID>（例如 /app 1551363）\n"
+            "代打请用 /appa（/appa on 全自动 · /appa card 半自动 · /appa off 交回自己）\n"
             "发 /app help 看完整说明"
         )
 
@@ -1171,109 +1159,11 @@ class AstralPartyPilotPlugin(Star):
         yield event.plain_result(f"bot 没拿到 UID {uid} 的数据呢")
 
     # ------------------------------------------------------------ 陪玩 ----
-    def _pilot_prefer(self, joined: str) -> str:
-        text = joined or ""
-        # 先把动作词摘掉，免得「打牌」被当成倾向「打 = 进攻」
-        for w in sorted(PILOT_ACT_ALIAS, key=len, reverse=True):
-            if w:
-                text = text.replace(w, " ")
-        for w, p in PREFER_ALIAS.items():
-            if w and w in text and p in ("atk", "def", "eco"):
-                return p
-        return self._conf_str("pilot_prefer", "eco") or "eco"
-
-    def _pilot_acts(self, joined: str) -> list:
-        """从「card skill go」里抠出要授权的动作类别。"""
-        out = []
-        for w in re.split(r"[\s,，、+＋/／|]+", (joined or "").lower()):
-            a = PILOT_ACT_ALIAS.get(w.strip())
-            if a and a not in out:
-                out.append(a)
-        return out
-
     async def _coach_card(self, event: AstrMessageEvent, d: dict):
         fd, tmp = tempfile.mkstemp(suffix=".png", prefix="app_coach_")
         os.close(fd)
         await asyncio.to_thread(CCARD.render_advice, d, tmp)
         yield event.image_result(tmp)
-
-    async def _app_pilot_mode(self, event: AstrMessageEvent, joined: str, mode: str):
-        """auto：三类全代打；pilot：只推建议 + 被授权的那几类才代动。"""
-        dry = bool(re.search(r"dry|演练|彩排|试算|只看", joined or ""))
-        prefer = self._pilot_prefer(joined)
-        want = self._pilot_acts(joined) if mode == "pilot" else list(CO.ACTIONS)
-
-        prev = await asyncio.to_thread(CO.ctl_allow, self.config)
-        if mode == "pilot":
-            # 累加：/app pilot card 只加出牌，之前给的技能/移动不会掉
-            allow = [a for a in CO.ACTIONS if a in (set(prev) | set(want))]
-        else:
-            allow = list(CO.ACTIONS)
-        revoked = mode == "pilot" and prev and not allow
-
-        cur = await asyncio.to_thread(CO.current, self.config)
-        if cur["running"] and cur["mode"] != mode:
-            await asyncio.to_thread(CO.stop, self.config)
-            cur = {"running": False, "mode": "", "pid": 0, "allow": []}
-        if cur["running"]:
-            # 进程在跑就只改控制文件，引擎下一帧自己读
-            await asyncio.to_thread(CO.set_allow, self.config, allow)
-            msg = f"沿用原来的进程（{cur['mode']}，pid {cur['pid']}）"
-        else:
-            msg = await asyncio.to_thread(CO.start, self.config, mode, dry, prefer, allow)
-
-        game_on = await asyncio.to_thread(LS.running)
-        picks = "、".join(PILOT_ACT_CN[a] for a in CO.ACTIONS if a in allow)
-        if mode == "auto":
-            head = "🎮 自主代打已开"
-        else:
-            head = "🧭 辅助已开" if not allow else f"🧭 辅助已开 · 代动「{picks}」"
-        lines = [f"{head}：{msg}"]
-        if mode == "auto":
-            lines.append("bot 会接管鼠标：出牌（无需目标的牌）、点技能、点移动键。")
-            if dry:
-                lines.append("演练模式：只算不点，鼠标不会动。")
-            else:
-                lines.append("⚠️ 代打期间别抢鼠标；要回手就发 /app noauto")
-        elif allow:
-            lines.append(f"只代动「{picks}」，其余照旧只看不动。")
-            if "card" in allow:
-                lines.append("· 出牌：只出无需选目标的牌；要选怪/选人/选格的牌还是你自己点。")
-            if "skill" in allow:
-                lines.append("· 开技能：轮到你且有技能可开时，bot 点技能键。")
-            if "go" in allow:
-                lines.append("· 移动：出牌推不动 / 移动阶段，bot 点移动键推进。")
-            lines.append("要收回：/app pilot 回到只看；整个停掉：/appa off")
-        else:
-            lines.append("bot 只看不动：每次轮到我推一张建议卡（出牌 / 移动）。")
-            if revoked:
-                lines.append("已收回刚才的授权，回到只看不建议动。")
-            else:
-                lines.append("想让bot 代某一类：/app pilot card（出牌）· skill（开技能）· go（移动），可叠加")
-        lines.append(f"倾向：{prefer}")
-        lines.append("💡 旧入口，已经拆成 /appa 一族（/appa on · card · skill · go · choose · stop · buy · atk · def · skip）")
-        if not game_on:
-            lines.append("💡 现在没检测到游戏进程，进对局后才会开始判定。")
-        yield event.plain_result("\n".join(lines))
-
-        self._ensure_push(event)
-        await asyncio.sleep(1.2)
-        d = await asyncio.to_thread(CO.read, self.config)
-        if not d:
-            yield event.plain_result("陪玩引擎还没写出状态 —— 看 logs/coach_stdout.log 有报错吗？")
-            return
-        try:
-            async for r in self._coach_card(event, d):
-                yield r
-        except Exception as exc:  # noqa: BLE001
-            logger.error(f"[星趴] 建议卡渲染失败：{exc}")
-
-    async def _app_noauto(self, event: AstrMessageEvent):
-        msg = await asyncio.to_thread(CO.stop, self.config)
-        self._stop_push()
-        yield event.plain_result(
-            f"🔇 已取消辅助：{msg}\n授权也一并收回，从现在起完全由你自己决定，bot 不看不点。\n"
-            "（陪玩入口已并入 /appa，以后直接发 /appa on / /appa off 就行）")
 
     # ------------------------------------------------------------ /appa ----
     @filter.command("appa")
@@ -1418,9 +1308,14 @@ class AstralPartyPilotPlugin(Star):
                 lines.append(f"🎯 bot 看到：{ev['title']}")
 
         if cur["running"]:
-            lines.append(f"🤖 代打：运行中（pid {cur['pid']}）｜ 授权：{allow_cn or '无（只看不动）'}")
+            granted = set(cur["allow"] or [])
+            if all(x in granted for x in ("card", "skill", "go")):
+                tag = "模式① 全自动代打"
+            else:
+                tag = "模式② 半自动代打"
+            lines.append(f"🤖 {tag}：运行中（pid {cur['pid']}）｜ 授权：{allow_cn or '无'}")
         else:
-            lines.append("🤖 代打：没开 —— 想全自动发 /appa on")
+            lines.append("🤖 模式③ 玩家自主操控 —— 想全自动发 /appa on")
 
         if not my and stage == "none" and not a.get("id"):
             lines.append("💡 现在没轮到你，也没有待回应的弹窗。")
@@ -1444,23 +1339,24 @@ class AstralPartyPilotPlugin(Star):
         names = "、".join(PILOT_ACT_CN[a] for a in picks)
         lines = []
         if full:
-            lines.append(f"🎮 全自动代打开着 —— {msg}")
+            lines.append(f"🎮 模式① 全自动代打 —— {msg}")
             lines.append(f"交给 bot：{names}")
             lines.append("遇到怪物默认打、被打不闪避；不代「停下来」，想停发 /appa stop")
             lines.append("想看当前进度就发 /appa（不带参数）")
         else:
-            lines.append(f"🎯 只代「{names}」—— {msg}")
-            lines.append("其余全部归你自己，bot 不看不点")
+            lines.append(f"🎯 模式② 半自动代打 · 只代「{names}」—— {msg}")
+            lines.append("其余动作仍归你自己点，bot 不碰")
         if not await asyncio.to_thread(LS.running):
             lines.append("💡 现在没检测到游戏进程，进对局后才会动。")
-        lines.append("要回手：/appa off")
+        lines.append("要转成模式③（你自己操控）：/appa off")
         yield event.plain_result("\n".join(lines))
 
     async def _appa_off(self, event: AstrMessageEvent):
         msg = await asyncio.to_thread(CO.stop, self.config)
         self._stop_push()
         yield event.plain_result(
-            f"🔇 代打已关闭：{msg}\n授权一并收回，从现在起完全由你自己操作，bot 不看也不点。")
+            f"🖐 模式③ 玩家自主操控：{msg}\n"
+            "授权一并收回，鼠标完全归你；bot 只在旁边看，需要建议再发 /appa。")
 
     def _ensure_push(self, event: AstrMessageEvent) -> None:
         umo = getattr(event, "unified_msg_origin", "") or ""
