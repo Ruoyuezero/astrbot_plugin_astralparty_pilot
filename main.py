@@ -1,7 +1,7 @@
 """星趴（Astral Party）助手插件入口。
 
 知识库（kb/）、决策逻辑（pkg/）与陪玩引擎（pilot/）都随插件一起分发，
-插件负责把它们变成 QQ 里的图鉴查询、决策建议与代打操控。
+插件负责把它们变成 QQ 里的图文图鉴（/app）与代打操控（/appa）。
 
 代打三种模式：全自动（/appa on）、半自动（/appa card 等）、玩家自主操控（/appa off）。
 """
@@ -19,7 +19,6 @@ from astrbot.api import logger
 from astrbot.api.event import AstrMessageEvent, filter
 from astrbot.api.star import Context, Star
 
-from .pkg import decision as D
 from .pkg import kb
 from .pkg import assets as AS
 from .pkg import cardrender as CR
@@ -101,13 +100,6 @@ HELP_SECTIONS = [
 
 APP_HELP = HC.build_text(HELP_SECTIONS)
 
-PREFER_ALIAS = {
-    "atk": "atk", "攻": "atk", "进攻": "atk", "打": "atk", "推图": "atk",
-    "def": "def", "守": "def", "防守": "def", "苟": "def", "保命": "def",
-    "eco": "eco", "发育": "eco", "钱": "eco", "经济": "eco",
-    "auto": "auto", "自动": "auto", "默认": "auto",
-}
-
 # /appa card|skill|go|choose|stop|buy|atk|def|skip：把某一类动作交给 bot 代动
 PILOT_ACT_ALIAS = {
     "card": "card", "牌": "card", "出牌": "card", "打牌": "card", "出张牌": "card",
@@ -143,23 +135,6 @@ APPA_HELP = (
     "/appa choose ·· 遇岔路自动选更优的一条\n"
     "/appa stop ···· 停下来（不继续走）\n"
     "/appa buy ····· 经过商店时：购买"
-)
-
-HELP = (
-    "🎲 星趴助手\n"
-    "/星趴 卡 <名字/编号>      手牌详情\n"
-    "/星趴 怪 <名字/称号>      怪物五档数值与技能\n"
-    "/星趴 地块 <类型号>       地块效果\n"
-    "/星趴 图 <地图名>         地图拓扑概况\n"
-    "/星趴 格 <地图名> <格子>  单格详情（含可变地块）\n"
-    "/星趴 交叉 <地图名>       该图会出现哪些怪/事件/专属牌\n"
-    "/星趴 搜 <关键词>         全库检索\n"
-    "/星趴 威胁 <地图名> [难度] 怪物威胁排序\n"
-    "/星趴 走 <地图> <起点> <步数> [倾向]\n"
-    "/星趴 路线 <地图> <起点> <终点> [倾向]\n"
-    "/星趴 手牌 <牌1,牌2> [倾向]\n"
-    "倾向：攻 / 守 / 发育 / 自动（默认）\n"
-    "\n" + APP_HELP
 )
 
 
@@ -242,48 +217,6 @@ def fmt_land(l: dict) -> str:
     )
 
 
-def fmt_map(mi: dict) -> str:
-    lines = [
-        f"🗺️ {mi['name']}（{mi.get('scene')}）",
-        f"{mi.get('kind') or '?'} ｜ {mi.get('cells')} 格 / {mi.get('edges')} 边 ｜ 连通分量 {mi.get('components')}",
-    ]
-    if mi.get("born"):
-        lines.append("出生格：" + "、".join(str(x) for x in mi["born"]))
-    if mi.get("has_group"):
-        lines.append("含运行时可变地块（LandGroup），实际类型要看 rt")
-    if mi.get("note"):
-        lines.append(f"备注：{mi['note']}")
-    return "\n".join(lines)
-
-
-def fmt_cell(name: str, c: dict) -> str:
-    lines = [f"📍 {name} 第 {c['id']} 格：{c.get('type_name')}（静态类型 {c.get('t')}）"]
-    if c.get("rt"):
-        lines.append(f"运行时类型已变：{c['rt']}")
-    if c.get("desc"):
-        lines.append(c["desc"])
-    if c.get("nb") is not None:
-        lines.append("邻接：" + "、".join(str(x) for x in c["nb"]))
-    g = c.get("group")
-    if g:
-        states = [f"{s.get('LandType')}{'(on)' if s.get('Active') else '(off)'}" for s in g.get("states", [])]
-        lines.append(f"属于地块组 {g.get('gid')}：{' / '.join(states)}")
-    return "\n".join(lines)
-
-
-def fmt_search(hits) -> str:
-    if not hits:
-        return "没有找到相关内容呢…"
-    return "\n".join(f"[{k}] {n}：{_clip(s, 70)}" for k, n, s in hits[:8])
-
-
-# ---------------------------------------------------------------- 参数解析 ----
-def _norm_prefer(word: str | None) -> str:
-    if not word:
-        return "auto"
-    return PREFER_ALIAS.get(word.strip().lower(), PREFER_ALIAS.get(word.strip(), "auto"))
-
-
 def fmt_hero(h: dict) -> str:
     head = f"🧝 {h['name']}"
     if h.get("title"):
@@ -309,19 +242,6 @@ def fmt_hero(h: dict) -> str:
                          + (f" {q}" if q else ""))
         lines.append("皮肤：" + "、".join(parts))
     return "\n".join(lines)
-
-
-def _monster_names() -> list[str]:
-    out = []
-    for x in kb.monsters():
-        for v in (x.get("name"), x.get("title")):
-            if v and v not in out:
-                out.append(v)
-        # 俗名也进候选：茶壶 / 嘎呜 / 猿神 这类叫法打错字时更容易被捞回来
-        for v in kb.monster_aliases(x.get("no")):
-            if v and v not in out:
-                out.append(v)
-    return out
 
 
 def _monster_pick(joined: str):
@@ -407,15 +327,6 @@ def _hero_resolve(q: str):
     return None, ""
 
 
-
-def _tail(event: AstrMessageEvent, sub: str | None) -> str:
-    raw = (event.message_str or "").strip()
-    raw = re.sub(r"^[/／]?\s*星趴", "", raw).strip()
-    if sub:
-        raw = re.sub(rf"^{re.escape(sub)}\s*", "", raw).strip()
-    return raw
-
-
 class AstralPartyPilotPlugin(Star):
     """把 AstralPartyPilot 的知识库与决策能力搬进 QQ。"""
 
@@ -436,25 +347,6 @@ class AstralPartyPilotPlugin(Star):
         self._load_umo: str = ""
         logger.info("[星趴] 插件已加载，知识库条数：" + str(kb.index().get("counts", {})))
         logger.info("[星趴] 图库目录：" + AL.describe() + " 可用=" + str(AL.available()))
-
-    # ------------------------------------------------------------ 命令 ----
-    @filter.command("星趴")
-    async def astral(self, event: AstrMessageEvent):
-        """星趴知识库查询与决策。"""
-        raw = (event.message_str or "").strip()
-        words = re.sub(r"^[/／]?\s*星趴", "", raw).strip().split()
-        if not words:
-            yield event.plain_result(HELP)
-            return
-        sub, rest = words[0], words[1:]
-        try:
-            text = self.dispatch(sub, rest, " ".join(rest))
-        except KeyError as exc:
-            text = f"没找到：{exc}"
-        except Exception as exc:  # noqa: BLE001
-            logger.error(f"[星趴] 查询异常：{exc}")
-            text = f"bot 查的时候出错了：{exc}"
-        yield event.plain_result(text)
 
     # ------------------------------------------------------------ /app ----
     @filter.command("app")
@@ -1456,113 +1348,3 @@ class AstralPartyPilotPlugin(Star):
             return str(v) if v is not None else default
         except Exception:
             return default
-
-    def dispatch(self, sub: str, rest: list[str], joined: str) -> str:
-        if sub in ("帮助", "help", "?"):
-            return HELP
-
-        if sub in ("卡", "卡片", "card"):
-            c = kb.card(joined)
-            if not c:
-                g = _guess_name(joined, [x["name"] for x in kb.cards()])
-                c = kb.card(g) if g else None
-            return fmt_card(c) if c else f"知识库里没有「{joined}」这张牌呢"
-        if sub in ("怪", "怪物", "monster"):
-            m, hint = _monster_pick(joined)
-            if hint:
-                return hint
-            return fmt_monster(m) if m else f"知识库里没有「{joined}」这只怪呢"
-        if sub in ("地块", "地", "land"):
-            l = kb.land_find(joined) if joined else None
-            return fmt_land(l) if l else "要bot地块类型号或地块名哦"
-        if sub in ("图", "地图", "map"):
-            mi = kb.mapinfo(joined)
-            return fmt_map(mi) if mi else f"没有这张地图：{joined}"
-        if sub in ("格", "格子", "cell"):
-            if len(rest) < 2:
-                return "用法：/星趴 格 <地图名> <格子id>"
-            c = kb.cell(rest[0], rest[1])
-            return fmt_cell(rest[0], c) if c else "这张图上没有这一格呢"
-        if sub in ("交叉", "for_map", "图鉴"):
-            info = kb.for_map(joined) if kb.mapinfo(joined) else None
-            if not info:
-                return f"没有这张地图：{joined}"
-            mons = [m["name"] for m in info["monsters"] if m]
-            evs = [e["name"] for e in info["events"]]
-            cs = [c["name"] for c in info["cards"] if c]
-            return (
-                f"🗺️ {joined}\n"
-                f"怪物（{len(mons)}）：{'、'.join(mons[:10]) or '无'}\n"
-                f"地图事件（{len(evs)}）：{'、'.join(evs[:8]) or '无'}\n"
-                f"专属手牌（{len(cs)}）：{'、'.join(cs[:10]) or '无'}"
-            )
-        if sub in ("搜", "搜索", "search"):
-            return fmt_search(kb.search(joined))
-        if sub in ("威胁", "threat"):
-            return self._threat(rest)
-        if sub in ("走", "steps"):
-            return self._steps(rest)
-        if sub in ("路线", "route"):
-            return self._route(rest)
-        if sub in ("手牌", "hand"):
-            return self._hand(rest)
-        return f"bot 不认识「{sub}」这个子命令呢\n\n" + HELP
-
-    # ------------------------------------------------------- 决策子命令 ----
-    def _threat(self, rest: list[str]) -> str:
-        if not rest:
-            return "用法：/星趴 威胁 <地图名> [难度]"
-        name, difficulty = rest[0], (rest[1] if len(rest) > 1 else "普通")
-        rows = D.map_monsters(name, difficulty) if kb.mapinfo(name) else [D.monster_threat(name, difficulty)]
-        if not rows:
-            return f"没查到「{name}」的怪物数据"
-        top = [r for r in rows if r.get("threat")][:8]
-        if not top:
-            return f"「{name}」没有可用数值"
-        lines = [f"👹 {name}·{difficulty} 威胁排序"]
-        for i, r in enumerate(top, 1):
-            lines.append(f"{i}. {r.get('name')} {r.get('threat')} ｜ {r.get('killable_hint') or ''}".rstrip())
-        return "\n".join(lines)
-
-    def _steps(self, rest: list[str]) -> str:
-        if len(rest) < 3:
-            return "用法：/星趴 走 <地图> <起点> <步数> [倾向]"
-        try:
-            path, cost = D.steps(rest[0], int(rest[1]), int(rest[2]), _norm_prefer(rest[3] if len(rest) > 3 else None))
-        except KeyError as exc:
-            return str(exc)
-        cells = kb.mapcells(rest[0]) or []
-        byid = {c["id"]: c for c in cells}
-        route = " → ".join(f"{i}·{(kb.land(D.ltype(byid[i])) or {}).get('name', '?')}" for i in path if i in byid)
-        return f"🚶 {rest[0]} 走 {rest[2]} 步\n{route}\n合计代价 {round(cost, 2)}"
-
-    def _route(self, rest: list[str]) -> str:
-        if len(rest) < 3:
-            return "用法：/星趴 路线 <地图> <起点> <终点> [倾向]"
-        try:
-            path, cost = D.route(rest[0], int(rest[1]), int(rest[2]), _norm_prefer(rest[3] if len(rest) > 3 else None))
-        except KeyError as exc:
-            return str(exc)
-        cells = kb.mapcells(rest[0]) or []
-        byid = {c["id"]: c for c in cells}
-        route = " → ".join(f"{i}·{(kb.land(D.ltype(byid[i])) or {}).get('name', '?')}" for i in path if i in byid)
-        return f"🧭 {rest[0]}：{rest[1]}→{rest[2]}\n{route}\n合计代价 {round(cost, 2)}"
-
-    def _hand(self, rest: list[str]) -> str:
-        if not rest:
-            return "用法：/星趴 手牌 <牌1,牌2> [倾向]"
-        prefer = "auto"
-        if len(rest) > 1:
-            prefer = _norm_prefer(rest[-1])
-            names = " ".join(rest[:-1])
-        else:
-            names = rest[0]
-        hand = [x for x in re.split(r"[,，、/\s]+", names) if x]
-        rows = D.suggest_hand(hand, prefer)
-        if not rows:
-            return "这些牌bot 都没认出来呢…"
-        lines = [f"🃏 手牌建议（{prefer}）"]
-        for r in rows:
-            kw = "、".join(r.get("keywords") or []) or "无明显关键词"
-            lines.append(f"· {r.get('name')}（费用 {r.get('cost')}）总分 {r.get('score')} ｜ {kw}")
-        return "\n".join(lines)
