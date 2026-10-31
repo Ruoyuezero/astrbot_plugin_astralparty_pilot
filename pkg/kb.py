@@ -234,27 +234,48 @@ def state(q):
     return states().get(str(q))
 
 
+def relic_alias():
+    """玩家俗称表 {筹码名: [别名...]}（金拳套 / 紫饼干 / 哈基米 / 欧金金 …）。
+
+    键用筹码全名而不是编号：19 个纯属性筹码（拳击手套 / 夹心饼干…）没有图标编号，
+    三档共用一张通用图，只有名字能区分。
+    """
+    return _load("relic_alias", "kb/relic_alias.json")
+
+
+def relic_aliases(name) -> list[str]:
+    return list(relic_alias().get(str(name)) or [])
+
+
+def _relic_alias_names(q) -> list[str]:
+    """俗名精确命中的筹码全名列表。"""
+    return [name for name, names in relic_alias().items()
+            if any(_alias_eq(q, n) for n in names)]
+
+
 def relic(q):
-    """按名字 / 数字编号找筹码；名字支持模糊（「瞄具」能匹配到鹰眼瞄具）。"""
-    q = str(q).strip()
-    rs = relics()
-    for r in rs:
-        if _eq(r.get("name"), q) or str(r.get("no")) == q:
-            return r
-    for r in rs:
-        if q and q in (r.get("name") or ""):
-            return r
-    return None
+    """按名字 / 编号 / 社区俗称找筹码；名字支持模糊（「瞄具」能匹配到鹰眼瞄具）。"""
+    hits = relic_find_all(q)
+    return hits[0] if hits else None
 
 
 def relic_find_all(q) -> list[dict]:
-    """模糊匹配，可能多条（同名套系 / 共用编号）。"""
+    """模糊匹配，可能多条（同名套系 / 共用编号 / 一个俗称对应两个筹码）。"""
     q = str(q).strip()
-    hits = [r for r in relics()
-            if _eq(r.get("name"), q) or str(r.get("no")) == q]
+    rs = relics()
+    hits = [r for r in rs if _eq(r.get("name"), q) or str(r.get("no")) == q]
     if hits:
         return hits
-    return [r for r in relics() if q and q in (r.get("name") or "")]
+    # 俗名精确要早于名字包含：「手环」直接对彩羽手环 / 运动手环，别让包含匹配先捞走一个
+    names = _relic_alias_names(q)
+    if names:
+        return [r for r in rs if r.get("name") in names]
+    hits = [r for r in rs if q and q in (r.get("name") or "")]
+    if hits:
+        return hits
+    names = [n for n, al in relic_alias().items()
+             if q and any(q.casefold() in x.casefold() for x in al)]
+    return [r for r in rs if r.get("name") in names]
 
 
 def achieve_find_all(q) -> list[dict]:
@@ -365,7 +386,13 @@ def search(q, limit=20):
     scan("事件", events(), ["name", "effect", "flavor", "note"], lambda r: r["name"])
     scan("地图事件", map_events(), ["name", "actions"], lambda r: r["name"])
     scan("Buff", buffs(), ["text"], lambda r: r["name"] or r["text"][:12])
-    scan("筹码", relics(), ["name", "desc", "faction"], lambda r: r["name"])
+    ral = relic_alias()
+    rl = []
+    for r in relics():
+        d = dict(r)
+        d["alias"] = " ".join(ral.get(str(r.get("name")), []))
+        rl.append(d)
+    scan("筹码", rl, ["name", "alias", "desc", "faction"], lambda r: r["name"])
     scan("成就", achievements(), ["name", "desc"], lambda r: r["name"])
     scan("地块", lands(), ["name", "desc"], lambda r: r["name"])
     al = hero_alias()

@@ -68,7 +68,7 @@ HELP_SECTIONS = [
     ]),
     ("🎯", "筹码图鉴", [
         ("/app relic", "全部筹码（按流派分组，图标 + 编号 + 名称）"),
-        ("/app relic <名字|编号>", "单个筹码详解（品质 + 流派 + 效果说明）"),
+        ("/app relic <名字|编号>", "单个筹码详解（品质 + 流派 + 效果说明，认俗称）"),
     ]),
     ("🏆", "成就图鉴", [
         ("/app achieve", "全部成就（一张图，图 + 名称 + 数字 ID）"),
@@ -774,7 +774,11 @@ class AstralPartyPilotPlugin(Star):
 
         hits = kb.relic_find_all(joined)
         if not hits:
-            names = [r.get("name") or "" for r in kb.relics()]
+            names = []
+            for r in kb.relics():
+                for v in [r.get("name")] + kb.relic_aliases(r.get("name")):
+                    if v and v not in names:
+                        names.append(v)
             yield event.plain_result(f"知识库里没有「{joined}」这个筹码呢{_suggest(joined, names)}")
             return
         if len(hits) > 1:
