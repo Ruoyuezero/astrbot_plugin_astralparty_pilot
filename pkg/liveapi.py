@@ -488,10 +488,15 @@ def _own_player(p: dict | None) -> dict:
         })
     cards.sort(key=lambda x: x["hero"])
     bag = gl(p, 11)
+    # 成就进度只在「查的就是本机登录账号」时拿得到：登录包 TaskInfo#9 是已领取
+    # 成就奖励的 id 列表（服务端没有查询他人成就的接口，ShowPlayer 只给展示墙）
+    task = gm(p, 21) or {}
+    achieves = sorted({int(a) for a in gints(task, 9) if a})
     return {
         "id": gi(p, 1), "nick": gs(p, 2), "level": gi(p, 25), "exp": gi(p, 26),
         "room_id": gi(p, 5), "cards": cards,
         "bags": [{"id": gi(b, 1), "n": gi(b, 2)} for b in bag],
+        "achieves": achieves,
     }
 
 

@@ -124,21 +124,43 @@ def heroes():
     return _load("heroes", "kb/heroes.json")
 
 
+def hero_alias():
+    """社区俗名表 {英雄编号: [别名...]}（老板娘 / 忍者 / 触手娘 …）。"""
+    return _load("hero_alias", "kb/hero_alias.json")
+
+
+def hero_aliases(hid) -> list[str]:
+    return list(hero_alias().get(str(hid)) or [])
+
+
+def _alias_eq(q: str, name: str) -> bool:
+    """别名比较忽略大小写（sex / Sex 都能中）。"""
+    return q.strip().casefold() == str(name).strip().casefold()
+
+
 def skills():
     return _load("skills", "kb/skills.json").get("skills", {})
 
 
 def hero(q):
-    """按名字 / 称号 / 编号 / 英文名找英雄。"""
+    """按名字 / 称号 / 编号 / 英日文 / 社区俗名找英雄。"""
     q = str(q).strip()
     hs = heroes()
     for hid, h in hs.items():
         if _eq(str(hid), q) or _eq(h["name"], q) or _eq(h.get("title"), q) \
                 or _eq(h.get("en"), q) or _eq(h.get("jp"), q):
             return h
+    # 俗名精确命中要先于名字模糊匹配：否则「00」会被 Z3000 里的 "3000" 抢走
+    al = hero_alias()
+    for hid, names in al.items():
+        if any(_alias_eq(q, n) for n in names) and str(hid) in hs:
+            return hs[str(hid)]
     for hid, h in hs.items():
         if q and (q in h["name"] or q in (h.get("title") or "")):
             return h
+    for hid, names in al.items():
+        if q and any(q.casefold() in n.casefold() for n in names) and str(hid) in hs:
+            return hs[str(hid)]
     return None
 
 
@@ -314,6 +336,13 @@ def search(q, limit=20):
     scan("筹码", relics(), ["name", "desc", "faction"], lambda r: r["name"])
     scan("成就", achievements(), ["name", "desc"], lambda r: r["name"])
     scan("地块", lands(), ["name", "desc"], lambda r: r["name"])
+    al = hero_alias()
+    hs = []
+    for hid, h in heroes().items():
+        d = dict(h)
+        d["alias"] = " ".join(al.get(str(hid), []))
+        hs.append(d)
+    scan("英雄", hs, ["name", "title", "en", "jp", "alias"], lambda r: r["name"])
     return hits[:limit]
 
 

@@ -284,8 +284,12 @@ def _monster_names() -> list[str]:
 
 def _hero_names() -> list[str]:
     out = []
-    for x in kb.heroes().values():
+    for hid, x in kb.heroes().items():
         for v in (x.get("name"), x.get("title")):
+            if v and v not in out:
+                out.append(v)
+        # 俗名也进候选，写错一个字时更容易联想到（「修女」「触手娘」…）
+        for v in kb.hero_aliases(hid):
             if v and v not in out:
                 out.append(v)
     return out

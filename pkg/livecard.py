@@ -163,8 +163,25 @@ def render_profile(d: dict, out_path: str) -> str:
         tiny.append(f"皮肤 {sh.get('skins')} 张")
     if sh.get("adorn"):
         tiny.append(f"装扮 {sh.get('adorn')} 件")
+    ach = list(own.get("achieves") or [])
+    if ach:
+        # 成就总数只有登录包里有，别人的号拿不到 → 只在自己号上显示
+        tiny.append(f"成就 {len(ach)} 项")
     if tiny:
         blocks.text(" · ".join(tiny), _font(16), BODY, line_h=28, before=4)
+
+    # 资料页展示墙：ShowPlayer#6 是玩家自选的几个成就 id（不是总数）
+    wall = [int(x) for x in (sh.get("achieve_show") or []) if x]
+    if wall:
+        names = []
+        for aid in wall:
+            row = None
+            try:
+                row = kb.achieve(aid)
+            except Exception:
+                row = None
+            names.append(str((row or {}).get("name") or f"成 #{aid}"))
+        blocks.text("展示成就：" + " · ".join(names), _font(15), MUTE, line_h=26, before=2)
 
     # 拥有的角色：按场次从多到少，前三名金/银/铜，名字右下角标该角色场次
     cards = own.get("cards") or []

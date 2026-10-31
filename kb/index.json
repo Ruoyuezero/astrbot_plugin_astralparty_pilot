@@ -12,7 +12,8 @@
   "maps": 21,
   "skills": 295,
   "relics": 89,
-  "achievements": 134
+  "achievements": 134,
+  "hero_aliases": 50
  },
  "files": {
   "cards": "kb/cards.json",
@@ -26,7 +27,8 @@
   "index": "maps/index.json",
   "skills": "kb/skills.json",
   "relics": "kb/relics.json",
-  "achievements": "kb/achievements.json"
+  "achievements": "kb/achievements.json",
+  "hero_alias": "kb/hero_alias.json"
  },
  "maps": [
   {
