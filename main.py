@@ -64,8 +64,8 @@ HELP_SECTIONS = [
         ("/app monster <名字>", "怪物简介卡（立绘 + 数值 + 机制，认俗名）"),
         ("/app monsterCG <名字>", "怪物战斗 CG 原图"),
     ]),
-    ("🧝", "英雄图鉴", [
-        ("/app hero", "全部英雄（局内小人，数字为角色 ID）"),
+    ("🧝", "角色图鉴", [
+        ("/app hero", "全部角色（局内小人，数字为角色 ID）"),
         ("/app hero <名字>", "角色简介卡（立绘 + 属性 + 技能）"),
         ("/app heroskins <名字>", "皮肤总览（第一行各皮肤小人，后面立绘）"),
         ("/app heroCG <名字>", "角色全部战斗 CG（一行两张）"),
@@ -309,7 +309,7 @@ def _guess_name(q: str, names: list[str]) -> str | None:
 
 
 def _hero_resolve(q: str):
-    """解析英雄：查不到就直接把最像的候选当答案，返回 (英雄, 猜中的名字)。
+    """解析角色：查不到就直接把最像的候选当答案，返回 (角色, 猜中的名字)。
 
     以前会回「知识库里没有「牢修」呢，是不是要找：修女」让主人再点一次；
     现在「牢修」本来就是阿兰娜的俗名，拖尾巴的写法也一并吃掉。
@@ -395,7 +395,7 @@ class AstralPartyPilotPlugin(Star):
             async for result in self._app_monster_cg(event, joined):
                 yield result
             return
-        if sub in ("hero", "英雄", "角色"):
+        if sub in ("hero", "角色"):
             async for result in self._app_hero(event, joined):
                 yield result
             return
@@ -582,7 +582,7 @@ class AstralPartyPilotPlugin(Star):
             logger.error(f"[星趴] 渲染 buff 简介卡失败：{exc}")
             yield event.plain_result(f"渲染「{entry['name']}」简介卡出错了：{exc}")
 
-    # ------------------------------------------------ 怪物 / 英雄（美术卡） ----
+    # ------------------------------------------------ 怪物 / 角色（美术卡） ----
     # ------------------------------------------------ 美术素材（解包） ----
     def _art_hint(self) -> str:
         """图库不能用时给的一句话（区分「没配路径」和「配了但空」）。"""
@@ -801,16 +801,16 @@ class AstralPartyPilotPlugin(Star):
                 AR.render_hero_list(tmp)
                 yield event.image_result(tmp)
             except Exception as exc:  # noqa: BLE001
-                logger.error(f"[星趴] 渲染英雄总览失败：{exc}")
-                yield event.plain_result(f"渲染英雄总览出错了：{exc}")
+                logger.error(f"[星趴] 渲染角色总览失败：{exc}")
+                yield event.plain_result(f"渲染角色总览出错了：{exc}")
             return
 
         h, _via = _hero_resolve(joined)
         if not h:
-            yield event.plain_result(f"知识库里没有「{joined}」这位英雄呢")
+            yield event.plain_result(f"知识库里没有「{joined}」这位角色呢")
             return
         if not AL.hero_portraits(h["id"]):
-            yield event.plain_result("（这位英雄暂无立绘）\n" + fmt_hero(h))
+            yield event.plain_result("（这位角色暂无立绘）\n" + fmt_hero(h))
             return
         try:
             fd, tmp = tempfile.mkstemp(suffix=".png", prefix="app_hero_")
@@ -827,7 +827,7 @@ class AstralPartyPilotPlugin(Star):
             return
         h, _via = _hero_resolve(joined)
         if not h:
-            yield event.plain_result(f"知识库里没有「{joined}」这位英雄呢")
+            yield event.plain_result(f"知识库里没有「{joined}」这位角色呢")
             return
         try:
             fd, tmp = tempfile.mkstemp(suffix=".png", prefix="app_skins_")
@@ -844,7 +844,7 @@ class AstralPartyPilotPlugin(Star):
             return
         h, _via = _hero_resolve(joined)
         if not h:
-            yield event.plain_result(f"知识库里没有「{joined}」这位英雄呢")
+            yield event.plain_result(f"知识库里没有「{joined}」这位角色呢")
             return
         try:
             fd, tmp = tempfile.mkstemp(suffix=".png", prefix="app_cg_")
@@ -861,7 +861,7 @@ class AstralPartyPilotPlugin(Star):
             return
         h, _via = _hero_resolve(joined)
         if not h:
-            yield event.plain_result(f"知识库里没有「{joined}」这位英雄呢")
+            yield event.plain_result(f"知识库里没有「{joined}」这位角色呢")
             return
         if not AL.hero_emojis(h["id"]):
             yield event.plain_result(f"素材库里没有「{h['name']}」的表情包呢")
@@ -1093,7 +1093,7 @@ class AstralPartyPilotPlugin(Star):
                 return str(c.get("name") or ident) if c else str(ident)
             if kind == "hero":
                 h = kb.hero(str(ident))
-                return str(h.get("name") or ident) if h else f"英雄{ident}"
+                return str(h.get("name") or ident) if h else f"角色{ident}"
             if kind == "relic":
                 d = kb.relics()
                 items = d if isinstance(d, list) else (d.get("relics") or [])
