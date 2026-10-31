@@ -19,8 +19,6 @@ import sys
 import time
 
 SELF_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-# 兜底路径仅在「配置没写、环境变量没设、自动探测也失败」时使用
-DEFAULT_GAME = r"D:\a_ruoyue\Game\steam\steamapps\common\Astral Party\8vJXn6CN"
 NO_WINDOW = 0x08000000 if os.name == "nt" else 0
 
 
@@ -34,17 +32,15 @@ def _auto_game_dir() -> str | None:
 
 
 def home(cfg: dict | None = None) -> str:
-    """引擎根目录：默认就是插件目录本身（内部 pilot/ 子目录）。"""
-    p = str((cfg or {}).get("pilot_home") or "").strip()
-    return p or SELF_DIR
+    """引擎根目录：永远是插件目录本身，引擎代码在 `pilot/` 子目录里随插件分发。
+
+    不再读配置：想换引擎就直接覆盖 pilot/ 下的文件，没有第二个地方可指。
+    """
+    return SELF_DIR
 
 
 def engine_script(h: str) -> str:
-    """兼容两种布局：插件内 pilot/coach.py，或老工程 scripts/coach.py。"""
-    for rel in (("pilot", "coach.py"), ("scripts", "coach.py")):
-        p = os.path.join(h, *rel)
-        if os.path.exists(p):
-            return p
+    """引擎入口：插件内 `pilot/coach.py`。"""
     return os.path.join(h, "pilot", "coach.py")
 
 
@@ -57,26 +53,28 @@ def _project_cfg(h: str) -> dict:
 
 
 def game_dir(cfg: dict | None = None) -> str:
-    # 顺序：环境变量（临时覆盖）→ 引擎工程的 config.json → Steam 自动探测 → 兜底
+    # 顺序：环境变量（临时覆盖）→ config.json → Steam 自动探测；全失败就给空串，
+    # 由调用方报「找不到游戏」，不再兜到某个写死的本机路径上。
     env = str(os.environ.get("ASTRAL_GAME_DIR") or "").strip()
     if env:
         return env
     proj = str(_project_cfg(home(cfg)).get("game_dir") or "").strip()
     if proj:
         return proj
-    auto = _auto_game_dir()
-    if auto:
-        return auto
-    return DEFAULT_GAME
+    return _auto_game_dir() or ""
 
 
 def state_file(cfg: dict | None = None) -> str:
-    return os.path.join(game_dir(cfg), "coach.json")
+    """引擎状态文件（引擎写在游戏目录里）。找不到游戏目录就返回空，
+    让 open() 直接失败而不是把文件扔到 cwd。"""
+    g = game_dir(cfg)
+    return os.path.join(g, "coach.json") if g else ""
 
 
 def ctl_file(cfg: dict | None = None) -> str:
     """授权控制文件：引擎每帧读一次，改授权不用重启进程。"""
-    return os.path.join(game_dir(cfg), "coach_ctl.json")
+    g = game_dir(cfg)
+    return os.path.join(g, "coach_ctl.json") if g else ""
 
 
 ACTIONS = ("card", "skill", "go", "choose", "stop", "buy", "atk", "def", "skip")
@@ -198,6 +196,9 @@ def start(cfg: dict | None = None, mode: str = "pilot", dry: bool = False,
     script = engine_script(h)
     if not os.path.exists(script):
         return f"找不到陪玩引擎：{script}"
+    if not game_dir(cfg):
+        return ("找不到游戏目录：引擎要读游戏内存/画面，先确认 Steam 里装着"
+                "《星引擎 Party》且没换过盘")
     cur = current(cfg)
     if cur["running"]:
         if cur["mode"] == mode:

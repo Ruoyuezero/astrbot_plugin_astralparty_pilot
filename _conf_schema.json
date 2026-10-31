@@ -14,11 +14,6 @@
     "description": "查号用的客户端版本号（例如 3.3.0）。留空＝自动从游戏目录读，一般不用填；游戏大更新后查号报 10012 才需要手动指定",
     "default": ""
   },
-  "pilot_home": {
-    "type": "string",
-    "description": "代打引擎目录。留空＝用插件自带的 pilot/ 子目录；跑外部 AstralPartyPilot 工程时填它根目录",
-    "default": ""
-  },
   "pilot_prefer": {
     "type": "string",
     "description": "代打默认倾向：eco=发育 / atk=进攻 / def=防守",

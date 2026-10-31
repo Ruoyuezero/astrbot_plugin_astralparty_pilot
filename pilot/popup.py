@@ -34,15 +34,19 @@ except Exception:  # noqa: BLE001
 # 舞台坐标（1920x1080 基准）—— 实测所得，别凭感觉改
 LEFT_BTN = (746.0, 736.0)
 RIGHT_BTN = (1142.0, 736.0)
-# 取样小块（舞台单位）。按钮中间压着白字，所以避开中心，取上下/左右四条边附近
-PATCH_W, PATCH_H = 60.0, 14.0
-OFFSETS = ((0.0, -32.0), (0.0, 32.0), (-105.0, 0.0), (105.0, 0.0), (0.0, 0.0))
+# 单点取色窗口（舞台单位）。块小一点，配合多点采样，绕开中间那行白字
+PATCH_W, PATCH_H = 40.0, 18.0
+# 采样点相对按钮中心的偏移。
+# 按钮上的文字是白色、只有一行、压在按钮中线附近；弹窗刚弹出时文字还在淡入，
+# 等文字完全显出来，正中心就变成一片白（实测命中率从 0.54 掉到 0.08）。
+# 所以上下左右各取一点，只要有一处是纯底色就认。
+OFFSETS = ((0.0, -30.0), (0.0, 30.0), (-70.0, 0.0), (70.0, 0.0), (0.0, 0.0))
 
 # 实测按钮填充色（RGB）
 LEFT_RGB = (50, 101, 255)     # 继续移动 / 攻击
 RIGHT_RGB = (255, 43, 145)    # 停留 / 放弃
-TOL = 40                      # 每通道容差（按钮是渐变，容差小了整块都判不中）
-MIN_RATIO = 0.6               # 命中比例阈值（实测弹窗在=1.00，不在=0.00）
+TOL = 26                      # 每通道容差
+MIN_RATIO = 0.22              # 命中比例阈值
 
 
 class _BMIH(ctypes.Structure):
@@ -111,9 +115,20 @@ def geometry():
     return hwnd, origin, scale
 
 
+def _ratio_at(ox, oy, scale, cx, cy, rgb):
+    """在舞台坐标 (cx,cy) 取一小块，返回命中比例。"""
+    w = max(6, int(PATCH_W * scale))
+    h = max(6, int(PATCH_H * scale))
+    sx = int(round(ox + cx * scale - w / 2))
+    sy = int(round(oy + cy * scale - h / 2))
+    raw, ww, hh = grab(sx, sy, w, h)
+    return _ratio(raw, ww, hh, rgb) if raw else 0.0
+
+
 def probe():
     """看屏幕上有没有那个二选一弹窗。
 
+    每个按钮按 OFFSETS 取多个点，命中率取最大值 —— 单点会被按钮上的白字吃掉。
     返回 {"left": 蓝在不在, "right": 粉在不在, "two": 两个都在}；抓不到屏返回 None。
     """
     g = geometry()
@@ -124,14 +139,10 @@ def probe():
     for key, (cx, cy), rgb in (("left", LEFT_BTN, LEFT_RGB),
                                ("right", RIGHT_BTN, RIGHT_RGB)):
         best = 0.0
-        w = max(6, int(PATCH_W * scale))
-        h = max(6, int(PATCH_H * scale))
         for dx, dy in OFFSETS:
-            sx = int(round(ox + (cx + dx) * scale - w / 2))
-            sy = int(round(oy + (cy + dy) * scale - h / 2))
-            raw, ww, hh = grab(sx, sy, w, h)
-            if raw:
-                best = max(best, _ratio(raw, ww, hh, rgb))
+            best = max(best, _ratio_at(ox, oy, scale, cx + dx, cy + dy, rgb))
+            if best >= 0.6:                 # 够确定了，不用再取
+                break
         out[key] = best >= MIN_RATIO
         out[key + "_ratio"] = round(best, 2)
     out["two"] = bool(out["left"] and out["right"])
