@@ -200,7 +200,7 @@
   }
  },
  {
-  "id": "801",
+  "id": "800",
   "name": "天罚",
   "desc": "被雷劈≥1次",
   "icon": "UT_Achieve_801.png",
@@ -640,6 +640,26 @@
   }
  },
  {
+  "id": "1794",
+  "name": "飘浮魔法",
+  "desc": "累计使用远野汉娜完成游戏≥50次",
+  "icon": "UT_Achieve_1794.png",
+  "reward": {
+   "icon": "UT_Item_Gacha_90001.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "1795",
+  "name": "怪力少女",
+  "desc": "累计使用橘雪莉完成游戏≥50次",
+  "icon": "UT_Achieve_1795.png",
+  "reward": {
+   "icon": "UT_Item_Gacha_90001.png",
+   "amount": 1
+  }
+ },
+ {
   "id": "1796",
   "name": "改变生活",
   "desc": "累计使用吉尔完成游戏≥50次",
@@ -970,6 +990,26 @@
   }
  },
  {
+  "id": "1894",
+  "name": "远野汉娜大胜利",
+  "desc": "累计使用远野汉娜胜利≥30次",
+  "icon": "UT_Achieve_1894.png",
+  "reward": {
+   "icon": "UT_Item_Gacha_90001.png",
+   "amount": 1
+  }
+ },
+ {
+  "id": "1895",
+  "name": "橘雪莉大胜利",
+  "desc": "累计使用橘雪莉胜利≥30次",
+  "icon": "UT_Achieve_1895.png",
+  "reward": {
+   "icon": "UT_Item_Gacha_90001.png",
+   "amount": 1
+  }
+ },
+ {
   "id": "1896",
   "name": "调制高手",
   "desc": "累计使用吉尔胜利≥30次",
@@ -1050,7 +1090,7 @@
   }
  },
  {
-  "id": "2300",
+  "id": "2201",
   "name": "社交明星",
   "desc": "累计获得点赞≥1000次",
   "icon": "UT_Achieve_2300.png",
@@ -1334,6 +1374,16 @@
   "name": "是他让我加的",
   "desc": "好友数量≥1个",
   "icon": "UT_Achieve_20400.png",
+  "reward": {
+   "icon": "UT_Item_Currency_2.png",
+   "amount": 60
+  }
+ },
+ {
+  "id": "20401",
+  "name": "加入公会",
+  "desc": "成为公会一员",
+  "icon": "UT_Achieve_20401.png",
   "reward": {
    "icon": "UT_Item_Currency_2.png",
    "amount": 60
