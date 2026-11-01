@@ -165,13 +165,93 @@ def list_bundles(gdir: str) -> list[str]:
 
 # ------------------------------------------------------------------ 解包
 
-# 每个解包子进程的内存预算（MB）：一张大贴图解码成 PIL Image 峰值几十上百 MB，
-# 再算上 UnityPy 持有的原始数据，留 420MB 给单个进程比较稳。
-WORKER_MB = 420
+# 每个解包子进程的内存预算（MB）。实测单个进程解到 60 个 bundle 时高水位约
+# 318MB（含 Python/UnityPy 常驻与碎片），下面 RECYCLE_TASKS 到点就换进程，
+# 所以高水位被钉在这个量级；给 330 留一点余量。
+WORKER_MB = 330
 # 留给系统 / AstrBot 本体 / 游戏客户端的余量，这段内存绝不参与分配。
 RESERVE_MB = 1024
-# 并发上限，再多也不会更快（瓶颈是磁盘和 UnityPy 解析）
-MAX_JOBS = 8
+# 并发上限不写死：一个解包进程占 1 个物理核，核数就是天花板（8 核→8 个，
+# 16 核→16 个）。HARD_JOB_CAP 只是防呆的绝对上限，避免在几十核的服务器上
+# 一次开出一堆进程；真正决定实际并发的是可用内存。
+HARD_JOB_CAP = 32
+# 每个子进程处理多少个 bundle 就换一个新进程，把内存高水位钉住。
+# 实测单进程 60 个 bundle 约 318MB、150 个 546MB、400 个 621MB（之后走平），
+# 回收得越勤内存越省、但每次重开进程要重新 import UnityPy，会慢一点。
+# 所以真正的间隔由 recycle_interval() 按"每个进程能分到多少内存"动态定。
+RECYCLE_TASKS = 60
+RECYCLE_FAST = 200          # 内存宽松时少回收几次，省掉重复导入的开销
+
+# ---- 整库解包的参考量级（全部自动调配，这几项只用于提示，不作硬门槛）----
+# 6688 个 bundle 全解一遍：输出约 1.7GB / 6600 张图。
+# 4 个进程并发时每个 330MB 左右高水位，加上系统与 AstrBot 本体，
+# 有 5GB 空闲内存就能跑满并发；不够会自动降并发，慢一点但跑得完。
+MIN_FREE_MB = 5000
+# 输出磁盘余量（GB）：低于这个值只提示（图库约 1.7GB，留一倍余量给重跑）。
+MIN_DISK_GB = 3.0
+# 磁盘真的见底（GB）才拒绝：连一个空图库都放不下，跑下去只会中途写满。
+HARD_MIN_DISK_GB = 1.0
+
+
+def physical_cores() -> int:
+    """物理核数（不含超线程）；探测不到就按逻辑核折半估。"""
+    try:
+        import psutil                                    # 装了就用，最准
+        n = psutil.cpu_count(logical=False)
+        if n:
+            return int(n)
+    except Exception:                                    # noqa: BLE001
+        pass
+
+    logical = os.cpu_count() or 4
+    try:
+        if os.name == "nt":
+            import ctypes
+            from ctypes import wintypes
+
+            class _Core(ctypes.Structure):
+                _fields_ = [("Flags", ctypes.c_ubyte)]
+
+            class _Cache(ctypes.Structure):
+                _fields_ = [("Level", wintypes.DWORD), ("Associativity", wintypes.DWORD),
+                            ("LineSize", wintypes.DWORD), ("CacheSize", wintypes.DWORD),
+                            ("Type", wintypes.DWORD)]
+
+            class _Payload(ctypes.Union):
+                _fields_ = [("ProcessorCore", _Core), ("NumaNode", wintypes.DWORD),
+                            ("Cache", _Cache), ("Reserved", ctypes.c_ulonglong * 2)]
+
+            class _Info(ctypes.Structure):
+                _fields_ = [("ProcessorMask", ctypes.c_size_t),
+                            ("Relationship", wintypes.DWORD),
+                            ("Payload", _Payload)]
+
+            size = ctypes.sizeof(_Info) * 64
+            buf = ctypes.create_string_buffer(size)
+            need = wintypes.DWORD(0)
+            ok = ctypes.windll.kernel32.GetLogicalProcessorInformation(
+                ctypes.byref(buf), ctypes.byref(need))
+            if ok and need.value:
+                n = need.value // ctypes.sizeof(_Info)
+                arr = ctypes.cast(buf, ctypes.POINTER(_Info))
+                cores = sum(1 for i in range(n) if arr[i].Relationship == 0)
+                if cores:
+                    return cores
+        elif os.path.exists("/proc/cpuinfo"):
+            pairs = set()
+            phys = core = "0"
+            with open("/proc/cpuinfo", "r", encoding="utf-8") as f:
+                for line in f:
+                    if line.startswith("physical id"):
+                        phys = line.split(":")[1].strip()
+                    elif line.startswith("core id"):
+                        core = line.split(":")[1].strip()
+                        pairs.add((phys, core))
+            if pairs:
+                return len(pairs)
+    except Exception:                                    # noqa: BLE001
+        pass
+    return max(1, logical // 2)
 
 
 def avail_mb() -> int:
@@ -204,17 +284,59 @@ def avail_mb() -> int:
     return 0
 
 
-def plan_jobs(mem_mb: int = 0, cpu: int | None = None) -> tuple[int, int]:
-    """按内存算并发数，返回 (jobs, 参与计算的可用内存 MB)。
+def free_disk_gb(path: str) -> float:
+    """path 所在磁盘的剩余空间（GB）；探测不到返回 -1。"""
+    try:
+        import shutil
 
-    mem_mb > 0 时把它当作可用内存上限（配置项 load_mem_limit），
-    否则读本机当前真实可用内存。探测不到就保守开 2 个。
-    以前只看 CPU 核数，16 核机器直接开 8 个进程，内存一紧就整机崩。
+        p = os.path.abspath(path or ".")
+        while p and not os.path.exists(p):
+            parent = os.path.dirname(p)
+            if parent == p:
+                break
+            p = parent
+        return shutil.disk_usage(p).free / (1024 ** 3)
+    except Exception:                                    # noqa: BLE001
+        return -1.0
+
+
+def max_jobs(cores: int | None = None) -> int:
+    """并发天花板：物理核数（再受 HARD_JOB_CAP 防呆限制）。"""
+    n = cores or physical_cores()
+    return max(1, min(HARD_JOB_CAP, n))
+
+
+def recycle_interval(avail: int, jobs: int) -> int:
+    """按「每个进程能分到多少内存」决定多少个 bundle 换一次进程。
+
+    预算是 (可用内存 - 系统余量) ÷ 并发数：
+      ≥800MB → 200 个一换（进程涨到约 570MB 也放得下，少重启更快）
+      ≥640MB → 100 个一换（约 450MB）
+      再紧   → 60 个一换（约 320MB 高水位，最省内存）
     """
-    cpu_cap = max(1, min(MAX_JOBS, (cpu if cpu is not None else (os.cpu_count() or 4)) - 1))
+    if avail <= 0 or jobs <= 0:
+        return RECYCLE_TASKS
+    budget = max(0, (avail - RESERVE_MB) // jobs)
+    if budget >= 800:
+        return RECYCLE_FAST
+    if budget >= 640:
+        return 100
+    return RECYCLE_TASKS
+
+
+def plan_jobs(mem_mb: int = 0, cores: int | None = None) -> tuple[int, int]:
+    """算并发数，返回 (jobs, 参与计算的可用内存 MB)。
+
+    CPU 侧：按**物理核**算，一个进程占 1 个核（8 核 → 最多 8 个）。
+    内存侧：扣掉 RESERVE_MB 系统余量后，每 WORKER_MB 一个进程。
+    两者取小的那个：内存富裕就跑满 8 个，紧张就自动降，谁先到瓶颈听谁的。
+    mem_mb > 0 时把它当作可用内存上限（配置项 load_mem_limit）。
+    """
+    n_cores = cores if cores else physical_cores()
+    cpu_cap = max_jobs(n_cores)
     avail = mem_mb if mem_mb > 0 else avail_mb()
     if avail <= 0:
-        return min(cpu_cap, 2), 0
+        return max(1, min(cpu_cap, 2)), 0
     mem_cap = max(1, (avail - RESERVE_MB) // WORKER_MB)
     return max(1, min(cpu_cap, mem_cap)), avail
 
@@ -310,51 +432,75 @@ def run(out_root: str, gdir: str | None = None, jobs: int = 0,
     files = list_bundles(gdir)
     if not files:
         return {"ok": False, "why": "游戏目录里没找到 bundle，确认游戏装全了"}
+
+    disk = free_disk_gb(out_root)
+    if 0 <= disk < HARD_MIN_DISK_GB:
+        return {"ok": False,
+                "why": ("输出目录所在磁盘只剩 %.1f GB，连一个空图库都放不下"
+                        "（整库约 1.7 GB）。\n清一下 %s 所在磁盘再发 /app load。"
+                        % (disk, out_root))}
+
     os.makedirs(out_root, exist_ok=True)
 
     plan, avail = plan_jobs(mem_mb)
-    jobs = max(1, min(jobs or plan, plan))
+    cores = physical_cores()
+    cpu_cap = max_jobs(cores)
+    jobs = max(1, min(jobs or plan, cpu_cap))
+
+    # 一切都按内存自动调配：并发已经按可用内存压到合适值，这里只把账说清楚，
+    # 不设硬门槛 —— 内存紧就慢点跑，不该因为"没到 5GB"直接拒绝用户。
+    warn = ""
+    if avail > 0 and avail < MIN_FREE_MB:
+        warn = ("ℹ 已按可用内存自动降载：内存 %d MB → %d 个并发（跑满 %d 个建议 %d MB）。"
+                "关掉游戏/浏览器会更快。"
+                % (avail, jobs, cpu_cap, MIN_FREE_MB))
+    if 0 <= disk < MIN_DISK_GB:
+        warn += ("\nℹ 输出磁盘只剩 %.1f GB，整库解包约 1.7 GB，写满会中断；"
+                 "建议先清点空间（已有素材会自动跳过）。" % disk)
     total = len(files)
     ok = skip = 0
     errs: list = []
-    done = 0
     payload = [(f, out_root, skip_existing) for f in files]
 
-    # 多进程解包；子进程中途被系统掐掉（最常见就是内存不够）就把并发砍半重试。
-    # 已经落盘的图会被 skip_existing 跳过，所以重试几乎不浪费时间。
+    # 多进程解包，分批复用新进程池：
+    # 一批 = RECYCLE_TASKS × 并发数，跑完就整池重开，子进程内存高水位不会越跑越高
+    # （实测单进程 60 个 bundle 时 318MB，400 个会爬到 621MB）。
+    # 中途被系统掐掉（最常见就是内存不够）就把并发砍半、从断点续跑；
+    # 已经落盘的图由 skip_existing 跳过，重试几乎不浪费时间。
     tried = jobs
-    while True:
-        base = (ok, skip, done)
+    idx = 0
+    recycle = recycle_interval(avail, tried)
+    while idx < total:
+        chunk = payload[idx: idx + max(1, recycle * tried)]
         try:
             with ProcessPoolExecutor(max_workers=tried) as ex:
-                for a, b, e in ex.map(_worker, payload, chunksize=8):
+                for a, b, e in ex.map(_worker, chunk, chunksize=4):
                     ok += a
                     skip += b
                     errs.extend(e)
-                    done += 1
-                    if on_progress and (done % 20 == 0 or done == total):
-                        on_progress(done, total, ok, skip)
-            break
+                    idx += 1
+                    if on_progress and (idx % 20 == 0 or idx == total):
+                        on_progress(idx, total, ok, skip)
+            continue
         except Exception as exc:                        # noqa: BLE001
-            ok, skip, done = base
-            if tried <= 1:
-                if done:
-                    raise
-                # 单进程都起不来：多进程本身不可用（权限 / 打包），就地同步跑
-                if on_progress:
-                    on_progress(0, total, 0, 0)
-                for i, f in enumerate(files):
-                    a, b, e = _worker((f, out_root, skip_existing))
-                    ok += a
-                    skip += b
-                    errs.extend(e)
-                    if on_progress and (i + 1) % 50 == 0:
-                        on_progress(i + 1, total, ok, skip)
-                errs.insert(0, "多进程不可用（%s），已退回单进程" % exc)
-                break
-            halved = max(1, tried // 2)
-            errs.append("并发 %d 时中断（%s），降到 %d 重试" % (tried, exc, halved))
-            tried = halved
+            if tried > 1:
+                halved = max(1, tried // 2)
+                errs.append("并发 %d 时中断（%s），降到 %d 从断点续跑" % (tried, exc, halved))
+                tried = halved
+                continue
+            # 单进程都起不来：多进程本身不可用（权限 / 打包限制），就地同步跑完剩下的
+            if on_progress:
+                on_progress(idx, total, ok, skip)
+            for i, f in enumerate(files[idx:]):
+                a, b, e = _worker((f, out_root, skip_existing))
+                ok += a
+                skip += b
+                errs.extend(e)
+                if on_progress and (idx + i + 1) % 50 == 0:
+                    on_progress(idx + i + 1, total, ok, skip)
+            idx = total
+            errs.insert(0, "多进程不可用（%s），已退回单进程" % exc)
+            break
 
     stats = {
         "ok": True,
@@ -364,7 +510,12 @@ def run(out_root: str, gdir: str | None = None, jobs: int = 0,
         "written": ok,
         "skipped": skip,
         "jobs": tried,
+        "cores": cores,
+        "cpu_cap": cpu_cap,
         "mem_avail": avail,
+        "mem_cap": max(1, (avail - RESERVE_MB) // WORKER_MB) if avail > 0 else 0,
+        "disk_free": round(disk, 1) if disk >= 0 else -1,
+        "warn": warn,
         "errors": errs[:8],
         "seconds": round(time.time() - t0, 1),
     }

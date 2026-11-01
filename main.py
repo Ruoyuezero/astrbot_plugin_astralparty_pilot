@@ -701,6 +701,15 @@ class AstralPartyPilotPlugin(Star):
             lines.append(f"bundle：{n} 个" + ("" if n else "（一个都没找到，游戏装全了吗）"))
         else:
             lines.append("游戏目录：❌ 没找到（从游戏解包的前提是游戏装着）")
+        avail = ARTL.avail_mb()
+        disk = ARTL.free_disk_gb(home or ".")
+        jobs, _ = ARTL.plan_jobs(0)
+        lines.append("自动调配：%d 个并发（物理核 %d，内存 %s MB，每进程约 %d MB）"
+                     % (jobs, ARTL.physical_cores(),
+                        avail if avail > 0 else "未知", ARTL.WORKER_MB))
+        lines.append("输出磁盘：%s GB 可用（整库约 1.7 GB）%s" % (
+            ("%.1f" % disk) if disk >= 0 else "未知",
+            "（余量偏少，建议清一下）" if (0 <= disk < ARTL.MIN_DISK_GB) else ""))
         if self._load_task and not self._load_task.done():
             lines.append(f"⏳ 正在解包：{self._load_prog}%")
         return "\n".join(lines)
@@ -736,6 +745,19 @@ class AstralPartyPilotPlugin(Star):
             return
 
         out = AS.home()
+        jobs, avail = ARTL.plan_jobs(0)
+        cores = ARTL.physical_cores()
+        disk = ARTL.free_disk_gb(out)
+        plan_line = ("· 自动调配：%d 个并发（物理核 %d，可用内存 %s MB，每进程约 %d MB）"
+                     % (jobs, cores,
+                        avail if avail > 0 else "未知", ARTL.WORKER_MB))
+        res_line = "· 输出磁盘：%s GB 可用（整库约 1.7 GB）" % (
+            ("%.1f" % disk) if disk >= 0 else "未知")
+        tip = ""
+        if avail > 0 and avail < ARTL.MIN_FREE_MB:
+            tip += "\n· 内存偏紧，已自动降载；关掉游戏/浏览器能少等一会儿。"
+        if 0 <= disk < ARTL.MIN_DISK_GB:
+            tip += "\n· 磁盘余量不多，写满会中断，建议先清点空间。"
         self._load_prog = 0
         self._load_umo = getattr(event, "unified_msg_origin", "") or ""
         loop = asyncio.get_running_loop()
@@ -744,6 +766,7 @@ class AstralPartyPilotPlugin(Star):
             "📦 开始解包美术素材\n"
             f"· 游戏：{gdir}\n"
             f"· 输出：{out}\n"
+            f"{plan_line}\n{res_line}{tip}\n"
             "· 过程几分钟，完了 bot 主动说结果～（中途发 /app load check 可以看进度）")
 
     async def _do_load(self, gdir: str, out: str):
@@ -790,9 +813,21 @@ class AstralPartyPilotPlugin(Star):
                 f"｜已有跳过 {st.get('skipped')} 张")
         jobs = st.get("jobs")
         if jobs:
-            mem = st.get("mem_avail")
-            head += "\n· 并发 %d 进程%s" % (jobs, ("（可用内存 %d MB，按内存自动算的）" % mem) if mem else "")
+            cores = st.get("cores") or 0
+            cpu_cap = st.get("cpu_cap") or 0
+            mem = st.get("mem_avail") or 0
+            mem_cap = st.get("mem_cap") or 0
+            if cpu_cap and mem_cap and jobs < cpu_cap:
+                why = ("内存 %d MB 只够 %d 个" % (mem, mem_cap)
+                       if mem_cap <= jobs else "内存 %d MB，保守开 %d 个" % (mem, jobs))
+            elif cores:
+                why = "物理核 %d，可用内存 %d MB 够跑满" % (cores, mem)
+            else:
+                why = "按内存自动算"
+            head += "\n· 并发 %d 进程（自动调配：%s）" % (jobs, why)
         lines = [head]
+        if st.get("warn"):
+            lines.append(str(st["warn"]))
         cnt = ARTL.count_files(st.get("out") or "")
         if cnt:
             total = sum(cnt.values())
