@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 """每个 QQ 的星趴登录态（sid）存取。
 
-存哪儿：插件目录下 ``data/accounts.json``，一个 QQ 一条记录，互不影响。
+存哪儿：AstrBot 的 ``data/plugin_data/astrbot_plugin_astralparty_pilot/accounts.json``，
+一个 QQ 一条记录，互不影响。统一数据目录便于迁移与审计，也不怕插件更新覆盖源码目录。
 
 怎么保护 sid：
 * **Windows**：用 DPAPI（``CryptProtectData``）加密后再落盘，只有「本机 + 本用户」
@@ -20,11 +21,18 @@ import sys
 import tempfile
 import time
 
-_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-_DATA = os.path.join(_ROOT, "data")
-_PATH = os.path.join(_DATA, "accounts.json")
+from . import datapaths
 
 _DPAPI_PREFIX = "dpapi:"
+
+
+def _dir() -> str:
+    """数据目录（每次取，避免模块导入时 AstrBot 还没就绪）。"""
+    return datapaths.data_dir()
+
+
+def _path() -> str:
+    return datapaths.path("accounts.json")
 
 
 class AccountError(Exception):
@@ -86,7 +94,7 @@ def _unseal(text: str) -> str:
 # ------------------------------------------------------------- 读写 ----
 def _read_all() -> dict:
     try:
-        with open(_PATH, "r", encoding="utf-8") as f:
+        with open(_path(), "r", encoding="utf-8") as f:
             data = json.load(f)
         return data if isinstance(data, dict) else {}
     except FileNotFoundError:
@@ -96,8 +104,9 @@ def _read_all() -> dict:
 
 
 def _write_all(data: dict) -> None:
-    os.makedirs(_DATA, exist_ok=True)
-    fd, tmp = tempfile.mkstemp(dir=_DATA, prefix="accounts_", suffix=".json")
+    d = _dir()
+    os.makedirs(d, exist_ok=True)
+    fd, tmp = tempfile.mkstemp(dir=d, prefix="accounts_", suffix=".json")
     try:
         with os.fdopen(fd, "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
@@ -105,7 +114,7 @@ def _write_all(data: dict) -> None:
             os.chmod(tmp, 0o600)
         except OSError:
             pass
-        os.replace(tmp, _PATH)
+        os.replace(tmp, _path())
     except Exception:
         try:
             os.unlink(tmp)

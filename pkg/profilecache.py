@@ -4,6 +4,9 @@
 `/appa` 全程不联网（联机会把大厅里正玩着的号顶下线），但用户想看到的是「档案卡」，
 不是一堆技术信息。所以在 `/app uid`、`/app <UID>` 真查到一次之后顺手存一份，
 `/appa` 不在对局时直接拿这份缓存渲染 —— 数据旧一点，但完全离线。
+
+缓存落在 AstrBot 的 ``data/plugin_data/astrbot_plugin_astralparty_pilot/profile_cache.json``
+（统一数据目录，插件更新不丢，也便于迁移与审计）。
 """
 from __future__ import annotations
 
@@ -11,16 +14,19 @@ import json
 import os
 import time
 
-_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data")
-_FILE = os.path.join(_DIR, "profile_cache.json")
+from . import datapaths
 
 MAX_AGE = 7 * 86400.0          # 超过一周就不拿出来糊人了
 KEEP = 20                      # 最多留几个号，免得文件越滚越大
 
 
+def _file() -> str:
+    return datapaths.path("profile_cache.json")
+
+
 def _read_all() -> dict:
     try:
-        with open(_FILE, encoding="utf-8") as f:
+        with open(_file(), encoding="utf-8") as f:
             d = json.load(f)
         return d if isinstance(d, dict) else {}
     except (OSError, ValueError):
@@ -42,12 +48,12 @@ def save(uid: int, d: dict) -> None:
     if len(all_) > KEEP:                      # 只留最近的几张
         for k in sorted(all_, key=lambda x: all_[x].get("at") or 0)[:-KEEP]:
             all_.pop(k, None)
-    os.makedirs(_DIR, exist_ok=True)
-    tmp = _FILE + ".tmp"
+    os.makedirs(os.path.dirname(_file()), exist_ok=True)
+    tmp = _file() + ".tmp"
     try:
         with open(tmp, "w", encoding="utf-8") as f:
             json.dump(all_, f, ensure_ascii=False)
-        os.replace(tmp, _FILE)
+        os.replace(tmp, _file())
     except OSError:
         pass
 
@@ -73,7 +79,7 @@ def drop(uid: int) -> None:
     all_ = _read_all()
     if all_.pop(str(int(uid or 0)), None) is not None:
         try:
-            with open(_FILE, "w", encoding="utf-8") as f:
+            with open(_file(), "w", encoding="utf-8") as f:
                 json.dump(all_, f, ensure_ascii=False)
         except OSError:
             pass

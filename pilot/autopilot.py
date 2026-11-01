@@ -22,7 +22,7 @@ sys.path.insert(0, HERE)
 
 import kb
 import decision as D
-from paths import GAME_DIR
+from paths import GAME_DIR, LOGS_DIR
 from wiki_mapmeta import LAND
 import re
 
@@ -656,7 +656,7 @@ def main():
     cfg = load_cfg()
     mode = args.mode or cfg.get("mode", "observe")
     gi = Game(cfg["game_dir"])
-    logdir = os.path.join(ROOT, "logs")
+    logdir = LOGS_DIR
     os.makedirs(logdir, exist_ok=True)
     logf = os.path.join(logdir, time.strftime("autopilot_%Y%m%d.log"))
 

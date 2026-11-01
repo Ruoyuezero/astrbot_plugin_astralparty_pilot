@@ -126,6 +126,26 @@ def resolve():
 GAME_DIR = resolve()
 
 
+# --------------------------------------------------------- 插件数据目录 ----
+# 日志等运行产物统一落在 AstrBot 的 data/plugin_data/<插件名>/logs，
+# 不写插件源码目录。父进程（pkg/coach.py）会传 ASTRAL_PLUGIN_DATA，
+# 单独跑引擎时按安装位置推算，二者结果一致。
+_PLUGIN_DATA_ENV = "ASTRAL_PLUGIN_DATA"
+_PLUGIN_NAME = "astrbot_plugin_astralparty_pilot"
+
+
+def _plugin_data_dir() -> str:
+    env = str(os.environ.get(_PLUGIN_DATA_ENV) or "").strip()
+    if env:
+        return env
+    data_root = os.path.dirname(os.path.dirname(ROOT))       # <data>/plugins/<插件> → <data>
+    return os.path.join(data_root, "plugin_data", _PLUGIN_NAME)
+
+
+DATA_DIR = _plugin_data_dir()
+LOGS_DIR = os.path.join(DATA_DIR, "logs")
+
+
 def game_path(*parts):
     """拼接游戏目录下的路径，例如 game_path("state.json")。"""
     return os.path.join(GAME_DIR, *parts)

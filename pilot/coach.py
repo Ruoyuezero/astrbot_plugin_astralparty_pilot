@@ -46,6 +46,7 @@ ROOT = os.path.dirname(HERE)
 sys.path.insert(0, HERE)
 
 import autopilot as AP          # noqa: E402  回合判定 / 决策 / 地图识别都在这里
+import paths as PL              # noqa: E402  游戏目录 + 插件数据目录
 import decision as D            # noqa: E402
 import netact as NA             # noqa: E402  协议直发（移动选路 / 商店 / 筹码）
 import playcard as PC           # noqa: E402  鼠标出牌 / 点移动键
@@ -106,7 +107,8 @@ class Coach:
         self.dry = dry
         self.out = os.path.join(self.game_dir, "coach.json")
         self.ctl = os.path.join(self.game_dir, "coach_ctl.json")
-        self.logf = os.path.join(ROOT, "logs", time.strftime("coach_%Y%m%d.log"))
+        # 日志写插件数据目录（data/plugin_data/<插件名>/logs），不落源码目录
+        self.logf = os.path.join(PL.LOGS_DIR, time.strftime("coach_%Y%m%d.log"))
         os.makedirs(os.path.dirname(self.logf), exist_ok=True)
         self.ev_id = 0
         self.last_event = None

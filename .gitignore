@@ -19,6 +19,8 @@ data/cmd_config.json
 data/*_config.json
 
 # ---- 账号登录态（含游戏登录票 sid，绝不入库）----
+# 运行时数据已统一外置到 AstrBot 的 data/plugin_data/<插件名>/，
+# 下面几行是旧版本遗留路径，保留忽略以防回滚时误提交
 data/accounts.json
 data/profile_cache.json
 data/accounts_*.json

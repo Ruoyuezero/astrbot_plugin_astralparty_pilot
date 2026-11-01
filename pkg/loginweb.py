@@ -10,7 +10,12 @@
     GET  /astral/api/state?t=<token>  页面轮询登录状态
 
 每次 /app in 生成一个一次性 token（10 分钟有效），登录成功后 sid 只落在
-服务端 ``data/accounts.json``，页面与日志里都不出现。
+服务端 ``data/plugin_data/astrbot_plugin_astralparty_pilot/accounts.json``，
+页面与日志里都不出现。
+
+监听地址是 ``0.0.0.0``：手机扫码要能从局域网访问，绑定单块网卡在
+多网卡 / 容器 / NAT 环境下经常连不上。端口只在 /app in 后短时存在，
+用完可 /app out 关掉；**不要把这个端口映射到公网**。
 """
 from __future__ import annotations
 

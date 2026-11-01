@@ -203,7 +203,7 @@
 - **`/appa`**（仅管理员）：看本机，**全程不联网** —— 联机会把大厅里正开着的号顶下线。
   在局内（`state.json` 20 秒内还在更新）读探针实时写出的全桌状态出局内卡；
   不在局出**档案卡**：和 `/app uid` 用的是同一个渲染函数，数据换成本地的 —— 之前查过的号用
-  `data/profile_cache.json` 里存的档案，没查过就用本机 `state.json` / `accounts.json` 现拼一张
+  `plugin_data` 目录下的 `profile_cache.json` 里存的档案，没查过就用本机 `state.json` / `accounts.json` 现拼一张
   （战绩那几格显示「—」，并提示发一次 `/app uid` 补齐）。
 - **`/app <UID>`**：查别人，联机查服务器数据（在线状态 / 档案 / 战绩）。为避免顶掉主号，**用 `alt_sid` 配的小号去握手**。
 
@@ -227,11 +227,13 @@
 
 细节：
 
-- **登录票（sid）怎么存**：`data/accounts.json`，按 QQ 一人一条，互不影响。
+- **登录票（sid）怎么存**：`data/plugin_data/astrbot_plugin_astralparty_pilot/accounts.json`，
+  按 QQ 一人一条，互不影响。走 AstrBot 统一的插件数据目录，插件更新/重装不会丢，也便于备份与审计。
   Windows 上用 DPAPI 加密（只有本机本用户能解开），其他系统落 0600 权限文件。
   聊天里只出现打码后的手机号，**任何指令都不回显 sid**；要清掉它只发 `/app out`。
 - **手机扫不开怎么办**：登录页由插件自己起在 `login_port`（默认自动挑端口）上，
-  只监听局域网。手机和 bot 不在同一网络时，用兜底方式：
+  监听 `0.0.0.0`（所有网卡），手机需与 bot 在同一局域网。别把这个端口映射到公网。
+  手机和 bot 不在同一网络时，用兜底方式：
   `/app in <11 位手机号>` → 收短信 → `/app in <6 位验证码>`。
   若 bot 跑在有域名/端口映射的服务器上，把 `login_host` 填成对外地址。
 - **会不会顶号**：`/app in` 只是拿票，不连游戏服务器；但 `/app uid` 要连服务器查数据，
@@ -273,6 +275,17 @@ astrbot_plugin_astralparty_pilot/
 ├── metadata.yaml
 └── _conf_schema.json     配置项定义
 ```
+
+**运行时数据不在插件目录内**，统一存放在 AstrBot 的
+`data/plugin_data/astrbot_plugin_astralparty_pilot/`：
+
+```
+accounts.json         各 QQ 的登录票 sid（DPAPI 加密，仅本机本用户可解）
+profile_cache.json    档案缓存（/appa 与 /app uid 离线出卡用）
+logs/                 陪玩进程 pid、stdout、每日运行日志
+```
+
+插件更新、重装、甚至删掉源码目录都不会影响它；备份或换机迁移时带走这一个目录即可。
 
 ---
 

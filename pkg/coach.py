@@ -18,6 +18,8 @@ import subprocess
 import sys
 import time
 
+from . import datapaths
+
 SELF_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 NO_WINDOW = 0x08000000 if os.name == "nt" else 0
 
@@ -123,7 +125,8 @@ def set_allow(cfg: dict | None = None, allow: list[str] | None = None,
 
 
 def pid_file(cfg: dict | None = None) -> str:
-    return os.path.join(home(cfg), "logs", "coach.pid")
+    # 日志与 pid 统一放 data/plugin_data/<插件名>/logs，不写插件源码目录
+    return datapaths.log_path("coach.pid")
 
 
 def read(cfg: dict | None = None) -> dict:
@@ -208,8 +211,8 @@ def start(cfg: dict | None = None, mode: str = "pilot", dry: bool = False,
     # 先写控制文件：引擎启动时就会读，进程半路重启也记得住授权
     set_allow(cfg, allow or [])
 
-    os.makedirs(os.path.join(h, "logs"), exist_ok=True)
-    logf = os.path.join(h, "logs", "coach_stdout.log")
+    os.makedirs(datapaths.logs_dir(), exist_ok=True)
+    logf = datapaths.log_path("coach_stdout.log")
     args = [sys.executable, script, mode, "--prefer", prefer]
     if dry:
         args.append("--dry")
@@ -220,6 +223,8 @@ def start(cfg: dict | None = None, mode: str = "pilot", dry: bool = False,
     # 这样插件里不用再放一份 config.json
     env = dict(os.environ)
     env["ASTRAL_GAME_DIR"] = game_dir(cfg)
+    # 引擎子进程不 import astrbot，数据/日志目录靠这个变量传下去
+    env[datapaths.ENV_KEY] = datapaths.data_dir()
     try:
         f = open(logf, "ab")
         p = subprocess.Popen(args, cwd=os.path.dirname(script), env=env,
