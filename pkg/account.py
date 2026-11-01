@@ -25,6 +25,10 @@ from . import datapaths
 
 _DPAPI_PREFIX = "dpapi:"
 
+# 登录票的本地信任期：官方长效票约 30 天，到期前不再要求重新扫码。
+# 只是"本地判断"，服务器提前作废时靠 invalidate() 兜底（/app uid 报 10000 会标记）。
+FRESH_TTL = 30 * 86400.0
+
 
 def _dir() -> str:
     """数据目录（每次取，避免模块导入时 AstrBot 还没就绪）。"""
@@ -169,6 +173,48 @@ def clear(qq) -> bool:
     data.pop(qq, None)
     _write_all(data)
     return True
+
+
+def age(qq) -> float:
+    """距上次登录（或上次确认有效）过了多少秒；没记录返回 -1。"""
+    rec = _read_all().get(_key(qq))
+    if not isinstance(rec, dict):
+        return -1.0
+    at = float(rec.get("at") or 0)
+    return max(0.0, time.time() - at) if at else -1.0
+
+
+def is_usable(qq, ttl: float = FRESH_TTL) -> bool:
+    """登录态是否还能直接用（不联网的本地判断）。
+
+    条件：有 sid、没被标记失效、且在信任期内。只读不解密 sid，开销很小。
+    """
+    rec = _read_all().get(_key(qq))
+    if not isinstance(rec, dict) or not rec.get("sid"):
+        return False
+    if rec.get("invalid"):
+        return False
+    at = float(rec.get("at") or 0)
+    return bool(at) and (time.time() - at) <= float(ttl)
+
+
+def invalidate(qq) -> None:
+    """标记登录态已失效（服务器明确回「登录票无效」时调用），下次 /app in 会重新发码。"""
+    data = _read_all()
+    rec = data.get(_key(qq))
+    if isinstance(rec, dict):
+        rec["invalid"] = True
+        _write_all(data)
+
+
+def touch(qq) -> None:
+    """刚被服务器确认有效：刷新时间戳，延长本地信任期。"""
+    data = _read_all()
+    rec = data.get(_key(qq))
+    if isinstance(rec, dict):
+        rec["at"] = int(time.time())
+        rec.pop("invalid", None)
+        _write_all(data)
 
 
 def ticket(qq) -> dict | None:

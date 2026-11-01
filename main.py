@@ -130,8 +130,9 @@ HELP_SECTIONS = [
         ("/app <UID>", "查别人：在局里→局内进度卡，不在局→档案卡"),
     ]),
     ("🔐", "登录账号", [
-        ("/app in", "发一个二维码，手机扫码后用飞魔通行证手机号+验证码登录"),
+        ("/app in", "登录。已登录且登录票还在有效期时不重复发码"),
         ("/app in <手机号>", "不扫码：直接给手机发验证码，再发 /app in <6位验证码>"),
+        ("/app in force", "强制重新登录（换号，或本地判断已失效时）"),
         ("/app uid", "我的档案卡：用登录态查自己（uid 是指令名，不是游戏 UID）"),
         ("/app out", "退出登录，删掉本机保存的登录票"),
     ]),
@@ -1049,12 +1050,31 @@ class AstralPartyPilotPlugin(Star):
 
         也支持完全不扫码的兜底：/app in <11 位手机号> 发短信，
         再 /app in <6 位验证码> 完成登录。登录票按 QQ 分开存在本机。
+
+        已经登录且登录票还在信任期内时**不重复发码**（换号走 /app out，
+        或 /app in force 强制重登）。
         """
         qq = str(event.get_sender_id() or "")
         if not qq:
             yield event.plain_result("拿不到你的 QQ 号，登录不了呢")
             return
         arg = (joined or "").strip()
+
+        # ---- 已登录且票还在信任期：不重复发码 ----
+        # 换号 / 本地判断失误时用 /app in force 强制重登
+        force = arg.lower() in ("force", "f", "-f", "重登", "重新登录")
+        if force:
+            arg = ""
+        elif not arg and ACC.is_usable(qq):
+            yield event.plain_result(
+                f"你现在登录的是：{ACC.describe(qq)}\n"
+                "登录票还在有效期内，不用重新扫码～\n"
+                "· 看自己的档案：/app uid\n"
+                "· 换号：/app out 退出后再 /app in\n"
+                "· 确实要重新登录：/app in force")
+            return
+
+        # 只有真要发码 / 登录时才探测客户端版本（要走 Steam 库扫描，别白跑）
         ver = self._conf_str("live_client_ver", "") or LV.client_ver()
 
         # ---- 兜底路径：QQ 里直接收码 ----
@@ -1103,16 +1123,16 @@ class AstralPartyPilotPlugin(Star):
                 "这个参数 bot 没看懂呢～\n"
                 "· 发 11 位手机号：/app in 13800138000（先发验证码）\n"
                 "· 收到短信后：/app in <6 位验证码>\n"
-                "· 什么都不带：/app in（发二维码，手机扫码登录）")
+                "· 什么都不带：/app in（发二维码，手机扫码登录）\n"
+                "· 已登录但要重登：/app in force")
             return
 
         # ---- 主路径：二维码 + 手机网页登录 ----
         rec = ACC.load(qq)
-        if rec and not arg:
+        if rec:
             yield event.plain_result(
-                f"你现在登录的是：{ACC.describe(qq)}\n"
-                "要换号就先发 /app out 退出，再 /app in 重新扫码。\n"
-                "（直接扫也行，登录成功后会自动覆盖）")
+                f"你之前登录的是：{ACC.describe(qq)}（登录票可能已过期）\n"
+                "重新扫一次码吧～")
 
         try:
             port = int(self._conf_str("login_port", "0") or 0)
@@ -1178,6 +1198,11 @@ class AstralPartyPilotPlugin(Star):
 
         if not d:
             why = getattr(err, "code", None)
+            if why == 10000:            # 服务器明确判票失效：下次 /app in 直接重新发码
+                try:
+                    ACC.invalidate(qq)
+                except Exception:       # noqa: BLE001
+                    pass
             tip = {
                 10000: "登录态过期了 —— 重新发 /app in 登一次",
                 10020: "账号在线时服务器会先挡一下 —— 稍等几秒重发一次 /app uid 就行，不用退游戏",
@@ -1193,6 +1218,12 @@ class AstralPartyPilotPlugin(Star):
             try:
                 ACC.save(qq, sid=tk["sid"], uid=uid, nick=nick,
                          platform=tk["platform"], tel=rec.get("tel") or "", ver=ver)
+            except Exception:  # noqa: BLE001
+                pass
+        else:
+            # 刚被服务器确认有效：刷新时间戳，延长本地信任期（/app in 就不会再弹码）
+            try:
+                ACC.touch(qq)
             except Exception:  # noqa: BLE001
                 pass
 
