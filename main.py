@@ -981,15 +981,37 @@ class AstralPartyPilotPlugin(Star):
         # 1) 本机正在打这一局时，插件会把全桌状态写进 state.json
         state = LS.read()
         me = LS.find(state, uid)
+        self_pid = LS.self_pid(state)  # 本机玩家 pid（局内才有，不依赖联机）
 
-        # 2) 联机查（拿名字 / 战绩 / 在线状态）
+        # 2) 查的是「本机正在登录的这个号」时，绝不联机握手：
+        #    同一个 sid 单点登录，再开一条连接登录会把游戏顶下线。
+        #    此时实时进度/状态直接读本地 state.json（本来就最实时），只牺牲服务器端战绩。
+        if self_pid is not None and uid == self_pid:
+            if me:
+                try:
+                    fd, tmp = tempfile.mkstemp(suffix=".png", prefix="app_live_")
+                    os.close(fd)
+                    # 名字等信息优先用缓存，没有就用本地能拿到的
+                    hit = _LIVE_CACHE.get(uid)
+                    cached = hit[1] if hit and time.time() - hit[0] < 25 else None
+                    await asyncio.to_thread(LC.render_ingame, cached or {}, state, me, tmp)
+                    yield event.image_result(tmp)
+                except Exception as exc:  # noqa: BLE001
+                    logger.error(f"[星趴] 渲染局内卡失败：{exc}")
+                    yield event.plain_result(f"bot 画局内卡的时候出错了：{exc}")
+                return
+            # 本机号但没在局内（state.json 没有）：不联机，直接说清楚
+            yield event.plain_result(
+                f"UID {uid} 是本机登录的号，但 bot 现在读不到局内数据（可能没在对局里）。\n"
+                "为了避免把游戏顶下线，bot 不会去服务器查这个号；\n"
+                "想查它的战绩/档案，请先关掉游戏，再发一次 /app " + str(uid))
+            return
+
+        # 3) 查别人：联机查（拿名字 / 战绩 / 在线状态），不会顶掉别人
         d, err = None, None
         now = time.time()
         hit = _LIVE_CACHE.get(uid)
         if hit and now - hit[0] < 25:
-            d = hit[1]
-        elif me and hit:
-            # 自己正打着：不去握手（同账号双登会被拒），沿用上次查到的名字等信息
             d = hit[1]
         else:
             try:

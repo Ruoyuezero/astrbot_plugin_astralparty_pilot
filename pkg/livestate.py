@@ -76,6 +76,24 @@ def self_player(state: dict | None) -> dict | None:
     return None
 
 
+def self_pid(state: dict | None) -> int | None:
+    """本机玩家的 pid（局内），不依赖联机登录。
+
+    state.json 顶层直接写了 selfPid（引擎每帧回写），比遍历 players 的 self
+    标记更可靠；兜底再走 self_player() 的 pid。
+    """
+    if not state:
+        return None
+    v = state.get("selfPid")
+    try:
+        if v:
+            return int(v)
+    except (TypeError, ValueError):
+        pass
+    sp = self_player(state)
+    return int(sp.get("pid")) if sp and sp.get("pid") else None
+
+
 def running() -> bool:
     """游戏进程在不在（判断「在大厅」还是「没开游戏」）。"""
     try:
