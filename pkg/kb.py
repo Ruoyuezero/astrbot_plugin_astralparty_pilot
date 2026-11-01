@@ -81,7 +81,7 @@ def card(q):
 
 
 def monster_alias():
-    """社区俗名表 {怪物编号: [别名...]}（小偷 / 茶壶 / 嘎呜 / 猿神 …）。"""
+    """社区别名表 {怪物编号: [别名...]}（小偷 / 茶壶 / 嘎呜 / 猿神 …）。"""
     return _load("monster_alias", "kb/monster_alias.json")
 
 
@@ -90,14 +90,14 @@ def monster_aliases(no) -> list[str]:
 
 
 def monster_find_all(q) -> list[dict]:
-    """按编号 / 名字 / 称号 / 社区俗名找怪物，可能多只（「茶壶」有三只、「嘎呜」有五只）。"""
+    """按编号 / 名字 / 称号 / 社区别名找怪物，可能多只（「茶壶」有三只、「嘎呜」有五只）。"""
     q = str(q).strip()
     ms = monsters()
     # 1 编号 / 名字 / 称号精确
     hits = [m for m in ms if _eq(m["no"], q) or _eq(m["name"], q) or _eq(m.get("title"), q)]
     if hits:
         return hits
-    # 2 俗名精确（要早于名字包含：「虾」不该被「虾布罗」之外的东西抢走）
+    # 2 别名精确（要早于名字包含：「虾」不该被「虾布罗」之外的东西抢走）
     ids = [k for k, names in monster_alias().items() if any(_alias_eq(q, n) for n in names)]
     hits = [m for m in ms if str(m["no"]) in ids]
     if hits:
@@ -106,14 +106,14 @@ def monster_find_all(q) -> list[dict]:
     hits = [m for m in ms if q and (q in m["name"] or q in (m.get("title") or ""))]
     if hits:
         return hits
-    # 4 俗名包含
+    # 4 别名包含
     ids = [k for k, names in monster_alias().items()
            if q and any(q.casefold() in n.casefold() for n in names)]
     return [m for m in ms if str(m["no"]) in ids]
 
 
 def monster(q):
-    """按名字 / 称号 / 编号 / 社区俗名找怪物（多义时取第一条，调用方可先看 monster_find_all）。"""
+    """按名字 / 称号 / 编号 / 社区别名找怪物（多义时取第一条，调用方可先看 monster_find_all）。"""
     hits = monster_find_all(q)
     return hits[0] if hits else None
 
@@ -156,7 +156,7 @@ def heroes():
 
 
 def hero_alias():
-    """社区俗名表 {英雄编号: [别名...]}（老板娘 / 忍者 / 触手娘 …）。"""
+    """社区别名表 {英雄编号: [别名...]}（老板娘 / 忍者 / 触手娘 …）。"""
     return _load("hero_alias", "kb/hero_alias.json")
 
 
@@ -169,14 +169,14 @@ def skills():
 
 
 def hero(q):
-    """按名字 / 称号 / 编号 / 英日文 / 社区俗名找英雄。"""
+    """按名字 / 称号 / 编号 / 英日文 / 社区别名找英雄。"""
     q = str(q).strip()
     hs = heroes()
     for hid, h in hs.items():
         if _eq(str(hid), q) or _eq(h["name"], q) or _eq(h.get("title"), q) \
                 or _eq(h.get("en"), q) or _eq(h.get("jp"), q):
             return h
-    # 俗名精确命中要先于名字模糊匹配：否则「00」会被 Z3000 里的 "3000" 抢走
+    # 别名精确命中要先于名字模糊匹配：否则「00」会被 Z3000 里的 "3000" 抢走
     al = hero_alias()
     for hid, names in al.items():
         if any(_alias_eq(q, n) for n in names) and str(hid) in hs:
@@ -235,7 +235,7 @@ def state(q):
 
 
 def relic_alias():
-    """玩家俗称表 {筹码名: [别名...]}（金拳套 / 紫饼干 / 哈基米 / 欧金金 …）。
+    """玩家别名表 {筹码名: [别名...]}（金拳套 / 紫饼干 / 哈基米 / 欧金金 …）。
 
     键用筹码全名而不是编号：19 个纯属性筹码（拳击手套 / 夹心饼干…）没有图标编号，
     三档共用一张通用图，只有名字能区分。
@@ -248,25 +248,25 @@ def relic_aliases(name) -> list[str]:
 
 
 def _relic_alias_names(q) -> list[str]:
-    """俗名精确命中的筹码全名列表。"""
+    """别名精确命中的筹码全名列表。"""
     return [name for name, names in relic_alias().items()
             if any(_alias_eq(q, n) for n in names)]
 
 
 def relic(q):
-    """按名字 / 编号 / 社区俗称找筹码；名字支持模糊（「瞄具」能匹配到鹰眼瞄具）。"""
+    """按名字 / 编号 / 社区别名找筹码；名字支持模糊（「瞄具」能匹配到鹰眼瞄具）。"""
     hits = relic_find_all(q)
     return hits[0] if hits else None
 
 
 def relic_find_all(q) -> list[dict]:
-    """模糊匹配，可能多条（同名套系 / 共用编号 / 一个俗称对应两个筹码）。"""
+    """模糊匹配，可能多条（同名套系 / 共用编号 / 一个别名对应两个筹码）。"""
     q = str(q).strip()
     rs = relics()
     hits = [r for r in rs if _eq(r.get("name"), q) or str(r.get("no")) == q]
     if hits:
         return hits
-    # 俗名精确要早于名字包含：「手环」直接对彩羽手环 / 运动手环，别让包含匹配先捞走一个
+    # 别名精确要早于名字包含：「手环」直接对彩羽手环 / 运动手环，别让包含匹配先捞走一个
     names = _relic_alias_names(q)
     if names:
         return [r for r in rs if r.get("name") in names]
