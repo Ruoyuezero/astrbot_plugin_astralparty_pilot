@@ -761,7 +761,8 @@ class AstralPartyPilotPlugin(Star):
                 logger.info(f"[星趴] 解包 {p}%（bundle {done}/{total}）已出图 {ok} 跳过 {skip}")
 
         try:
-            st = await asyncio.to_thread(ARTL.run, out, gdir, 0, True, prog)
+            st = await asyncio.to_thread(ARTL.run, out, gdir, 0, True, prog,
+                                         self._conf_int("load_mem_limit", 0))
         except Exception as exc:                        # noqa: BLE001
             logger.error(f"[星趴] 解包失败：{exc}")
             st = {"ok": False, "why": f"解包时出错：{exc}"}
@@ -787,6 +788,10 @@ class AstralPartyPilotPlugin(Star):
                 f"· 输出：{st.get('out')}\n"
                 f"· bundle {st.get('bundles')} 个｜新出图 {st.get('written')} 张"
                 f"｜已有跳过 {st.get('skipped')} 张")
+        jobs = st.get("jobs")
+        if jobs:
+            mem = st.get("mem_avail")
+            head += "\n· 并发 %d 进程%s" % (jobs, ("（可用内存 %d MB，按内存自动算的）" % mem) if mem else "")
         lines = [head]
         cnt = ARTL.count_files(st.get("out") or "")
         if cnt:
@@ -1659,6 +1664,13 @@ class AstralPartyPilotPlugin(Star):
         try:
             v = self.config.get(key)
             return str(v) if v is not None else default
+        except Exception:
+            return default
+
+    def _conf_int(self, key: str, default: int = 0) -> int:
+        try:
+            v = self.config.get(key)
+            return int(v) if v not in (None, "") else default
         except Exception:
             return default
 

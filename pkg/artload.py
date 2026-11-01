@@ -165,8 +165,67 @@ def list_bundles(gdir: str) -> list[str]:
 
 # ------------------------------------------------------------------ 解包
 
+# 每个解包子进程的内存预算（MB）：一张大贴图解码成 PIL Image 峰值几十上百 MB，
+# 再算上 UnityPy 持有的原始数据，留 420MB 给单个进程比较稳。
+WORKER_MB = 420
+# 留给系统 / AstrBot 本体 / 游戏客户端的余量，这段内存绝不参与分配。
+RESERVE_MB = 1024
+# 并发上限，再多也不会更快（瓶颈是磁盘和 UnityPy 解析）
+MAX_JOBS = 8
+
+
+def avail_mb() -> int:
+    """当前可用物理内存（MB）；探测不到返回 0。"""
+    try:
+        if os.name == "nt":
+            import ctypes
+
+            class _MemStatus(ctypes.Structure):
+                _fields_ = [("dwLength", ctypes.c_ulong),
+                            ("dwMemoryLoad", ctypes.c_ulong),
+                            ("ullTotalPhys", ctypes.c_ulonglong),
+                            ("ullAvailPhys", ctypes.c_ulonglong),
+                            ("ullTotalPageFile", ctypes.c_ulonglong),
+                            ("ullAvailPageFile", ctypes.c_ulonglong),
+                            ("ullTotalVirtual", ctypes.c_ulonglong),
+                            ("ullAvailVirtual", ctypes.c_ulonglong),
+                            ("ullAvailExtendedVirtual", ctypes.c_ulonglong)]
+            m = _MemStatus()
+            m.dwLength = ctypes.sizeof(m)
+            if ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(m)):
+                return int(m.ullAvailPhys // (1024 * 1024))
+            return 0
+        with open("/proc/meminfo", "r", encoding="utf-8") as f:
+            for line in f:
+                if line.startswith("MemAvailable:"):
+                    return int(line.split()[1]) // 1024
+    except Exception:                                   # noqa: BLE001
+        pass
+    return 0
+
+
+def plan_jobs(mem_mb: int = 0, cpu: int | None = None) -> tuple[int, int]:
+    """按内存算并发数，返回 (jobs, 参与计算的可用内存 MB)。
+
+    mem_mb > 0 时把它当作可用内存上限（配置项 load_mem_limit），
+    否则读本机当前真实可用内存。探测不到就保守开 2 个。
+    以前只看 CPU 核数，16 核机器直接开 8 个进程，内存一紧就整机崩。
+    """
+    cpu_cap = max(1, min(MAX_JOBS, (cpu if cpu is not None else (os.cpu_count() or 4)) - 1))
+    avail = mem_mb if mem_mb > 0 else avail_mb()
+    if avail <= 0:
+        return min(cpu_cap, 2), 0
+    mem_cap = max(1, (avail - RESERVE_MB) // WORKER_MB)
+    return max(1, min(cpu_cap, mem_cap)), avail
+
+
 def _worker(job) -> tuple[int, int, list]:
-    """解一个 bundle。返回 (成功数, 跳过数, 失败样例)。"""
+    """解一个 bundle。返回 (成功数, 跳过数, 失败样例)。
+
+    内存要点：`o.read()` 拿到的是纹理原始压缩数据，`t.image` 会把它解码成
+    一张 PIL Image（4K RGBA 就是 33MB/张）。这两样都必须用完即弃，否则
+    一个进程攒几千张就是好几个 G，几个进程一起跑必定把机器撑爆。
+    """
     bundle, out_root, skip_existing = job
     ok = skip = 0
     errs: list = []
@@ -174,6 +233,7 @@ def _worker(job) -> tuple[int, int, list]:
     # UnityPy 遇到不认识的 bundle 会直接 print 一坨到 stdout（走不了 logging），
     # 几千个 bundle 扫下来能把控制台刷满，这里在子进程里就地吞掉。
     import contextlib
+    import gc
     import io
 
     try:
@@ -184,41 +244,61 @@ def _worker(job) -> tuple[int, int, list]:
     except Exception as e:                              # noqa: BLE001
         return 0, 0, ["%s: %s" % (os.path.basename(bundle), e)]
 
-    for o in env.objects:
-        if o.type.name != "Texture2D":
-            continue
-        try:
-            with contextlib.redirect_stdout(io.StringIO()), \
-                    contextlib.redirect_stderr(io.StringIO()):
-                t = o.read()
-            name = t.m_Name
-            w, h = int(t.m_Width), int(t.m_Height)
-        except Exception:                               # noqa: BLE001
-            continue
-        if not name or w < MIN_SIDE or h < MIN_SIDE:
-            continue
-        if is_noise(name):
-            continue
-        cat = category_of(name)
-        dst = os.path.join(out_root, cat, "%s.png" % name)
-        if skip_existing and os.path.exists(dst):
-            skip += 1
-            continue
-        try:
-            os.makedirs(os.path.dirname(dst), exist_ok=True)
-            t.image.save(dst)
-            ok += 1
-        except Exception as e:                          # noqa: BLE001
-            if len(errs) < 3:
-                errs.append("%s: %s" % (name, e))
+    seen = 0
+    img = None
+    t = None
+    try:
+        for o in env.objects:
+            if o.type.name != "Texture2D":
+                continue
+            img = t = None
+            try:
+                with contextlib.redirect_stdout(io.StringIO()), \
+                        contextlib.redirect_stderr(io.StringIO()):
+                    t = o.read()
+                name = t.m_Name
+                w, h = int(t.m_Width), int(t.m_Height)
+            except Exception:                               # noqa: BLE001
+                t = None
+                continue
+            if not name or w < MIN_SIDE or h < MIN_SIDE:
+                t = None
+                continue
+            if is_noise(name):
+                t = None
+                continue
+            cat = category_of(name)
+            dst = os.path.join(out_root, cat, "%s.png" % name)
+            if skip_existing and os.path.exists(dst):
+                skip += 1
+                t = None
+                continue
+            try:
+                os.makedirs(os.path.dirname(dst), exist_ok=True)
+                img = t.image                                # 解码在这一行，峰值内存也在这
+                img.save(dst)
+                ok += 1
+            except Exception as e:                          # noqa: BLE001
+                if len(errs) < 3:
+                    errs.append("%s: %s" % (name, e))
+            finally:
+                img = None                                   # 放手解码后的图
+                t = None                                     # 放手原始压缩数据
+            seen += 1
+            if seen % 50 == 0:                               # 定期把循环里的碎片收一收
+                gc.collect()
+    finally:
+        env = None
+        gc.collect()
     return ok, skip, errs
 
 
 def run(out_root: str, gdir: str | None = None, jobs: int = 0,
-        skip_existing: bool = True, on_progress=None) -> dict:
+        skip_existing: bool = True, on_progress=None, mem_mb: int = 0) -> dict:
     """把游戏素材解到 out_root，返回统计。
 
     on_progress(done, total, ok, skip) 每 20 个 bundle 回一次，给上层报进度用。
+    mem_mb > 0 时按这个内存预算算并发（0＝读本机当前可用内存自动决定）。
     """
     t0 = time.time()
     gdir = gdir or game_dir()
@@ -232,36 +312,49 @@ def run(out_root: str, gdir: str | None = None, jobs: int = 0,
         return {"ok": False, "why": "游戏目录里没找到 bundle，确认游戏装全了"}
     os.makedirs(out_root, exist_ok=True)
 
-    jobs = jobs or max(2, min(8, (os.cpu_count() or 4) - 1))
+    plan, avail = plan_jobs(mem_mb)
+    jobs = max(1, min(jobs or plan, plan))
     total = len(files)
     ok = skip = 0
     errs: list = []
     done = 0
     payload = [(f, out_root, skip_existing) for f in files]
 
-    try:
-        with ProcessPoolExecutor(max_workers=jobs) as ex:
-            for a, b, e in ex.map(_worker, payload, chunksize=8):
-                ok += a
-                skip += b
-                errs.extend(e)
-                done += 1
-                if on_progress and (done % 20 == 0 or done == total):
-                    on_progress(done, total, ok, skip)
-    except Exception as exc:                            # noqa: BLE001
-        # 多进程在某些环境下起不来（权限 / 打包），退回单进程慢慢跑
-        if done:
-            raise
-        if on_progress:
-            on_progress(0, total, 0, 0)
-        for i, f in enumerate(files):
-            a, b, e = _worker((f, out_root, skip_existing))
-            ok += a
-            skip += b
-            errs.extend(e)
-            if on_progress and (i + 1) % 50 == 0:
-                on_progress(i + 1, total, ok, skip)
-        errs.insert(0, "多进程不可用（%s），已退回单进程" % exc)
+    # 多进程解包；子进程中途被系统掐掉（最常见就是内存不够）就把并发砍半重试。
+    # 已经落盘的图会被 skip_existing 跳过，所以重试几乎不浪费时间。
+    tried = jobs
+    while True:
+        base = (ok, skip, done)
+        try:
+            with ProcessPoolExecutor(max_workers=tried) as ex:
+                for a, b, e in ex.map(_worker, payload, chunksize=8):
+                    ok += a
+                    skip += b
+                    errs.extend(e)
+                    done += 1
+                    if on_progress and (done % 20 == 0 or done == total):
+                        on_progress(done, total, ok, skip)
+            break
+        except Exception as exc:                        # noqa: BLE001
+            ok, skip, done = base
+            if tried <= 1:
+                if done:
+                    raise
+                # 单进程都起不来：多进程本身不可用（权限 / 打包），就地同步跑
+                if on_progress:
+                    on_progress(0, total, 0, 0)
+                for i, f in enumerate(files):
+                    a, b, e = _worker((f, out_root, skip_existing))
+                    ok += a
+                    skip += b
+                    errs.extend(e)
+                    if on_progress and (i + 1) % 50 == 0:
+                        on_progress(i + 1, total, ok, skip)
+                errs.insert(0, "多进程不可用（%s），已退回单进程" % exc)
+                break
+            halved = max(1, tried // 2)
+            errs.append("并发 %d 时中断（%s），降到 %d 重试" % (tried, exc, halved))
+            tried = halved
 
     stats = {
         "ok": True,
@@ -270,6 +363,8 @@ def run(out_root: str, gdir: str | None = None, jobs: int = 0,
         "bundles": total,
         "written": ok,
         "skipped": skip,
+        "jobs": tried,
+        "mem_avail": avail,
         "errors": errs[:8],
         "seconds": round(time.time() - t0, 1),
     }
