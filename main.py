@@ -31,11 +31,58 @@ from .pkg import landrender as LR
 from .pkg import liveapi as LV
 from .pkg import livestate as LS
 from .pkg import livecard as LC
+from .pkg import profilecache as PC
+from .pkg import account as ACC
+from .pkg import loginweb as LW
+from .pkg import feimo as FM
 from .pkg import coach as CO
 from .pkg import coachcard as CCARD
 from .pkg import helpcard as HC
 
 _LIVE_CACHE: dict[int, tuple[float, dict]] = {}
+
+# /app in 用手机号直接发码时的待验证状态：{qq: (手机号, 时间)}
+_LOGIN_PENDING: dict[str, tuple[str, float]] = {}
+
+
+def _make_qr(text: str, path: str) -> None:
+    """把登录链接画成二维码 PNG。qrcode 不可用时抛异常，调用方退回只发链接。"""
+    import qrcode
+
+    qr = qrcode.QRCode(border=3, box_size=9,
+                       error_correction=qrcode.constants.ERROR_CORRECT_M)
+    qr.add_data(text)
+    qr.make(fit=True)
+    img = qr.make_image(fill_color="#2b2724", back_color="#ffffff").convert("RGB")
+    img.save(path, "PNG")
+
+
+def _ago(sec: float) -> str:
+    """把「多少秒之前」写成好读的中文。"""
+    n = int(max(0.0, sec))
+    if n < 60:
+        return "刚刚" if n < 5 else f"{n} 秒前"
+    if n < 3600:
+        return f"{n // 60} 分钟前"
+    if n < 86400:
+        return f"{n // 3600} 小时前"
+    return f"{n // 86400} 天前"
+
+
+def _profile_text(d: dict) -> str:
+    """档案卡画不出来时的纯文字兜底（只挑几项关键的）。"""
+    s, sh = d.get("simple") or {}, d.get("show") or {}
+    fight, win = int(sh.get("fight") or 0), int(sh.get("win") or 0)
+    rate = (win / fight * 100) if fight else 0.0
+    name = s.get("name") or d.get("nick") or "我"
+    uid = int(d.get("uid") or s.get("id") or 0)
+    lv = int(s.get("lv") or (d.get("own") or {}).get("level") or 0)
+    head = f"{name} · UID {uid}" + (f" · Lv.{lv}" if lv else "")
+    parts = [head, f"场次 {fight} · 胜场 {win} · 胜率 {rate:.1f}%"]
+    if sh.get("praise") is not None:
+        parts.append(f"获赞 {sh.get('praise', 0)}")
+    return "（档案卡没画出来，先给文字）\n" + "\n".join(parts)
+
 
 # 指令一览：图片卡和纯文本都从这份数据生成，改一处两边同步
 HELP_SECTIONS = [
@@ -80,10 +127,16 @@ HELP_SECTIONS = [
         ("/app achieve <名字|ID>", "单个成就详解（达成条件 + 奖励）"),
     ]),
     ("🔎", "查号（实时）", [
-        ("/app <UID>", "查玩家：在局里→局内进度卡，不在局→档案卡"),
+        ("/app <UID>", "查别人：在局里→局内进度卡，不在局→档案卡"),
     ]),
-    ("🎮", "陪玩（全自动 / 半自动 / 玩家自主控制）", [
-        ("/appa", "查当前进度 + 我的角色状态（只看不动）"),
+    ("🔐", "登录账号", [
+        ("/app in", "发一个二维码，手机扫码后用飞魔通行证手机号+验证码登录"),
+        ("/app in <手机号>", "不扫码：直接给手机发验证码，再发 /app in <6位验证码>"),
+        ("/app uid", "我的档案卡：用登录态查自己（uid 是指令名，不是游戏 UID）"),
+        ("/app out", "退出登录，删掉本机保存的登录票"),
+    ]),
+    ("🎮", "陪玩（仅管理员；全自动 / 半自动 / 玩家自主控制）", [
+        ("/appa", "看本机：在局内→局内卡，不在局→档案卡"),
         ("/appa on", "全自动代打：出牌、技能、移动、战斗全交给 bot"),
         ("/appa card", "半自动代打：把这一项交给 bot（一次一项，其余归你）"),
         ("/appa off", "玩家自主操控：bot 只推建议，鼠标不碰"),
@@ -122,13 +175,13 @@ PILOT_ACT_CN = {"card": "出牌", "skill": "开技能", "go": "移动/继续", "
                 "skip": "闪避"}
 
 APPA_HELP = (
-    "🎮 代打指令（三种模式）\n"
+    "🎮 陪玩指令（仅管理员）· 不带参数看本机：局内出局内卡，不在局出档案卡\n"
     "① 全自动代打 ··· /appa on —— 出牌 / 技能 / 移动 / 战斗都交给 bot\n"
     "② 半自动代打 ··· /appa card（出牌）· skill（技能）· go（移动）等，一次交给 bot 一项\n"
     "③ 你自己操控 ··· /appa off —— bot 只推建议，鼠标不碰\n"
     "\n"
     "其余单项（每个只管一件事，方便单独调）\n"
-    "/appa ········· 查当前进度 + 我的角色状态（只看不动）\n"
+    "/appa ········· 看本机：局内出局内卡，不在局出档案卡\n"
     "/appa atk ····· 经过怪物时：攻击\n"
     "/appa def ····· 怪物反击 / 怪物回合被攻击时：防御\n"
     "/appa skip ···· 经过怪物/商店时跳过；被怪物攻击时闪避\n"
@@ -367,6 +420,24 @@ class AstralPartyPilotPlugin(Star):
             async for result in self._app_help(event):
                 yield result
             return
+        if sub in ("me", "self", "自己", "本机", "我"):
+            # /app me 已并入 /appa：局内出局内卡，不在局出档案卡
+            yield event.plain_result(
+                "「/app me」已经并进 /appa 啦～\n"
+                "发 /appa：在局内出局内卡，不在局出档案卡（仅管理员可用）")
+            return
+        if sub in ("in", "login", "登录", "登陆"):
+            async for result in self._app_in(event, joined):
+                yield result
+            return
+        if sub in ("uid", "profile", "我的档案", "档案"):
+            async for result in self._app_login_profile(event):
+                yield result
+            return
+        if sub in ("out", "logout", "退出", "注销"):
+            async for result in self._app_out(event):
+                yield result
+            return
         if sub.isdigit() and len(sub) >= 4:
             async for result in self._app_uid(event, sub):
                 yield result
@@ -426,7 +497,9 @@ class AstralPartyPilotPlugin(Star):
         yield event.plain_result(
             f"bot 没看懂「{sub}」这个图鉴子命令呢～\n"
             "可用：card / map / land / buff / monster / monsterCG / hero / heroskins / heroCG / heroemoji / relic / achieve / load\n"
-            "查玩家：/app <UID>（例如 /app 1551363）\n"
+            "查别人：/app <UID>（例如 /app 2425110）\n"
+            "看本机（局内卡 / 档案卡）：/appa（仅管理员）\n"
+            "登录账号看档案：/app in · /app uid · /app out\n"
             "代打请用 /appa（/appa on 全自动 · /appa card 半自动 · /appa off 交回自己）\n"
             "发 /app help 看完整说明"
         )
@@ -970,44 +1043,208 @@ class AstralPartyPilotPlugin(Star):
             logger.error(f"[星趴] 渲染成就详情失败：{exc}")
             yield event.plain_result(f"渲染「{r.get('name')}」出错了：{exc}")
 
+    # ---------------------------------------------------------- 登录 ----
+    async def _app_in(self, event: AstrMessageEvent, joined: str = ""):
+        """登录账号：/app in 发二维码，扫码后用飞魔通行证的手机号+验证码登录。
+
+        也支持完全不扫码的兜底：/app in <11 位手机号> 发短信，
+        再 /app in <6 位验证码> 完成登录。登录票按 QQ 分开存在本机。
+        """
+        qq = str(event.get_sender_id() or "")
+        if not qq:
+            yield event.plain_result("拿不到你的 QQ 号，登录不了呢")
+            return
+        arg = (joined or "").strip()
+        ver = self._conf_str("live_client_ver", "") or LV.client_ver()
+
+        # ---- 兜底路径：QQ 里直接收码 ----
+        if arg:
+            pending = _LOGIN_PENDING.get(qq)
+            if arg.isdigit() and len(arg) == 11:
+                try:
+                    await asyncio.to_thread(FM.send_code, arg, ver)
+                except FM.FeimoError as exc:
+                    yield event.plain_result(f"验证码没发出去：{exc}")
+                    return
+                except Exception as exc:  # noqa: BLE001
+                    logger.error(f"[星趴] 发验证码失败：{exc}")
+                    yield event.plain_result(f"验证码没发出去（{type(exc).__name__}）")
+                    return
+                _LOGIN_PENDING[qq] = (arg, time.time())
+                yield event.plain_result(
+                    f"验证码已经发到 {FM.mask_tel(arg)} 啦～\n"
+                    "收到后发：/app in <6 位验证码>（5 分钟内有效）")
+                return
+
+            if arg.isdigit() and len(arg) == 6 and pending:
+                tel, ts = pending
+                if time.time() - ts > 300:
+                    _LOGIN_PENDING.pop(qq, None)
+                    yield event.plain_result("验证码会话过期了，重新发 /app in <手机号> 再收一条吧")
+                    return
+                try:
+                    r = await asyncio.to_thread(FM.sms_login, tel, arg, ver)
+                except FM.FeimoError as exc:
+                    yield event.plain_result(f"登录失败：{exc}")
+                    return
+                except Exception as exc:  # noqa: BLE001
+                    logger.error(f"[星趴] 登录失败：{exc}")
+                    yield event.plain_result(f"登录失败（{type(exc).__name__}）")
+                    return
+                _LOGIN_PENDING.pop(qq, None)
+                ACC.save(qq, sid=r["sid"], uid=0, nick=r.get("user_name") or "",
+                         platform="cn", tel=FM.mask_tel(tel), ver=ver)
+                yield event.plain_result(
+                    f"✅ 登录成功（{FM.mask_tel(tel)}）\n"
+                    "发 /app uid 看自己的档案卡；发 /app out 随时退出登录。")
+                return
+
+            yield event.plain_result(
+                "这个参数 bot 没看懂呢～\n"
+                "· 发 11 位手机号：/app in 13800138000（先发验证码）\n"
+                "· 收到短信后：/app in <6 位验证码>\n"
+                "· 什么都不带：/app in（发二维码，手机扫码登录）")
+            return
+
+        # ---- 主路径：二维码 + 手机网页登录 ----
+        rec = ACC.load(qq)
+        if rec and not arg:
+            yield event.plain_result(
+                f"你现在登录的是：{ACC.describe(qq)}\n"
+                "要换号就先发 /app out 退出，再 /app in 重新扫码。\n"
+                "（直接扫也行，登录成功后会自动覆盖）")
+
+        try:
+            port = int(self._conf_str("login_port", "0") or 0)
+        except ValueError:
+            port = 0
+        host = (self._conf_str("login_host", "") or "").strip()
+        try:
+            sess = await asyncio.to_thread(LW.new_session, qq, ver, port, host)
+        except Exception as exc:  # noqa: BLE001
+            logger.error(f"[星趴] 登录网页启动失败：{exc}")
+            yield event.plain_result(
+                f"登录网页起不来：{exc}\n"
+                "可以改用不扫码的方式：/app in <11 位手机号>")
+            return
+
+        fd, tmp = tempfile.mkstemp(suffix=".png", prefix="app_login_")
+        os.close(fd)
+        qr_ok = True
+        try:
+            await asyncio.to_thread(_make_qr, sess["url"], tmp)
+        except Exception as exc:  # noqa: BLE001
+            qr_ok = False
+            logger.warning(f"[星趴] 二维码生成失败：{exc}")
+        if qr_ok:
+            yield event.image_result(tmp)
+        yield event.plain_result(
+            ("手机扫上面的二维码，" if qr_ok else "") +
+            "打开登录页 → 填手机号 → 收短信验证码 → 登录（10 分钟内有效）\n"
+            f"链接：{sess['url']}\n"
+            "登录票只保存在 bot 这台机器上，不会回显在聊天里。\n"
+            "扫不开（手机和 bot 不在同一网络）就用：/app in <11 位手机号>")
+
+    async def _app_login_profile(self, event: AstrMessageEvent):
+        """查当前 QQ 绑定的账号档案：/app uid。
+
+        注意这里的「uid」是这条指令的固定名字（字面量），不是要填的游戏 UID；
+        查某个具体号码请直接 /app <数字>。
+
+        做法：拿这个 QQ 存的登录票查一次「自己」（5153 传 0），渲染成一张个人档案卡。
+        用票查自己能看到只有本人可见的数据（成就总数、全部角色卡等），
+        所以它比 /app <UID> 查自己更全。票本身不回显。
+        """
+        qq = str(event.get_sender_id() or "")
+        rec = ACC.load(qq)
+        if not rec:
+            yield event.plain_result(
+                "这个 QQ 还没绑定账号呢～\n"
+                "先发 /app in 扫码登录（或 /app in <11 位手机号> 收验证码），"
+                "登录成功后再发 /app uid 看自己的档案卡。")
+            return
+
+        tk = {"platform": rec.get("platform") or "cn", "sid": rec.get("sid") or ""}
+        ver = self._conf_str("live_client_ver", "") or ""
+
+        d, err = None, None
+        try:
+            d = await asyncio.to_thread(LV.self_profile, tk, ver)
+        except LV.LiveError as exc:
+            err = exc
+        except Exception as exc:  # noqa: BLE001
+            err = exc
+            logger.error(f"[星趴] 用登录态查档案失败：{exc}")
+
+        if not d:
+            why = getattr(err, "code", None)
+            tip = {
+                10000: "登录态过期了 —— 重新发 /app in 登一次",
+                10020: "账号在线时服务器会先挡一下 —— 稍等几秒重发一次 /app uid 就行，不用退游戏",
+                10012: "客户端版本变了 —— 在插件配置里把 live_client_ver 改成当前版本号",
+            }.get(why, "登录态可能失效了 —— 重新发 /app in 登一次试试")
+            yield event.plain_result(f"没能用登录态查到档案：{err or '未知原因'}\n💡 {tip}")
+            return
+
+        # 顺手把游戏昵称 / UID 回填进登录记录，下次状态文案里就能直接显示
+        uid = int(d.get("uid") or 0)
+        nick = d.get("nick") or (d.get("simple") or {}).get("name") or ""
+        if uid and (uid != int(rec.get("uid") or 0) or (nick and nick != rec.get("nick"))):
+            try:
+                ACC.save(qq, sid=tk["sid"], uid=uid, nick=nick,
+                         platform=tk["platform"], tel=rec.get("tel") or "", ver=ver)
+            except Exception:  # noqa: BLE001
+                pass
+
+        # 顺手存一份到本地档案缓存：/appa 不联网时靠它出档案卡
+        try:
+            PC.save(uid or int(d.get("uid") or 0), d)
+        except Exception:  # noqa: BLE001
+            pass
+
+        fd, tmp = tempfile.mkstemp(suffix=".png", prefix="app_uid_")
+        os.close(fd)
+        try:
+            await asyncio.to_thread(LC.render_profile, d, tmp)
+            yield event.image_result(tmp)
+        except Exception as exc:  # noqa: BLE001
+            logger.error(f"[星趴] 渲染档案卡失败：{exc}")
+            yield event.plain_result(_profile_text(d))
+
+    async def _app_out(self, event: AstrMessageEvent):
+        """退出登录：删掉本机保存的这张登录票。"""
+        qq = str(event.get_sender_id() or "")
+        who = ACC.describe(qq)
+        try:
+            ok = ACC.clear(qq)
+        except Exception as exc:  # noqa: BLE001
+            logger.error(f"[星趴] 退出登录失败：{exc}")
+            yield event.plain_result(f"退出登录出错了：{exc}")
+            return
+        _LOGIN_PENDING.pop(qq, None)
+        if ok:
+            yield event.plain_result(f"已经退出登录啦（{who}）\n登录票已从本机删除。")
+        else:
+            yield event.plain_result("你现在本来就没登录哦～要登录发 /app in")
+
     async def _app_uid(self, event: AstrMessageEvent, joined: str):
-        """实时查号：/app 1551363。局内→进度卡，不在局→档案卡。"""
+        """查号：/app <UID>。用小号 sid 握手查别人，避免顶掉本机登录的主号。"""
         m = re.search(r"\d{4,}", joined or "")
         if not m:
-            yield event.plain_result("要bot一个 UID（纯数字）哦，例如：/app 1551363")
+            yield event.plain_result("要bot一个 UID（纯数字）哦，例如：/app 2425110")
             return
         uid = int(m.group(0))
 
-        # 1) 本机正在打这一局时，插件会把全桌状态写进 state.json
+        # 查别人：优先用小号登录票握手（配置 alt_sid），避免顶掉本机主号。
+        # 没配小号时退回「本机最近登录票」（会顶掉本机主号，故不推荐）。
+        alt_sid = (self._conf_str("alt_sid", "") or "").strip()
+        ticket_override = None
+        if alt_sid:
+            ticket_override = {"platform": "cn", "sid": alt_sid}
+
         state = LS.read()
         me = LS.find(state, uid)
-        self_pid = LS.self_pid(state)  # 本机玩家 pid（局内才有，不依赖联机）
 
-        # 2) 查的是「本机正在登录的这个号」时，绝不联机握手：
-        #    同一个 sid 单点登录，再开一条连接登录会把游戏顶下线。
-        #    此时实时进度/状态直接读本地 state.json（本来就最实时），只牺牲服务器端战绩。
-        if self_pid is not None and uid == self_pid:
-            if me:
-                try:
-                    fd, tmp = tempfile.mkstemp(suffix=".png", prefix="app_live_")
-                    os.close(fd)
-                    # 名字等信息优先用缓存，没有就用本地能拿到的
-                    hit = _LIVE_CACHE.get(uid)
-                    cached = hit[1] if hit and time.time() - hit[0] < 25 else None
-                    await asyncio.to_thread(LC.render_ingame, cached or {}, state, me, tmp)
-                    yield event.image_result(tmp)
-                except Exception as exc:  # noqa: BLE001
-                    logger.error(f"[星趴] 渲染局内卡失败：{exc}")
-                    yield event.plain_result(f"bot 画局内卡的时候出错了：{exc}")
-                return
-            # 本机号但没在局内（state.json 没有）：不联机，直接说清楚
-            yield event.plain_result(
-                f"UID {uid} 是本机登录的号，但 bot 现在读不到局内数据（可能没在对局里）。\n"
-                "为了避免把游戏顶下线，bot 不会去服务器查这个号；\n"
-                "想查它的战绩/档案，请先关掉游戏，再发一次 /app " + str(uid))
-            return
-
-        # 3) 查别人：联机查（拿名字 / 战绩 / 在线状态），不会顶掉别人
         d, err = None, None
         now = time.time()
         hit = _LIVE_CACHE.get(uid)
@@ -1016,25 +1253,14 @@ class AstralPartyPilotPlugin(Star):
         else:
             try:
                 d = await asyncio.to_thread(
-                    LV.query, uid,
-                    "", self._conf_str("live_client_ver", ""), 12.0)
+                    LV.query, uid, "", self._conf_str("live_client_ver", ""),
+                    12.0, "", 0, ticket_override)
                 _LIVE_CACHE[uid] = (now, d)
             except LV.LiveError as exc:
                 err = exc
             except Exception as exc:  # noqa: BLE001
                 err = exc
                 logger.error(f"[星趴] 查号失败：{exc}")
-
-        # 查的是本机登录的号时，服务器的「在线」是我们自己握手造成的，得用本地实况纠正
-        if d:
-            own = d.get("own") or {}
-            if own.get("id") == uid:
-                s = d["simple"]
-                live = bool(me) or LS.running()
-                s["online"] = live
-                if not live:
-                    s["room_id"] = 0
-                    s["state"] = 0
 
         try:
             fd, tmp = tempfile.mkstemp(suffix=".png", prefix="app_live_")
@@ -1044,6 +1270,24 @@ class AstralPartyPilotPlugin(Star):
                 yield event.image_result(tmp)
                 return
             if d:
+                # 对方在房间（room_id 非 0）→ 查房间详情；对局中（room.state==25）
+                # 直接给局内信息，不再出名片。注意 5263 的 simple.state 不可靠（常返回
+                # 0），真正对局状态要以 5193 房间详情为准。
+                s = d.get("simple") or {}
+                room_id = int(s.get("room_id") or 0)
+                server_id = int(s.get("room_server_id") or 0)
+                if room_id and server_id:
+                    detail = await asyncio.to_thread(
+                        LV.room_detail_for, uid, room_id, server_id, d, ticket_override)
+                    if detail and detail.get("hero") and int(detail.get("state") or 0) == 25:
+                        await asyncio.to_thread(
+                            LC.render_remote_ingame, d, detail, tmp)
+                        yield event.image_result(tmp)
+                        return
+                try:
+                    PC.save(int(uid), d)     # 存本地缓存，/appa 离线时能直接出档案卡
+                except Exception:  # noqa: BLE001
+                    pass
                 await asyncio.to_thread(LC.render_profile, d, tmp)
                 yield event.image_result(tmp)
                 return
@@ -1052,12 +1296,12 @@ class AstralPartyPilotPlugin(Star):
             yield event.plain_result(f"bot 画查号卡的时候出错了：{exc}")
             return
 
-        # 3) 联机不通：把原因说清楚（登录票过期 / 账号别处在线 / 没网）
+        # 联机不通：把原因说清楚
         if err is not None:
             why = getattr(err, "code", None)
             tip = {
-                10000: "本机登录票过期了 —— 打开游戏重新登录一次，bot 再查就有数据啦",
-                10020: "这个号正在游戏里（同一账号不能双登）—— 关掉游戏再查，或者在局内直接查会走本机实时数据",
+                10000: "查号用的登录票过期了 —— 打开游戏重新登录一次小号，再把新 sid 填进插件配置 alt_sid",
+                10020: "查号用的账号正在游戏里（同一账号不能双登）—— 小号如果开着游戏，先关掉；或换一个不玩的小号",
                 10012: "客户端版本变了 —— 在插件配置里把 live_client_ver 改成当前版本号",
             }.get(why)
             msg = f"bot 查不到 UID {uid}：{err}"
@@ -1077,7 +1321,14 @@ class AstralPartyPilotPlugin(Star):
     # ------------------------------------------------------------ /appa ----
     @filter.command("appa")
     async def appa(self, event: AstrMessageEvent):
-        """代打总入口：/appa 查状态，/appa on 全自动，/appa <项> 只做那一件事。"""
+        """代打总入口：/appa 查状态，/appa on 全自动，/appa <项> 只做那一件事。
+
+        /appa 整套（含状态查询和所有代打开关）都只允许管理员用：它会动 bot 这台机器
+        上的游戏，不能让别人随手开关。
+        """
+        if not self._is_admin(event):
+            yield event.plain_result(self._deny_text("/appa 代打"))
+            return
         raw = (event.message_str or "").strip()
         words = re.sub(r"^[/／]?\s*appa", "", raw).strip().split()
         sub = words[0].lower() if words else ""
@@ -1094,8 +1345,8 @@ class AstralPartyPilotPlugin(Star):
             async for result in self._appa_on(event, list(CO.FULL_ALLOW), full=True):
                 yield result
             return
-        if sub in ("", "st", "status", "state", "查", "状态", "进度", "看"):
-            async for result in self._appa_status(event):
+        if sub in ("", "st", "查", "状态", "进度", "看"):
+            async for result in self._appa_view(event):
                 yield result
             return
 
@@ -1127,108 +1378,117 @@ class AstralPartyPilotPlugin(Star):
             pass
         return str(ident)
 
-    async def _appa_status(self, event: AstrMessageEvent):
-        """查当前进度 + 我的角色状态。只读 state.json / act.json，不发任何指令。"""
-        st = await asyncio.to_thread(LS.read)
+    @staticmethod
+    def _pilot_tag(cur: dict) -> str:
+        """代打模式的短名字（卡面用，不带 emoji）。"""
+        if not cur.get("running"):
+            return "没开"
+        granted = set(cur.get("allow") or [])
+        if all(x in granted for x in ("card", "skill", "go")):
+            return "模式① 全自动"
+        return "模式② 半自动" if granted else "模式③ 玩家自主"
+
+    def _pilot_line(self, cur: dict, allow_cn: str) -> str:
+        """代打状态压成一行（跟在局内卡后面）。"""
+        if not cur.get("running"):
+            return "🤖 代打：没开 —— 想全自动发 /appa on；自己打就无视这句"
+        tag = self._pilot_tag(cur)
+        pid = cur.get("pid")
+        tail = f"（pid {pid}）" if pid else ""
+        return f"🤖 代打：{tag}{tail} ｜ 授权：{allow_cn or '无'}"
+
+    async def _appa_view(self, event: AstrMessageEvent):
+        """/appa（不带参数）：局内出局内卡，不在局出档案卡。
+
+        在局内（state.json 20 秒内还在更新）→ 局内卡图片 + 一行代打状态；
+        不在局 → 用本地存的档案出档案卡（没有档案就用本机状态兜底）。
+        全程不连服务器 —— 联机会把大厅里正在玩的号顶下线。
+        """
+        qq = str(event.get_sender_id() or "")
+        st = await asyncio.to_thread(LS.read)          # 20 秒内还在写 = 在局内
         cur = await asyncio.to_thread(CO.current, self.config)
         allow_cn = "、".join(PILOT_ACT_CN[a] for a in cur["allow"] if a in PILOT_ACT_CN)
 
-        if not st:
-            running = await asyncio.to_thread(LS.running)
-            tip = ("游戏开着，但还没进对局（或者插件没在写 state.json）"
-                   if running else "没检测到游戏进程 —— 先把游戏开起来")
-            lines = [f"🎮 没有对局数据：{tip}"]
-            if cur["running"]:
-                lines.append(f"🤖 代打进程还在跑（pid {cur['pid']}），授权：{allow_cn or '无'}")
-            else:
-                lines.append("🤖 代打没开 —— 想全自动发 /appa on")
-            yield event.plain_result("\n".join(lines))
+        me = LS.me(st) if st else None
+        if st and me:
+            fd, tmp = tempfile.mkstemp(suffix=".png", prefix="appa_ingame_")
+            os.close(fd)
+            try:
+                await asyncio.to_thread(LC.render_ingame, {}, st, me, tmp)
+                yield event.image_result(tmp)
+                yield event.plain_result(self._pilot_line(cur, allow_cn))
+            except Exception as exc:  # noqa: BLE001
+                logger.error(f"[星趴] 渲染局内卡失败：{exc}")
+                yield event.plain_result(f"局内卡没画出来：{exc}")
             return
 
-        me = LS.self_player(st) or {}
-        ps = LS.players(st)
-        pid = int(me.get("pid") or 0)
-        my = int(st.get("my") or 0) == 1 and int(st.get("cur") or 0) == pid
-        stage = st.get("stage") or "?"
-        stage_cn = {"card": "出牌 / 技能", "move": "移动", "none": "空闲（等别人）",
-                    "target_card": "选目标（牌）", "target_skill": "选目标（技能）"}.get(stage, stage)
+        # ---- 不在对局：本地出卡（有档案缓存出档案卡，没有出本机状态卡），不联网 ----
+        img, note = await asyncio.to_thread(self._offline_card, qq, cur, allow_cn)
+        if img:
+            yield event.image_result(img)
+        yield event.plain_result(note)
+        return
 
-        hid = me.get("heroId")
-        who = self._name_of("hero", hid) if hid else "未知角色"
-        lines = [f"🎲 局内实况 · {st.get('ts') or ''}".rstrip(" ·")]
+    def _offline_card(self, qq: str, cur: dict, allow_cn: str) -> tuple[str, str]:
+        """不在对局时出卡，返回 (图片路径, 附带的一句话)。
 
-        flag = "轮到我 ✅" if my else "等别人"
-        if st.get("battle"):
-            flag += " ｜ 战斗中 ⚔️"
-        lines.append(f"📌 阶段：{stage_cn} ｜ {flag}")
+        数据全部来自本机：state.json（不限新旧）、coach_ctl.json、accounts.json，
+        外加之前联网查到过的档案缓存（`profilecache`）。一个网络请求都不发 ——
+        大厅里游戏开着的时候，一登录就会把它顶下线。
+        """
+        raw = LS.read(None)
+        game_on = LS.running()
+        my_uid = int(LS.self_pid(raw) or 0) if raw else 0
+        rec = ACC.load(qq) or {}
+        rec_uid = int(rec.get("uid") or 0)
+        target = my_uid or rec_uid
+        pilot = self._pilot_line(cur, allow_cn)
 
-        hp, mhp = me.get("hp"), me.get("maxhp")
-        lines.append(f"👤 我：{who}（HP {hp}/{mhp} ｜ 攻 {me.get('atk')} ｜ 防 {me.get('def')}"
-                     f" ｜ 金 {me.get('gold')}）")
-
-        cards = me.get("cards") or []
-        hand = "、".join(self._name_of("card", c.get("id")) for c in cards[:4])
-        if len(cards) > 4:
-            hand += f"…（共 {len(cards)} 张）"
-        seg = [f"位置 #{me.get('node')}", f"手牌 {len(cards)} 张" + (f"：{hand}" if cards else "")]
-        if me.get("skillCD"):
-            seg.append(f"技能 CD {me.get('skillCD')}")
-        lines.append("   " + " ｜ ".join(seg))
-
-        rels = me.get("relics") or []
-        if rels:
-            names = "、".join(self._name_of("relic", r) for r in rels[:6])
-            lines.append(f"   筹码 {len(rels)} 个：{names}")
-        buffs = [b.get("name") for b in (me.get("buffs") or []) if b.get("name")]
-        if buffs:
-            lines.append("   状态：" + "、".join(buffs[:6]))
-
-        others = [p for p in ps if int(p.get("pid") or 0) != pid]
-        if others:
-            lines.append("👥 桌上")
-            for p in others[:4]:
-                nm = self._name_of("hero", p.get("heroId")) if p.get("heroId") else f"玩家{p.get('pid')}"
-                lines.append(f"   · {nm} HP {p.get('hp')}/{p.get('maxhp')} ｜ 金 {p.get('gold')}"
-                             f" ｜ 位置 #{p.get('node')}")
-
-        # 插件当前卡在哪个动作（游戏在等谁回话）—— 直接读 act.json，
-        # 不依赖 coach 引擎，没开代打也能看到
-        a = {}
-        p = await asyncio.to_thread(LS.state_path)
-        if p:
-            aj = os.path.join(os.path.dirname(p), "act.json")
-            try:
-                with open(aj, encoding="utf-8-sig") as f:
-                    a = json.load(f) or {}
-            except (OSError, ValueError):
-                a = {}
-            a = {"id": a.get("id"), "name": a.get("name")}
-        try:
-            if int(a.get("id") or 0) <= 0:      # 插件用 -1 表示「现在没有待回应的动作」
-                a = {}
-        except (TypeError, ValueError):
-            a = {}
-        if a.get("id"):
-            lines.append(f"🎯 当前动作：{a.get('name') or a.get('id')}（id={a.get('id')}）")
-        elif cur["running"]:
-            adv = await asyncio.to_thread(CO.read, self.config)
-            ev = (adv or {}).get("event") or {}
-            if ev.get("title"):
-                lines.append(f"🎯 bot 看到：{ev['title']}")
-
-        if cur["running"]:
-            granted = set(cur["allow"] or [])
-            if all(x in granted for x in ("card", "skill", "go")):
-                tag = "模式① 全自动代打"
-            else:
-                tag = "模式② 半自动代打"
-            lines.append(f"🤖 {tag}：运行中（pid {cur['pid']}）｜ 授权：{allow_cn or '无'}")
+        # 和 /app uid 走同一套渲染（LC.render_profile），只是数据换成本地的：
+        # ① 以前联网查到过这个号 → 用存下来的档案；② 没存过 → 用本机 json 拼一份
+        cache = PC.load(target) if target else None
+        if cache:
+            d, age = cache
+            note = f"📄 档案卡（本地存的，{_ago(age)}查的；要看最新的发 /app uid）"
         else:
-            lines.append("🤖 模式③ 玩家自主操控 —— 想全自动发 /appa on")
+            d = self._local_profile(target, rec, raw, game_on)
+            note = "📄 档案卡（本地还没存过这个号的战绩，发一次 /app uid 就补齐了）"
 
-        if not my and stage == "none" and not a.get("id"):
-            lines.append("💡 现在没轮到你，也没有待回应的弹窗。")
-        yield event.plain_result("\n".join(lines))
+        fd, tmp = tempfile.mkstemp(suffix=".png", prefix="appa_profile_")
+        os.close(fd)
+        try:
+            LC.render_profile(d, tmp)
+        except Exception as exc:  # noqa: BLE001
+            logger.error(f"[星趴] 渲染档案卡失败：{exc}")
+            return "", f"档案卡没画出来：{exc}\n{pilot}"
+        return tmp, note + "\n" + pilot
+
+    @staticmethod
+    def _local_profile(target: int, rec: dict, raw: dict | None,
+                       game_on: bool) -> dict:
+        """用本机文件拼一份最小档案，喂给和 /app uid 同一个 render_profile。
+
+        state.json 里只有局内快照，没有等级 / 场次，所以这里只给得出昵称、UID、
+        在线状态；战绩那几格留空（卡面显示 —），不会拿 0 骗人。
+        """
+        name = (rec.get("nick") or "").strip()
+        if not name or name.startswith("c:"):     # 飞魔会话名不是游戏昵称
+            name = ""
+        return {
+            "uid": int(target or 0),
+            "nick": name,
+            "_local": True,            # 让 render_profile 知道这是本机拼的，别吹成完整数据
+            "simple": {
+                "id": int(target or 0),
+                "name": name,
+                "lv": 0,
+                "online": bool(game_on),
+                "room_id": 0,          # 不在房间 —— 大厅 / 离线
+                "state": 0,
+            },
+            "show": {},                # 空 → 卡面上的战绩一格显示「—」
+            "own": {},
+        }
 
     async def _appa_on(self, event: AstrMessageEvent, allow: list, full: bool = False):
         """把授权写进控制文件（进程在跑就不重启，下一帧自己换挡）。
@@ -1370,3 +1630,22 @@ class AstralPartyPilotPlugin(Star):
             return str(v) if v is not None else default
         except Exception:
             return default
+
+    def _is_admin(self, event: AstrMessageEvent) -> bool:
+        """管理员判定：配置里的 admin_qqs 优先，其次认 AstrBot 全局管理员。
+
+        配置留空时只认 AstrBot 全局管理员（不会因为没填就谁都能用）。
+        """
+        sid = str(event.get_sender_id() or "").strip()
+        raw = (self._conf_str("admin_qqs", "") or "").replace("，", ",")
+        allowed = {x.strip() for x in raw.split(",") if x.strip()}
+        if sid and sid in allowed:
+            return True
+        try:
+            return bool(event.is_admin())
+        except Exception:  # noqa: BLE001
+            return False
+
+    def _deny_text(self, what: str) -> str:
+        return (f"{what}只有管理员能用呢～\n"
+                "（要在插件配置的 admin_qqs 里加上自己的 QQ，或让 bot 管理员来发）")

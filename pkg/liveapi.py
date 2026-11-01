@@ -454,6 +454,59 @@ class LiveClient:
             "use_hero": gi(st, 4), "adorn": gi(st, 5), "skins": gi(st, 6),
         }
 
+    def room_detail(self, uid: int, room_id: int, server_id: int) -> dict:
+        """查某房间实时详情（5193）：进度、回合、及房间里目标玩家的手牌/筹码/buff。
+
+        这是「查正在游戏中的别人」的唯一可靠数据源——手牌、筹码、buff、血量等
+        只在房间内同步，靠 UID 本身查不到。请求体：
+          sfixed64 字段 1 = room_id，sfixed32 字段 1001 = server_id（路由）。
+        返回 {round, gameProgress, gameMaxProgress, state, hero:{...}}，
+        其中 hero 是目标 uid 在房间里对应的 Hero 快照；查不到则 hero=None。
+        """
+        self.heartbeat()
+        body = (_enc_sf64(1, room_id)
+                + _varint((1001 << 3) | 5) + int(server_id).to_bytes(4, "little", signed=True))
+        err, rsp = self._send(5193, body, wait=self.timeout) or (0, b"")
+        if err != 0:
+            raise LiveError(_err_text(err), err)
+        room = gm(fields(rsp), 2) or {}
+
+        # 找目标玩家（房间 players 字段 9 是重复的 model.Player）
+        hero = None
+        for pl in gl(room, 9):
+            if gi(pl, 1) != uid:
+                continue
+            h = gm(pl, 10) or {}
+            buffs = []
+            for bm in gl(h, 4):          # BuffsEntry map: key(1)=unique_id, value(2)=Buff
+                bv = gm(bm, 2) or {}
+                buffs.append({
+                    "id": gi(bv, 2), "keep": gi(bv, 5), "unique_id": gi(bm, 1),
+                })
+            cards = [{"id": gi(c, 2)} for c in gl(h, 8)]
+            relics = [gi(rm, 1) for rm in gl(h, 52)]   # SelectRelicsEntry: key(1)=relic no
+            # skill_cds 是 map（SkillCdsEntry: key=技能id, value=剩余CD回合），取第一条 value
+            skill_cd = 0
+            for sm in gl(h, 38):
+                skill_cd = gi(sm, 2)
+                break
+            hero = {
+                "heroId": gi(h, 2), "node": gi(h, 3), "gold": gi(h, 7),
+                "hp": gi(h, 14), "def": gi(h, 15), "atk": gi(h, 16),
+                "maxhp": gi(h, 23), "lv": gi(h, 33), "mp": gi(h, 10),
+                "skillCD": skill_cd, "standingPainting": gi(h, 46),
+                "cards": cards, "buffs": buffs, "relics": relics,
+            }
+            break
+        return {
+            "round": gi(room, 14),
+            "gameProgress": gi(room, 46),
+            "gameMaxProgress": gi(room, 47),
+            "state": gi(room, 11),
+            "map_id": gi(room, 5),
+            "hero": hero,
+        }
+
 
 ROOM_STATE = {0: "none", 1: "wait", 10: "choice_hero", 15: "choice_skin",
               20: "ready", 25: "running", 30: "finish"}
@@ -501,13 +554,18 @@ def _own_player(p: dict | None) -> dict:
 
 
 def query(uid: int, platform: str = "", ver: str = "", timeout: float = 12.0,
-          host: str = "", port: int = 0) -> dict:
+          host: str = "", port: int = 0, ticket_override: dict | None = None) -> dict:
     """查一个 UID：返回 {platform, simple, show, own}。
 
     simple 里 online/room_id/state 说明在不在局；show 是战绩统计；own 只在
     「查的就是本机登录的那个账号」时非空（登录包自带），可用来列拥有的角色。
+
+    ticket_override：用指定登录票（如小号 sid）握手，避免顶掉主号。传 dict，
+    至少含 sid / platform 两个键。
     """
-    tk = ticket() if not platform else next((t for t in tickets() if t["platform"] == platform), None)
+    tk = ticket_override
+    if not tk:
+        tk = ticket() if not platform else next((t for t in tickets() if t["platform"] == platform), None)
     if not tk:
         raise LiveError("没找到本机登录票：先用国服/海外服客户端登录一次游戏")
     if platform and tk["platform"] != platform:
@@ -523,3 +581,68 @@ def query(uid: int, platform: str = "", ver: str = "", timeout: float = 12.0,
     if own and own.get("id") and own["id"] != uid:
         own = {}
     return {"platform": tk["platform"], "ticket": tk, "simple": simple, "show": show, "own": own}
+
+
+def self_profile(ticket_override: dict | None = None, ver: str = "",
+                 timeout: float = 12.0, retries: int = 2) -> dict:
+    """用登录态查「自己」：完整资料 + 战绩 + 每角色的场次。
+
+    与 ``query(uid)`` 的区别：这里 5153 传 0（= 按登录态取自己），服务端才会
+    给出完整 statistics 与全部 roleCard；查别人时那些字段要么被隐藏，要么
+    只剩一个数量。返回结构和 query() 一致，另加 ``uid`` / ``nick``。
+
+    账号还挂在游戏里（大厅或对局）时握手会先被服务端挡一下（10020）。这里**不
+    要求用户退游戏**，而是隔一秒重连再登：服务端把旧会话挤下线后就放行了。
+    """
+    tk = ticket_override or ticket()
+    if not tk:
+        raise LiveError("没找到登录态：先发 /app in 登录一下")
+    h, p = SERVERS.get(tk["platform"], SERVERS["cn"])
+    last: LiveError | None = None
+    for attempt in range(retries + 1):
+        try:
+            with LiveClient(h, p, timeout=timeout) as c:
+                c.login(tk["sid"], tk["platform"], client_ver(ver))
+                own = _own_player(c.player)
+                uid = int(own.get("id") or 0)
+                if not uid:
+                    raise LiveError("登录包没带上自己的 UID（票可能失效了）")
+                simple = c.player_simple(uid)
+                show = c.show_player(0)     # 0 = 自己：服务端按登录态返回完整数据
+                if not (show.get("id") or show.get("fight")):
+                    show = c.show_player(uid)   # 少数情况下 0 不认，退回按 UID 查
+            return {"platform": tk["platform"], "ticket": tk, "simple": simple,
+                    "show": show, "own": own, "uid": uid,
+                    "nick": own.get("nick") or ""}
+        except LiveError as exc:
+            if getattr(exc, "code", None) != 10020 or attempt >= retries:
+                raise
+            last = exc
+            time.sleep(1.0)     # 等旧会话被挤掉，再以「顶号」的方式登一次
+    raise last or LiveError("握手失败")
+
+
+def room_detail_for(uid: int, room_id: int, server_id: int,
+                    d: dict | None = None, ticket_override: dict | None = None,
+                    ver: str = "", timeout: float = 12.0) -> dict | None:
+    """查一个正在对局的 UID 的房间详情（5193），返回 room_detail 的结果。
+
+    d 是之前 query() 的返回（含 ticket 和 platform，可复用握手凭据），避免重复
+    找票；没有 d 时用 ticket_override 或本机票。查不到 / 出错返回 None（调用方
+    降级到名片）。
+    """
+    tk = ticket_override
+    if not tk and d:
+        tk = d.get("ticket")
+    if not tk:
+        tk = ticket()
+    if not tk:
+        return None
+    ver = ver or (d or {}).get("client_ver", "")
+    h, p = SERVERS.get(tk["platform"], SERVERS["cn"])
+    try:
+        with LiveClient(h, p, timeout=timeout) as c:
+            c.login(tk["sid"], tk["platform"], client_ver(ver))
+            return c.room_detail(uid, room_id, server_id)
+    except Exception:
+        return None

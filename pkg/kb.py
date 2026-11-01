@@ -41,6 +41,8 @@ def events():     return _load("events", "kb/events.json")
 def map_events(): return _load("map_events", "kb/map_events.json")
 def buffs():      return _load("buffs", "kb/buffs.json")
 def relics():     return _load("relics", "kb/relics.json")
+def relic_no_map(): return _load("relic_no_map", "kb/relic_no_map.json")
+def map_no_map(): return _load("map_no_map", "kb/map_no_map.json")
 def achievements(): return _load("achievements", "kb/achievements.json")
 def states():     return _load("states", "kb/states.json")
 def lands():
@@ -322,6 +324,16 @@ def mapinfo(q):
         if str(q) in m["name"]:
             return m
     return None
+
+
+def map_by_id(mid):
+    """协议里的 map_id（如 82013）→ {name, scene}；查不到返回 None。
+
+    数字 map_id 来自房间协议（model.Room.map_id），和知识库的场景号（Map_015）
+    不是一套编号。这里用从游戏配置表（Map.bytes + STRMap.bytes）解出的权威映射
+    kb/map_no_map.json 反查中文名。
+    """
+    return map_no_map().get(str(int(mid)))
 
 
 _mapcache = {}

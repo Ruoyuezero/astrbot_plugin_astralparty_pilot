@@ -37,8 +37,11 @@ def state_path() -> str | None:
     return best
 
 
-def read(max_age: float = 20.0) -> dict | None:
-    """读状态；文件不存在或太旧（说明不在局）返回 None。"""
+def read(max_age: float | None = 20.0) -> dict | None:
+    """读状态；文件不存在或太旧（说明不在局）返回 None。
+
+    max_age=None 表示不判新旧 —— 大厅/离线时也能捞出上次的 selfPid 等号信息。
+    """
     p = state_path()
     if not p:
         return None
@@ -46,7 +49,7 @@ def read(max_age: float = 20.0) -> dict | None:
         age = time.time() - os.path.getmtime(p)
     except OSError:
         return None
-    if age > max_age:
+    if max_age is not None and age > max_age:
         return None
     try:
         with open(p, "r", encoding="utf-8-sig") as f:
@@ -92,6 +95,22 @@ def self_pid(state: dict | None) -> int | None:
         pass
     sp = self_player(state)
     return int(sp.get("pid")) if sp and sp.get("pid") else None
+
+
+def me(state: dict | None) -> dict | None:
+    """本机玩家对象（局内）：优先 selfPid 匹配 pid，其次 self 标记，再兜底第一个。"""
+    if not state:
+        return None
+    spid = self_pid(state)
+    if spid:
+        p = find(state, spid)
+        if p:
+            return p
+    sp = self_player(state)
+    if sp:
+        return sp
+    ps = players(state)
+    return ps[0] if ps else None
 
 
 def running() -> bool:

@@ -18,6 +18,11 @@ data/config/
 data/cmd_config.json
 data/*_config.json
 
+# ---- 账号登录态（含游戏登录票 sid，绝不入库）----
+data/accounts.json
+data/profile_cache.json
+data/accounts_*.json
+
 # ---- 编辑器 / 系统 ----
 .vscode/
 .idea/

@@ -176,10 +176,107 @@ class Blocks:
         self.items.append(("b", label, _font(20, True), color, self.pad, self.y, 34))
         self.y += 34
 
+    def icon_row(self, items: list, icon: int = 40, line_h: int = 40,
+                 name_font=None, before: int = 2) -> None:
+        """增益图标网格：图标在上、名字在下居中。
+
+        items 每项是 (icon_path 或 None, 名字, 品质)；品质非空就画筹码圆盘底。
+        图标取不到时画一个浅色圆点占位。
+        """
+        self.icon_grid(items, icon=icon, before=before, name_font=name_font,
+                       kind="icons")
+
+    def achieve_grid(self, items: list, icon: int = 64, before: int = 4) -> None:
+        """成就图标网格：图标在上、名字在下居中（参考 /app achieve 的圆角图标）。
+
+        items 每项是 (achieve 图标绝对路径 或 None, 中文名)。按格子宽度贪心换行。
+        """
+        if not items:
+            return
+        self.y += before
+        nf = _font(14)
+        pad_x, gap_x, gap_y = 14, 16, 6
+        # 名字最多两行，格子宽按名字折行后的最大宽度 + 内边距，至少 icon 宽
+        cells = []
+        for ip, name in items:
+            lines = _wrap(str(name or ""), nf, max(icon, 96))
+            tw = max(nf.getlength(ln) for ln in lines) if lines else icon
+            cw = max(icon, int(tw)) + pad_x
+            ch = icon + 6 + len(lines) * 20
+            cells.append((ip, lines, cw, ch))
+        rows, cur, w = [], [], 0.0
+        avail = self.width - 2 * self.pad
+        for c in cells:
+            if cur and w + c[2] + gap_x > avail:
+                rows.append(cur)
+                cur, w = [], 0.0
+            cur.append(c)
+            w += c[2] + gap_x
+        if cur:
+            rows.append(cur)
+        for row in rows:
+            self.items.append(("achieves", row, nf, icon, self.pad, self.y, 0))
+            self.y += max(c[3] for c in row) + gap_y
+
+    def relic_row(self, items: list, icon: int = 44, line_h: int = 42,
+                  name_font=None, before: int = 2) -> None:
+        """筹码网格：游戏原始金/紫/蓝圆盘底在上、名字在下居中。
+
+        items 每项是 (no 或 relic dict 可含 icon/quality/name, 名字)。
+        与增益网格的区别：用 _relic_tile 画游戏原生的品质圆盘，而不是自绘方底。
+        """
+        self.icon_grid(items, icon=icon, before=before, name_font=name_font,
+                       kind="relics")
+
+    def icon_grid(self, items: list, icon: int = 40, before: int = 4,
+                  name_font=None, kind: str = "icons") -> None:
+        """图标网格：图标居中在上、名字折行在下方居中（增益与筹码共用）。
+
+        items：kind == "icons"  → 每项 (icon_path 或 None, 名字, 品质)
+               kind == "relics" → 每项 (筹码 spec, 名字)
+        格子按文字宽度自适应（单行优先），图标居中在上、名字在下居中。
+        """
+        if not items:
+            return
+        self.y += before
+        nf = name_font or _font(13)
+        gap_x, gap_y, pad_x = 16, 8, 8
+        tw_max = 150
+
+        def _lines(name: str) -> list:
+            lines = _wrap(name, nf, tw_max)
+            if len(lines) > 2:  # 只有在名字极长时才折行，多出的并进末行
+                lines = [lines[0], "".join(lines[1:])]
+            return lines or [""]
+
+        # 每格宽度自适应：优先单行放完，避免「拳击手套 · 高 / 级」这种断字
+        cells = []
+        for it in items:
+            name = str(it[1] or "")
+            payload = (it[0], it[2] if len(it) > 2 else "") if kind == "icons" else it[0]
+            lines = _lines(name)
+            tw = max((nf.getlength(ln) for ln in lines), default=0)
+            cw = max(icon, int(tw)) + pad_x
+            cells.append((payload, lines, cw, icon + 6 + len(lines) * 17))
+        avail = self.width - 2 * self.pad
+        rows, cur, w = [], [], 0.0
+        for c in cells:
+            if cur and w + c[2] + gap_x > avail:
+                rows.append(cur)
+                cur, w = [], 0.0
+            cur.append(c)
+            w += c[2] + gap_x
+        if cur:
+            rows.append(cur)
+        for row in rows:
+            self.items.append(("grid", row, nf, (kind, icon), self.pad, self.y, 0))
+            self.y += max(c[3] for c in row) + gap_y
+
     def draw(self, canvas: Image.Image, draw: ImageDraw.ImageDraw) -> None:
         for kind, s, font, color, x, y, lh in self.items:
             if kind == "t":
                 draw.text((x, y), s, font=font, fill=color)
+
             elif kind == "r":
                 draw.line([self.pad, y, self.width - self.pad, y], fill=RULE, width=1)
             elif kind == "b":
@@ -191,6 +288,58 @@ class Blocks:
                 _draw_chips(draw, x, y, s, (self.width - 2 * self.pad) if fill else None)
             elif kind == "run":
                 self._draw_run(draw, s, x, y)
+            elif kind == "grid":
+                self._draw_grid(canvas, draw, s, x, y, font, color, lh)
+            elif kind == "achieves":
+                self._draw_achieves(canvas, draw, s, x, y, font, color, lh)
+
+    def _draw_grid(self, canvas: Image.Image, draw: ImageDraw.ImageDraw,
+                   row: list, x: int, y: int, name_font, meta, lh: int) -> None:
+        """画一格：图标在上居中，名字折行在下方居中。
+
+        meta 是 (kind, icon)：kind=icons 画 buff 图标，kind=relics 画筹码品质圆盘。
+        """
+        kind, icon = meta
+        cx = int(x)
+        for payload, lines, cw, _ch in row:
+            ix = cx + (cw - icon) // 2
+            if kind == "relics":
+                _relic_tile(canvas, draw, payload, ix, int(y), icon, 0.80)
+            else:
+                ip, q = payload
+                if q:
+                    tile = _quality_tile(icon, q)
+                    canvas.paste(tile, (ix, int(y)), tile)
+                im = _open(ip) if ip else None
+                if im:
+                    _paste_center(canvas, _fit(im, icon - 8, icon - 8),
+                                  ix, int(y), icon, icon)
+                else:
+                    draw.ellipse([ix + 4, int(y) + 4, ix + icon - 4, int(y) + icon - 4],
+                                 fill=(238, 235, 228), outline=RULE)
+            ty = int(y) + icon + 6
+            for ln in lines:
+                draw.text((cx + (cw - name_font.getlength(ln)) // 2, ty), ln,
+                          font=name_font, fill=BODY)
+                ty += 17
+            cx += cw + 16
+
+    def _draw_achieves(self, canvas: Image.Image, draw: ImageDraw.ImageDraw,
+                       row: list, x: int, y: int, name_font, icon: int, lh: int) -> None:
+        """画一行成就格子：圆角图标在上、名字在下居中。"""
+        cx = int(x)
+        for ip, lines, cw, ch in row:
+            pic = _round_pic(ip, icon, 14) if ip else None
+            if pic:
+                canvas.paste(pic, (cx + (cw - icon) // 2, int(y)), pic)
+            else:
+                _placeholder(draw, cx + (cw - icon) // 2, int(y), icon, icon)
+            ty = int(y) + icon + 6
+            for ln in lines:
+                draw.text((cx + (cw - name_font.getlength(ln)) // 2, ty), ln,
+                          font=name_font, fill=BODY)
+                ty += 20
+            cx += cw + 16
 
     @property
     def height(self) -> int:
