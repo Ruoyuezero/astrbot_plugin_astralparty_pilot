@@ -732,93 +732,67 @@ class AstralPartyPilotPlugin(Star):
         return "\n".join(lines)
 
     def _load_report(self, chk: dict | None = None) -> str:
-        """图库现状：配置 / 目录 / 完整性 / 游戏位置。
+        """图库现状 —— 输出格式固定，别自行加减行。
 
-        按阶段分开说，别让「目录都还没建」也念一遍并发和磁盘：
-        ① 没填 art_root  ② art_root 写错（盘符不存在）
-        ③ 目录还没建  ④ 目录建了但没图  ⑤ 有图：校验通过 / 未通过 / 还没清单
-        只有「还没齐全」才报自动调配与磁盘余量，齐全时直接收尾。
+        未解包（目录不存在 / 目录空 / 还没清单）：
+            已配置 art_root：<父目录>
+            状态：…
+            游戏目录：… / bundle：N 个
+            自动调配：… / 输出磁盘：…
+        已解包：
+            素材根目录：<素材根>
+            状态：校验已通过 / 校验未通过
+            游戏目录：… / bundle：N 个（不再念并发和磁盘）
         """
-        lines = ["🖼 美术图库现状", ""]
         base = AS.base()
         if not base:
-            lines.append("❌ 配置 art_root：没填 —— 图鉴出不了图")
-            lines.append("   去面板 → 插件配置 → 星趴助手，填一个目录后保存。")
-            return "\n".join(lines)
-        lines.append(f"已配置 art_root：{base}")
+            return ("❌ 配置 art_root：没填 —— 图鉴出不了图\n"
+                    "   去面板 → 插件配置 → 星趴助手，填一个目录后保存。")
         if not ARTL.path_usable(base):
-            # 盘符写错时底层会抛 WinError 3，别把异常原文丢给主人
-            lines.append(f"❌ art_root 有误：{base}")
-            lines.append("   系统找不到这个路径，请检查盘符和目录名是否写对了。")
-            return "\n".join(lines)
+            return "[WinError 3] 系统找不到指定的路径。art_root有误，请检查路径是否正确。"
 
         home = AS.home()
-        complete = False
+        need_unpack = True
         if not os.path.isdir(home):
-            lines.append(f"素材根目录：{home}")
-            lines.append("状态：❌ 目录还不存在（发 /app load 自动创建并解包）")
+            lines = [f"已配置 art_root：{base}",
+                     "状态：❌ 目录还不存在（发 /app load 自动创建并解包）"]
         else:
             cnt = ARTL.count_files(home)
             total = sum(cnt.values())
-            lines.append(f"素材根目录：{home}")
             if not total:
-                lines.append("状态：✅ 目录已存在（发 /app load 自动解包）")
-                cnt = {}                                # 空库：下面的分类统计直接跳过
+                lines = [f"已配置 art_root：{base}",
+                         "状态：✅️ 目录已存在（发 /app load 自动解包）"]
             else:
                 chk = chk if chk is not None else ARTL.check(home)
                 state = chk.get("state")
                 if state == "ok":
-                    complete = True
-                    lines.append(f"状态：✅ 校验已通过，共 {total} 张图，目录完整")
+                    lines = [f"素材根目录：{home}",
+                             f"状态：✅ 校验已通过，共 {total} 张图，目录完整"]
+                    need_unpack = False
                 elif state == "missing":
-                    miss = chk.get("missing") or []
-                    sample = "、".join(os.path.basename(m) for m in miss[:3])
-                    more = " 等" if len(miss) > 3 else ""
-                    lines.append(f"状态：❌ 校验未通过，共 {total} 张图，缺 {len(miss)} 张"
-                                 f"（{sample}{more}） —— 发 /app reload 自动补齐")
+                    lines = [f"素材根目录：{home}",
+                             f"状态：❌️ 校验未通过，共 {total} 张图，目录缺失 "
+                             "（发 /app reload 自动补齐）"]
+                    need_unpack = False
                 else:
-                    lines.append(f"状态：✅ 目录已存在，共 {total} 张图"
-                                 "（还没有清单，发 /app load 跑一次就能校验）")
-                if cnt:
-                    # 图鉴真正在用的目录逐项报，其余按磁盘实际张数点名。
-                    # 键是磁盘上的英文目录名，中文只是 display 用的，别拿 value 去 cnt 里查。
-                    used = [k for k in AS.ART_USED if cnt.get(k)]
-                    if used:
-                        lines.append("   图鉴在用：" + " · ".join(f"{k} {cnt[k]}" for k in used))
-                    used_sum = sum(cnt.get(k, 0) for k in AS.ART_USED)
-                    rest = total - used_sum
-                    if rest > 0:
-                        # 不在 ART_USED 里的目录一律算「暂未接」，按真实张数点名 ——
-                        # 硬编码举例太容易和在用类别撞车（之前把在用的立绘写进了“暂未接”）
-                        idle = sorted(((AS.ART_IDLE_LABEL.get(d, d), n)
-                                       for d, n in cnt.items() if d not in AS.ART_USED),
-                                      key=lambda x: -x[1])
-                        if idle:
-                            top = " · ".join(f"{k} {v}" for k, v in idle[:6])
-                            more = " 等" if len(idle) > 6 else ""
-                            lines.append(f"   其余素材：{rest} 张（{top}{more}，暂未接图鉴）")
-                        else:
-                            lines.append(f"   其余素材：{rest} 张（暂未接图鉴）")
+                    # 有图但还没清单：等同于还没解包完，让主人跑一次 load 生成清单
+                    lines = [f"已配置 art_root：{base}",
+                             "状态：✅️ 目录已存在（发 /app load 自动解包）"]
         g = ARTL.game_dir()
         if g:
-            n = len(ARTL.list_bundles(g))
             lines.append(f"游戏目录：{g}")
-            lines.append(f"bundle：{n} 个" + ("" if n else "（一个都没找到，游戏装全了吗）"))
+            lines.append(f"bundle：{len(ARTL.list_bundles(g))} 个")
         else:
             lines.append("游戏目录：❌ 没找到（从游戏解包的前提是游戏装着）")
-        if complete:
-            return "\n".join(lines)                    # 已经齐全，资源/并发那些就不用念了
-        avail = ARTL.avail_mb()
-        disk = ARTL.free_disk_gb(home or ".")
-        jobs, _ = ARTL.plan_jobs(0)
-        lines.append("自动调配：%d 个并发（物理核 %d，内存 %s MB，每进程约 %d MB）"
-                     % (jobs, ARTL.physical_cores(),
-                        avail if avail > 0 else "未知", ARTL.WORKER_MB))
-        lines.append("输出磁盘：%s GB 可用（整库约 1.7 GB）%s" % (
-            ("%.1f" % disk) if disk >= 0 else "未知",
-            "（余量偏少，建议清一下）" if (0 <= disk < ARTL.MIN_DISK_GB) else ""))
-        if self._load_task and not self._load_task.done():
-            lines.append(f"⏳ 正在解包：{self._load_prog}%")
+        if need_unpack:
+            avail = ARTL.avail_mb()
+            disk = ARTL.free_disk_gb(home or ".")
+            jobs, _ = ARTL.plan_jobs(0)
+            lines.append("自动调配：%d 个并发（物理核 %d，内存 %s MB，每进程约 %d MB）"
+                         % (jobs, ARTL.physical_cores(),
+                            avail if avail > 0 else "未知", ARTL.WORKER_MB))
+            lines.append("输出磁盘：%s GB 可用（整库约 1.7 GB）"
+                         % (("%.1f" % disk) if disk >= 0 else "未知"))
         return "\n".join(lines)
 
     async def _app_load(self, event: AstrMessageEvent, joined: str):
@@ -827,31 +801,19 @@ class AstralPartyPilotPlugin(Star):
                                               "reload", "补齐", "补"):
             home = AS.home()
             chk = ARTL.check(home) if (home and os.path.isdir(home)) else {"state": "unindexed"}
-            rep = self._load_report(chk)
+            # 回复严格按格式，不加任何尾巴；补解包在后台静默进行，跑完再发结果
+            yield event.plain_result(self._load_report(chk))
             if chk.get("state") not in ("missing", "unindexed"):
-                yield event.plain_result(rep)       # 齐全就只报现状
-                return
-            # 不齐全 → 就地补解包。run(skip_existing=True) 只写缺的那几张。
+                return                              # 齐全，什么都不用补
             if self._load_task and not self._load_task.done():
-                yield event.plain_result(
-                    rep + f"\n\n⏳ 已经有一轮解包在跑（{self._load_prog}%），完了会自动补齐。")
-                return
+                return                              # 已经有一轮在跑，等它跑完
             gdir = await asyncio.to_thread(ARTL.game_dir)
             if not AS.configured() or not home or not gdir or not os.path.isdir(gdir):
-                yield event.plain_result(
-                    rep + "\n\n❌ 补解包需要两个条件：面板里配好 art_root + 游戏本体装着。")
-                return
+                return                              # 前提不满足，报告里已经写明原因
             self._load_prog = 0
             self._load_umo = getattr(event, "unified_msg_origin", "") or ""
             loop = asyncio.get_running_loop()
             self._load_task = loop.create_task(self._do_load(gdir, home))
-            if chk.get("state") == "missing":
-                what = "缺 %d 张" % len(chk.get("missing") or [])
-            else:
-                what = "还没有完整性清单"
-            yield event.plain_result(
-                rep + f"\n\n📦 {what}，已开始补解包（只写缺的，已有的会自动跳过）…"
-                "完了 bot 会把结果发过来～")
             return
 
         if self._load_task and not self._load_task.done():
