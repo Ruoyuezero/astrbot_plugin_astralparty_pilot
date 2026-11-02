@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """素材目录的唯一解析口：图片全部放在外部图库，插件内不再打包。
 
-图库位置由插件配置 `art_root` 决定 —— 填的是**父目录**（例如 `F:\\pictures`），
+图库位置由插件配置 `art_root` 决定 —— 填的是**父目录**，
 真正的素材根是 `<art_root>\\Astral Party`，由 `/app load` 解包时创建。
 没配 `art_root` 就等于没有图库，所有图鉴都出不了图。
 
@@ -55,6 +55,60 @@ LEGACY = {
     "land": "地块",
     "relic": "道具",
     "handcard": "手牌",
+}
+
+# 「图鉴真正在用的目录」——给 /app load check 报现状用，别拿 SUBDIRS 顶替：
+# achieve 在 ALL_SUBDIRS 里（/app achieve 一直在用），player_photo / account_bg / misc
+# 是奖励图标（artlib._ITEM_KINDS）的来源，牌背/骰子/头像这些才是真没接。
+# 键必须是磁盘上的英文目录名（count_files 的键），中文只作说明，不能拿去查张数。
+# misc 不算：里面 2000+ 张大半是 Lightmap / 法线 / 特效噪声这类解包杂物，
+# 只有零星 item_* 会被奖励图标当兜底捡到，算「在用」会把数字吹得很难看。
+ART_USED = {
+    "chibi": "局内小人",
+    "portrait": "角色立绘",
+    "cg": "战斗CG",
+    "emoji": "表情包",
+    "land": "地块",
+    "buff": "增益",
+    "relic": "筹码/道具",
+    "card": "手牌",
+    "achieve": "成就",
+    # 这两个不是能翻页看的图鉴，而是 /app achieve <ID> 详情卡「奖励」那一行的小图标来源
+    # （artlib.item_icon 按 relic → player_photo → account_bg → misc → other 顺次找）
+    "player_photo": "奖励头像框",
+    "account_bg": "奖励名片背景",
+}
+
+# 没接图鉴的类别 —— 只用来把目录名翻成中文，报现状时哪些真存在是扫磁盘扫出来的
+# （光有这张表不算数，缺目录就不会被念到）。注意别写成「立绘」：立绘（portrait）
+# 是图鉴在用的，这里的 portrait2 是二代立绘、standing_painting 是立绘挂件。
+ART_IDLE_LABEL = {
+    "cardback": "牌背",
+    "headshot": "玩家头像",
+    "dice": "骰子",
+    "thincard": "角色卡面",
+    "portrait2": "二代立绘",
+    "profile": "角色头像",
+    "rolephoto": "角色证件照",
+    "altart": "异画",
+    "item_hero": "英雄道具",
+    "standing_painting": "立绘挂件",
+    "chest": "宝箱",
+    "kv": "主视觉",
+    "guide": "新手引导",
+    "mutator": "变异体",
+    "map_event": "地图事件",
+    "map_preview": "地图预览",
+    "map_scene": "地图场景",
+    "activity": "活动",
+    "gacha_theme": "抽卡主题",
+    "exchange": "兑换",
+    "recharge": "充值",
+    "event": "事件",
+    "sg_building": "小游戏建筑",
+    "sg_relic": "小游戏道具",
+    "other": "图集",
+    "misc": "未归类杂物",
 }
 
 # ---------------------------------------------------------------------------

@@ -23,6 +23,11 @@ from PIL import Image, ImageDraw
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 META_PATH = os.path.join(HERE, "kb", "buffs_meta.json")
 
+# 游戏里没真正用上的占位 buff（有 id 无图标、对战里不会出现），图鉴里一律不显示。
+# 10000「悬赏」：只有类型表里一条空壳，没有原生图标，接进来就是一张破图。
+BUFF_DROP_IDS = {"10000"}
+BUFF_DROP_NAMES = {"悬赏"}
+
 from . import assets as AS        # 图标走外部素材库：buff/ 与 道具/
 from .cardrender import _font     # 字体跟卡面配置走（card_font），不再自带字体栈
 
@@ -88,6 +93,16 @@ _META_CACHE = None
 
 
 # ---------------------------------------------------------------- 数据 ----
+def _dropped(entry: dict) -> bool:
+    """该 buff 是否要剔除（占位/无图标的那种）。"""
+    ids = [str(i) for i in (entry.get("ids") or [])]
+    if any(i in BUFF_DROP_IDS for i in ids):
+        return True
+    if not ids and entry.get("name") in BUFF_DROP_NAMES:
+        return True
+    return False
+
+
 def _load_meta() -> list[dict]:
     """读 kb/buffs_meta.json；缺失时退回扫图标目录的旧逻辑。"""
     global _META_CACHE
@@ -98,6 +113,7 @@ def _load_meta() -> list[dict]:
         with open(META_PATH, encoding="utf-8") as f:
             data = json.load(f)
         if isinstance(data, list) and data:
+            data = [e for e in data if not _dropped(e)]
             _META_CACHE = data
             return data
     except (FileNotFoundError, json.JSONDecodeError):
@@ -111,6 +127,8 @@ def _load_meta() -> list[dict]:
             if not fn.endswith(".png"):
                 continue
             base = fn[len("UT_Buff_"):-4]
+            if base in BUFF_DROP_IDS:
+                continue
             items.append({
                 "name": CN.get(base, base),
                 "ids": [base],

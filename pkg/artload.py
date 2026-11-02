@@ -341,8 +341,11 @@ def plan_jobs(mem_mb: int = 0, cores: int | None = None) -> tuple[int, int]:
     return max(1, min(cpu_cap, mem_cap)), avail
 
 
-def _worker(job) -> tuple[int, int, list]:
-    """解一个 bundle。返回 (成功数, 跳过数, 失败样例)。
+def _worker(job) -> tuple[int, int, list, list]:
+    """解一个 bundle。返回 (成功数, 跳过数, 失败样例, 落盘的相对路径清单)。
+
+    清单（如 `relic/UT_Relic_50010.png`）用来生成图库索引 `_index.json`，
+    以后再检查完整性时只要比对索引和磁盘，不用重扫 6688 个 bundle。
 
     内存要点：`o.read()` 拿到的是纹理原始压缩数据，`t.image` 会把它解码成
     一张 PIL Image（4K RGBA 就是 33MB/张）。这两样都必须用完即弃，否则
@@ -351,6 +354,7 @@ def _worker(job) -> tuple[int, int, list]:
     bundle, out_root, skip_existing = job
     ok = skip = 0
     errs: list = []
+    names: list = []
 
     # UnityPy 遇到不认识的 bundle 会直接 print 一坨到 stdout（走不了 logging），
     # 几千个 bundle 扫下来能把控制台刷满，这里在子进程里就地吞掉。
@@ -364,7 +368,7 @@ def _worker(job) -> tuple[int, int, list]:
                 contextlib.redirect_stderr(io.StringIO()):
             env = UnityPy.load(bundle)
     except Exception as e:                              # noqa: BLE001
-        return 0, 0, ["%s: %s" % (os.path.basename(bundle), e)]
+        return 0, 0, ["%s: %s" % (os.path.basename(bundle), e)], names
 
     seen = 0
     img = None
@@ -390,9 +394,11 @@ def _worker(job) -> tuple[int, int, list]:
                 t = None
                 continue
             cat = category_of(name)
+            rel = "%s/%s.png" % (cat, name)
             dst = os.path.join(out_root, cat, "%s.png" % name)
             if skip_existing and os.path.exists(dst):
                 skip += 1
+                names.append(rel)
                 t = None
                 continue
             try:
@@ -400,6 +406,7 @@ def _worker(job) -> tuple[int, int, list]:
                 img = t.image                                # 解码在这一行，峰值内存也在这
                 img.save(dst)
                 ok += 1
+                names.append(rel)
             except Exception as e:                          # noqa: BLE001
                 if len(errs) < 3:
                     errs.append("%s: %s" % (name, e))
@@ -412,7 +419,7 @@ def _worker(job) -> tuple[int, int, list]:
     finally:
         env = None
         gc.collect()
-    return ok, skip, errs
+    return ok, skip, errs, names
 
 
 def run(out_root: str, gdir: str | None = None, jobs: int = 0,
@@ -460,6 +467,7 @@ def run(out_root: str, gdir: str | None = None, jobs: int = 0,
     total = len(files)
     ok = skip = 0
     errs: list = []
+    seen_names: set = set()                    # 这次扫到的「图上应该有」的相对路径
     payload = [(f, out_root, skip_existing) for f in files]
 
     # 多进程解包，分批复用新进程池：
@@ -474,10 +482,11 @@ def run(out_root: str, gdir: str | None = None, jobs: int = 0,
         chunk = payload[idx: idx + max(1, recycle * tried)]
         try:
             with ProcessPoolExecutor(max_workers=tried) as ex:
-                for a, b, e in ex.map(_worker, chunk, chunksize=4):
+                for a, b, e, ns in ex.map(_worker, chunk, chunksize=4):
                     ok += a
                     skip += b
                     errs.extend(e)
+                    seen_names.update(ns)
                     idx += 1
                     if on_progress and (idx % 20 == 0 or idx == total):
                         on_progress(idx, total, ok, skip)
@@ -492,10 +501,11 @@ def run(out_root: str, gdir: str | None = None, jobs: int = 0,
             if on_progress:
                 on_progress(idx, total, ok, skip)
             for i, f in enumerate(files[idx:]):
-                a, b, e = _worker((f, out_root, skip_existing))
+                a, b, e, ns = _worker((f, out_root, skip_existing))
                 ok += a
                 skip += b
                 errs.extend(e)
+                seen_names.update(ns)
                 if on_progress and (idx + i + 1) % 50 == 0:
                     on_progress(idx + i + 1, total, ok, skip)
             idx = total
@@ -517,8 +527,10 @@ def run(out_root: str, gdir: str | None = None, jobs: int = 0,
         "disk_free": round(disk, 1) if disk >= 0 else -1,
         "warn": warn,
         "errors": errs[:8],
+        "indexed": len(seen_names),
         "seconds": round(time.time() - t0, 1),
     }
+    _write_index(out_root, seen_names, gdir)
     try:
         with open(os.path.join(out_root, "manifest.json"), "w", encoding="utf-8") as f:
             json.dump({"at": time.strftime("%Y-%m-%d %H:%M:%S"), **stats},
@@ -529,6 +541,58 @@ def run(out_root: str, gdir: str | None = None, jobs: int = 0,
 
 
 # ------------------------------------------------------------------ 体检
+INDEX_FILE = "_index.json"
+
+
+def index_path(out_root: str) -> str:
+    return os.path.join(out_root, INDEX_FILE)
+
+
+def _write_index(out_root: str, names, gdir: str = "") -> None:
+    """把「游戏里应该有这些图」写成索引，供以后的完整性检查用。
+
+    只记相对路径（形如 `relic/UT_Relic_50010.png`），6894 条大约 500KB，
+    比每次重扫 6688 个 bundle 划得多。
+    """
+    doc = {"at": time.strftime("%Y-%m-%d %H:%M:%S"),
+           "game": gdir,
+           "count": len(names),
+           "files": sorted(names)}
+    try:
+        with open(index_path(out_root), "w", encoding="utf-8") as f:
+            json.dump(doc, f, ensure_ascii=False)
+    except OSError:
+        pass
+
+
+def read_index(out_root: str) -> dict | None:
+    try:
+        with open(index_path(out_root), encoding="utf-8") as f:
+            doc = json.load(f)
+        return doc if isinstance(doc, dict) else None
+    except (OSError, json.JSONDecodeError):
+        return None
+
+
+def check(out_root: str) -> dict:
+    """对照索引检查图库完整性（不扫 bundle，秒回）。
+
+    返回 {"state": ok|missing|unindexed, "total": 应有张数, "missing": [缺的相对路径]}
+    - unindexed：还没生成过索引（老图库，或从没解包过）→ 上层可以跑一次补索引
+    """
+    doc = read_index(out_root)
+    files = (doc or {}).get("files") or []
+    if not files:
+        return {"state": "unindexed", "total": 0, "missing": [], "at": ""}
+    miss = []
+    for rel in files:
+        if not os.path.isfile(os.path.join(out_root, rel.replace("/", os.sep))):
+            miss.append(rel)
+    return {"state": "ok" if not miss else "missing",
+            "total": len(files),
+            "missing": miss,
+            "at": doc.get("at") or ""}
+
 
 def count_files(root: str) -> dict:
     """统计图库里各类别有多少张图（给 /app load 报结果用）。"""

@@ -20,7 +20,9 @@ TOOLS = os.path.dirname(os.path.abspath(__file__))
 HERE = os.path.dirname(TOOLS)          # 插件根目录
 BUFF_DIR = os.path.join(HERE, "images", "buff")
 RELIC_DIR = os.path.join(HERE, "images", "relic")
-SRC_RELIC = r"F:/pictures/Astral Party/道具"
+# 老图库路径不再写死盘符：要重跑本脚本时，先把素材根指过去
+#   set ASTRAL_ART_ROOT=D:\Pictures\Astral Party
+SRC_RELIC = os.path.join(os.environ.get("ASTRAL_ART_ROOT", ""), "relic")
 
 buffs = json.load(open(os.path.join(HERE, "kb", "buffs.json"), encoding="utf-8"))
 strbuff = json.load(open(os.path.join(HERE, "kb", "strbuff.json"), encoding="utf-8"))

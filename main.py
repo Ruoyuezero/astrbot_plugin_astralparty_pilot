@@ -136,7 +136,8 @@ HELP_SECTIONS = [
         ("/app uid", "我的档案卡：用登录态查自己（uid 是指令名，不是游戏 UID）"),
         ("/app out", "退出登录，删掉本机保存的登录票"),
     ]),
-    ("🎮", "陪玩（仅管理员；全自动 / 半自动 / 玩家自主控制）", [
+    ("🎮", "陪玩（仅管理员 · 🚧 开发中，未完全实装）", [
+        ("🚧 开发中", "陪玩代打（/appa 系列）尚在开发，未完全实装，请静待更新"),
         ("/appa", "看本机：在局内→局内卡，不在局→档案卡"),
         ("/appa on", "全自动代打：出牌、技能、移动、战斗全交给 bot"),
         ("/appa card", "半自动代打：把这一项交给 bot（一次一项，其余归你）"),
@@ -176,6 +177,8 @@ PILOT_ACT_CN = {"card": "出牌", "skill": "开技能", "go": "移动/继续", "
                 "skip": "闪避"}
 
 APPA_HELP = (
+    "🚧 陪玩（/appa 系列）尚在开发中，未完全实装，行为可能随版本变化，请静待更新。\n"
+    "\n"
     "🎮 陪玩指令（仅管理员）· 不带参数看本机：局内出局内卡，不在局出档案卡\n"
     "① 全自动代打 ··· /appa on —— 出牌 / 技能 / 移动 / 战斗都交给 bot\n"
     "② 半自动代打 ··· /appa card（出牌）· skill（技能）· go（移动）等，一次交给 bot 一项\n"
@@ -662,14 +665,18 @@ class AstralPartyPilotPlugin(Star):
         """图库不能用时给的一句话（区分「没配路径」和「配了但空」）。"""
         if not AS.configured():
             return ("🖼 bot 还没有美术图库呢。\n"
-                    "插件配置里的「美术素材库目录」（art_root）是空的 —— 填一个目录"
-                    "（例如 F:\\pictures），再发 /app load，bot 会把游戏素材解包到"
+                    "插件配置里的「美术素材库目录」（art_root）是空的 —— 填一个父目录，"
+                    "再发 /app load，bot 会把游戏素材解包到"
                     "「<该目录>\\Astral Party」，之后图鉴都从那里出图。")
         return (f"🖼 图库还是空的：{AS.home()}\n"
                 "发 /app load，bot 会从游戏本体解包素材过来（几分钟）。")
 
-    def _load_report(self) -> str:
-        """图库现状：配置 / 目录 / 各类张数 / 游戏位置。"""
+    def _load_report(self, chk: dict | None = None) -> str:
+        """图库现状：配置 / 目录 / 各类张数 / 完整性 / 游戏位置。
+
+        chk 是 ARTL.check() 的结果；图库完整时不再报「自动调配 / 输出磁盘」——
+        那些只在准备解包的时候才有意义。
+        """
         lines = ["🖼 美术图库现状", ""]
         base = AS.base()
         if not base:
@@ -678,20 +685,47 @@ class AstralPartyPilotPlugin(Star):
         else:
             lines.append(f"配置 art_root：{base}")
         home = AS.home()
+        complete = False
         if home:
             lines.append(f"素材根：{home}")
             if os.path.isdir(home):
                 cnt = ARTL.count_files(home)
                 total = sum(cnt.values())
                 lines.append(f"状态：✅ 已存在，共 {total} 张图")
+                chk = chk if chk is not None else ARTL.check(home)
+                state = chk.get("state")
+                if state == "ok":
+                    complete = True
+                    lines.append(f"   完整性：✅ {chk.get('total')} 张全部齐全"
+                                 f"（清单 {chk.get('at') or '未知'} 生成，不用再解包）")
+                elif state == "missing":
+                    miss = chk.get("missing") or []
+                    sample = "、".join(os.path.basename(m) for m in miss[:3])
+                    more = f" 等 {len(miss)} 张" if len(miss) > 3 else ""
+                    lines.append(f"   完整性：⚠ 清单 {chk.get('total')} 张，缺 {len(miss)} 张"
+                                 f"（{sample}{more}）")
+                else:
+                    lines.append("   完整性：❔ 还没有清单（发 /app load 解一次就会自动生成）")
                 if cnt:
-                    # 先报图鉴真正在用的那几个目录，剩下的（牌背/头像/骰子/杂项）只报总数
-                    used = [v for v in dict.fromkeys(AS.SUBDIRS.values()) if cnt.get(v)]
+                    # 图鉴真正在用的目录逐项报，其余按磁盘实际张数点名。
+                    # 键是磁盘上的英文目录名，中文只是 display 用的，别拿 value 去 cnt 里查。
+                    used = [k for k in AS.ART_USED if cnt.get(k)]
                     if used:
                         lines.append("   图鉴在用：" + " · ".join(f"{k} {cnt[k]}" for k in used))
-                    rest = total - sum(cnt[k] for k in used)
+                    used_sum = sum(cnt.get(k, 0) for k in AS.ART_USED)
+                    rest = total - used_sum
                     if rest > 0:
-                        lines.append(f"   其余素材：{rest} 张（牌背/头像/成就/骰子等，图鉴暂未接）")
+                        # 不在 ART_USED 里的目录一律算「暂未接」，按真实张数点名 ——
+                        # 硬编码举例太容易和在用类别撞车（之前把在用的立绘写进了“暂未接”）
+                        idle = sorted(((AS.ART_IDLE_LABEL.get(d, d), n)
+                                       for d, n in cnt.items() if d not in AS.ART_USED),
+                                      key=lambda x: -x[1])
+                        if idle:
+                            top = " · ".join(f"{k} {v}" for k, v in idle[:6])
+                            more = " 等" if len(idle) > 6 else ""
+                            lines.append(f"   其余素材：{rest} 张（{top}{more}，暂未接图鉴）")
+                        else:
+                            lines.append(f"   其余素材：{rest} 张（暂未接图鉴）")
             else:
                 lines.append("状态：❌ 目录还不存在（发 /app load 让 bot 建）")
         g = ARTL.game_dir()
@@ -701,6 +735,8 @@ class AstralPartyPilotPlugin(Star):
             lines.append(f"bundle：{n} 个" + ("" if n else "（一个都没找到，游戏装全了吗）"))
         else:
             lines.append("游戏目录：❌ 没找到（从游戏解包的前提是游戏装着）")
+        if complete:
+            return "\n".join(lines)                    # 已经齐全，资源/并发那些就不用念了
         avail = ARTL.avail_mb()
         disk = ARTL.free_disk_gb(home or ".")
         jobs, _ = ARTL.plan_jobs(0)
@@ -717,7 +753,33 @@ class AstralPartyPilotPlugin(Star):
     async def _app_load(self, event: AstrMessageEvent, joined: str):
         """/app load：把游戏美术素材解包到图库。"""
         if (joined or "").strip().lower() in ("check", "查", "查看", "状态", "status", "info"):
-            yield event.plain_result(self._load_report())
+            home = AS.home()
+            chk = ARTL.check(home) if (home and os.path.isdir(home)) else {"state": "unindexed"}
+            rep = self._load_report(chk)
+            if chk.get("state") not in ("missing", "unindexed"):
+                yield event.plain_result(rep)       # 齐全就只报现状
+                return
+            # 不齐全 → 就地补解包。run(skip_existing=True) 只写缺的那几张。
+            if self._load_task and not self._load_task.done():
+                yield event.plain_result(
+                    rep + f"\n\n⏳ 已经有一轮解包在跑（{self._load_prog}%），完了会自动补齐。")
+                return
+            gdir = await asyncio.to_thread(ARTL.game_dir)
+            if not AS.configured() or not home or not gdir or not os.path.isdir(gdir):
+                yield event.plain_result(
+                    rep + "\n\n❌ 补解包需要两个条件：面板里配好 art_root + 游戏本体装着。")
+                return
+            self._load_prog = 0
+            self._load_umo = getattr(event, "unified_msg_origin", "") or ""
+            loop = asyncio.get_running_loop()
+            self._load_task = loop.create_task(self._do_load(gdir, home))
+            if chk.get("state") == "missing":
+                what = "缺 %d 张" % len(chk.get("missing") or [])
+            else:
+                what = "还没有完整性清单"
+            yield event.plain_result(
+                rep + f"\n\n📦 {what}，已开始补解包（只写缺的，已有的会自动跳过）…"
+                "完了 bot 会把结果发过来～")
             return
 
         if self._load_task and not self._load_task.done():
@@ -727,8 +789,8 @@ class AstralPartyPilotPlugin(Star):
         if not AS.configured():
             yield event.plain_result(
                 "❌ 加载失败：插件配置里的「美术素材库目录」（art_root）没写路径。\n\n"
-                "去 AstrBot 面板 → 插件配置 → 星趴助手，把 art_root 填成想放素材的目录"
-                "（例如 F:\\pictures），保存后再发 /app load。\n"
+                "去 AstrBot 面板 → 插件配置 → 星趴助手，把 art_root 填成想放素材的父目录，"
+                "保存后再发 /app load。\n"
                 "bot 会在那个目录下建 Astral Party 文件夹，把游戏美术素材解包进去；"
                 "之后整个图鉴都用这个库。")
             return
@@ -790,6 +852,11 @@ class AstralPartyPilotPlugin(Star):
             logger.error(f"[星趴] 解包失败：{exc}")
             st = {"ok": False, "why": f"解包时出错：{exc}"}
         self._load_prog = 100
+        if st.get("ok"):
+            try:                                        # 解完立刻体检，回话里直接说齐没齐
+                st["chk"] = await asyncio.to_thread(ARTL.check, out)
+            except Exception:                           # noqa: BLE001
+                st["chk"] = {}
 
         text = self._load_result_text(st)
         logger.info("[星趴] " + text.replace("\n", " / "))
@@ -833,6 +900,12 @@ class AstralPartyPilotPlugin(Star):
             total = sum(cnt.values())
             top = sorted(cnt.items(), key=lambda x: -x[1])[:10]
             lines.append(f"· 图库合计 {total} 张：" + " · ".join(f"{k} {v}" for k, v in top))
+        chk = st.get("chk") or {}
+        if chk.get("state") == "ok":
+            lines.append(f"· 完整性 ✅ {chk.get('total')} 张齐全（清单已存，以后 /app load check 秒验）")
+        elif chk.get("state") == "missing":
+            lines.append(f"· 完整性 ⚠ 清单 {chk.get('total')} 张，仍缺 {len(chk.get('missing') or [])} 张；"
+                         "重发 /app load check 会再补一轮")
         errs = st.get("errors") or []
         if errs:
             lines.append("· 有 {} 条异常，样例：{}".format(len(errs), errs[0][:120]))
@@ -1653,7 +1726,7 @@ class AstralPartyPilotPlugin(Star):
         """把配置对齐到 _conf_schema.json：删掉废弃键，纠正旧版 art_root。
 
         旧版 art_root 填的是「素材库自己」（…\\Astral Party），新版填的是父目录
-        （…\\pictures），库名固定由代码拼。老配置直接沿用会变成
+        （素材库的上一层），库名固定由代码拼。老配置直接沿用会变成
         `…\\Astral Party\\Astral Party`，所以在启动时就地回退一层。
         """
         schema = os.path.join(os.path.dirname(os.path.abspath(__file__)),

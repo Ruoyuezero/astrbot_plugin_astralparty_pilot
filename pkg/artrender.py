@@ -307,12 +307,17 @@ class Blocks:
                 _relic_tile(canvas, draw, payload, ix, int(y), icon, 0.80)
             else:
                 ip, q = payload
-                if q:
-                    tile = _quality_tile(icon, q)
-                    canvas.paste(tile, (ix, int(y)), tile)
+                # 品质底：一律用插件自带的游戏原生圆盘（assets/relicbase/），不再自绘
+                base = artlib.relic_base(q) if q else None
+                im_base = _open(base) if base else None
+                if im_base is not None:
+                    b = _fit(im_base, icon, icon)
+                    canvas.paste(b, (ix + (icon - b.width) // 2,
+                                     int(y) + (icon - b.height) // 2), b)
                 im = _open(ip) if ip else None
                 if im:
-                    _paste_center(canvas, _fit(im, icon - 8, icon - 8),
+                    inner = int(icon * 0.72) if im_base is not None else icon - 8
+                    _paste_center(canvas, _fit(im, inner, inner),
                                   ix, int(y), icon, icon)
                 else:
                     draw.ellipse([ix + 4, int(y) + 4, ix + icon - 4, int(y) + icon - 4],
@@ -1136,67 +1141,12 @@ def _relic_rank(q) -> int:
     return RELIC_QUALITY_RANK.get(str(q or "").strip(), 9)
 
 
-def _mix(c1, c2, t: float) -> tuple:
-    return tuple(int(a + (b - a) * t) for a, b in zip(c1[:3], c2[:3]))
-
-
-_TILE_CACHE: dict[tuple, Image.Image] = {}
-
-
-def _quality_tile(size: int, quality) -> Image.Image:
-    """按品质色生成圆角底板（游戏里没有独立的品质框贴图，这里是仿制）。
-
-    垂直渐变 + 亮色描边 + 顶部高光 + 内圈暗线，叠在透明图标下面做「稀有度底」。
-    """
-    key = (size, str(quality or "").strip())
-    if key in _TILE_CACHE:
-        return _TILE_CACHE[key]
-
-    base = _relic_color(quality)
-    light = _mix(base, (255, 255, 255), 0.44)
-    dark = _mix(base, (12, 12, 18), 0.54)
-    radius = max(4, int(size * 0.24))
-
-    tile = Image.new("RGBA", (size, size), (0, 0, 0, 0))
-
-    # 渐变主体，用圆角蒙版抠形
-    grad = Image.new("RGBA", (size, size))
-    gd = ImageDraw.Draw(grad)
-    for i in range(size):
-        t = i / max(1, size - 1)
-        gd.line([(0, i), (size, i)], fill=_mix(light, dark, t) + (255,))
-    mask = Image.new("L", (size, size), 0)
-    ImageDraw.Draw(mask).rounded_rectangle([0, 0, size - 1, size - 1], radius=radius, fill=255)
-    tile.paste(grad, (0, 0), mask)
-
-    d = ImageDraw.Draw(tile)
-    # 外圈亮描边 + 内圈暗线，做出「镶边」感
-    d.rounded_rectangle([1, 1, size - 2, size - 2], radius=radius,
-                        outline=_mix(base, (255, 255, 255), 0.74) + (235,),
-                        width=max(2, size // 44))
-    inset = max(3, int(size * 0.09))
-    d.rounded_rectangle([inset, inset, size - inset - 1, size - inset - 1],
-                        radius=max(3, int(radius * 0.8)),
-                        outline=_mix(base, (0, 0, 0), 0.52) + (95,),
-                        width=max(1, size // 90))
-
-    # 顶部柔和高光
-    gloss = Image.new("RGBA", (size, size), (255, 255, 255, 0))
-    ImageDraw.Draw(gloss).ellipse(
-        [-size * 0.25, -size * 0.62, size * 1.25, size * 0.52],
-        fill=(255, 255, 255, 30))
-    tile.alpha_composite(Image.composite(
-        gloss, Image.new("RGBA", (size, size), (0, 0, 0, 0)), mask))
-
-    _TILE_CACHE[key] = tile
-    return tile
-
-
 def _relic_tile(canvas: Image.Image, draw: ImageDraw.ImageDraw, relic: dict,
                 x: int, y: int, size: int, inner_ratio: float = 0.72) -> None:
     """品质底 + 居中叠放图标。
 
-    优先用游戏原始的圆盘底框（UT_RelicBase_*），图库里没有时退回自绘方形底。
+    底框只用游戏原生的圆盘（artlib.relic_base → 插件自带 assets/relicbase/）。
+    拿不到（比如没有原生底框的「白」）就直接不放底，只用图标，绝不自绘替代品。
     """
     base_path = artlib.relic_base(relic.get("quality"))
     im_base = _open(base_path) if base_path else None
@@ -1205,9 +1155,7 @@ def _relic_tile(canvas: Image.Image, draw: ImageDraw.ImageDraw, relic: dict,
         canvas.paste(b, (x + (size - b.width) // 2, y + (size - b.height) // 2), b)
         ratio = inner_ratio
     else:
-        tile = _quality_tile(size, relic.get("quality"))
-        canvas.paste(tile, (x, y), tile)
-        ratio = min(0.84, inner_ratio + 0.08)
+        ratio = min(0.92, inner_ratio + 0.12)          # 没底就把图标放宽一点
 
     path = artlib.relic_icon(relic.get("icon") or "")
     im = _open(path) if path else None

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """地块图鉴渲染 —— 把「地块」素材做成 QQ 里的图鉴与卡片。
 
-素材来自外部素材库 `art_root/地块`（默认 F:\\pictures\\Astral Party\\地块），插件不再内置：
+素材来自外部素材库 `art_root/Astral Party/land`（`art_root` 由插件配置决定），插件不再内置：
 
 - 地形地块：`UT_Platform_<英文标识>.png`（260×260 圆形图标）
             例：UT_Platform_Shop.png = 商店

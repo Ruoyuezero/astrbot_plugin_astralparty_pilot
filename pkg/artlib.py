@@ -2,7 +2,8 @@
 """星趴美术素材库索引。
 
 素材放在**外部图库**：配置 `art_root` 指的父目录下面的 `Astral Party`，
-由 `/app load` 从游戏本体解包出来。插件目录里不再打包任何图片。子目录用英文小写：
+由 `/app load` 从游戏本体解包出来。插件目录里只留 `assets/relicbase/` 那 3 张
+筹码品质底框（游戏 bundle 里没有同名纹理，只能随插件走）。子目录用英文小写：
 
 - chibi   ：UT_Hero_LevelUp_<英雄id>[_皮肤后缀].png       —— 英雄列表用
 - portrait：UT_Hero_Card_<英雄id>[_皮肤后缀].png
@@ -230,9 +231,19 @@ RELIC_BASE_FILE = {"蓝": "UT_RelicBase_Blue.png",
 
 
 def relic_base(quality: str) -> str | None:
-    """按品质取筹码圆盘底框，没有对应图时返回 None（渲染会退回自绘方形底）。"""
+    """按品质取筹码圆盘底框，没有对应图时返回 None（渲染会退回自绘方形底）。
+
+    这 3 张（蓝 / 紫 / 金，游戏内部把金色叫 Orange）是 wiki 上的游戏原图，
+    bundle 里没有同名纹理、解包产不出来，所以**直接读插件自带的 assets/relicbase/**，
+    和解包图库无关：图库被清空、整库重解都不影响筹码卡上的原生圆盘。
+    """
     name = RELIC_BASE_FILE.get(str(quality or "").strip())
-    return relic_icon(name) if name else None
+    if not name:
+        return None
+    bundled = os.path.join(HERE, "assets", "relicbase", name)
+    if os.path.isfile(bundled):
+        return bundled
+    return relic_icon(name)                     # 兜底：万一插件里没带，再看图库
 
 
 def achieve_icon(filename: str) -> str | None:
