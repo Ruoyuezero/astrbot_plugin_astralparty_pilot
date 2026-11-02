@@ -692,7 +692,7 @@ class AstralPartyPilotPlugin(Star):
         """素材清点：图库里每个子目录一行，报中文名 + 目录名 + 张数。
 
         和 /app load check 的分工：check 关心「齐不齐」，list 只关心「有什么、各多少」，
-        所以不读 _index.json、不做校验，也不念并发和磁盘 —— 纯扫目录。
+        所以不读完整性清单、不做校验，也不念并发和磁盘 —— 纯扫目录。
         """
         base = AS.base()
         if not base:

@@ -23,6 +23,11 @@ import re
 import time
 from concurrent.futures import ProcessPoolExecutor
 
+try:                                    # 正常按 pkg.artload 加载
+    from . import datapaths
+except ImportError:                     # 调试时被当独立模块 import
+    import datapaths                    # type: ignore[no-redef]
+
 # 输出子目录名，必须和 assets.SUBDIRS / ALL_SUBDIRS 对得上，
 # 否则图鉴按目录找图会找不到。按前缀长度降序排，先命中先用 ——
 # 短的排前面会把 UT_Hero_Card2 抢成 UT_Hero_Card。
@@ -368,7 +373,7 @@ def plan_jobs(mem_mb: int = 0, cores: int | None = None) -> tuple[int, int]:
 def _worker(job) -> tuple[int, int, list, list]:
     """解一个 bundle。返回 (成功数, 跳过数, 失败样例, 落盘的相对路径清单)。
 
-    清单（如 `relic/UT_Relic_50010.png`）用来生成图库索引 `_index.json`，
+    清单（如 `relic/UT_Relic_50010.png`）用来生成完整性清单 `art_index.json`，
     以后再检查完整性时只要比对索引和磁盘，不用重扫 6688 个 bundle。
 
     内存要点：`o.read()` 拿到的是纹理原始压缩数据，`t.image` 会把它解码成
@@ -556,7 +561,7 @@ def run(out_root: str, gdir: str | None = None, jobs: int = 0,
     }
     _write_index(out_root, seen_names, gdir)
     try:
-        with open(os.path.join(out_root, "manifest.json"), "w", encoding="utf-8") as f:
+        with open(datapaths.path(MANIFEST_FILE), "w", encoding="utf-8") as f:
             json.dump({"at": time.strftime("%Y-%m-%d %H:%M:%S"), **stats},
                       f, ensure_ascii=False, indent=1)
     except OSError:
@@ -565,37 +570,73 @@ def run(out_root: str, gdir: str | None = None, jobs: int = 0,
 
 
 # ------------------------------------------------------------------ 体检
-INDEX_FILE = "_index.json"
+# 完整性清单存**插件数据目录**（data/plugin_data/<插件名>/art_index.json），不写进图库：
+# 图库只放素材，混进插件的记账文件既脏又容易被误删；何况换盘/换库时插件侧也更好管。
+INDEX_FILE = "art_index.json"
+MANIFEST_FILE = "art_manifest.json"     # 每次解包的统计流水，同样留在插件数据目录
 
 
-def index_path(out_root: str) -> str:
-    return os.path.join(out_root, INDEX_FILE)
+def index_path(out_root: str = "") -> str:
+    """清单文件位置：固定在插件数据目录（参数只为兼容旧调用，不再看图库路径）。"""
+    return datapaths.path(INDEX_FILE)
+
+
+def _adopt_legacy_index(out_root: str) -> dict | None:
+    """旧版把 `_index.json` 写在了图库根目录：搬到插件数据目录，顺手删掉旧文件。"""
+    old = os.path.join(out_root or "", "_index.json")
+    if not out_root or not os.path.isfile(old):
+        return None
+    try:
+        with open(old, encoding="utf-8") as f:
+            doc = json.load(f)
+        if not isinstance(doc, dict) or not doc.get("files"):
+            return None
+        doc["root"] = os.path.normpath(out_root)
+        with open(index_path(), "w", encoding="utf-8") as f:
+            json.dump(doc, f, ensure_ascii=False)
+        os.remove(old)                          # 图库里不该留插件的记账文件
+        return doc
+    except (OSError, json.JSONDecodeError):
+        return None
 
 
 def _write_index(out_root: str, names, gdir: str = "") -> None:
     """把「游戏里应该有这些图」写成索引，供以后的完整性检查用。
 
     只记相对路径（形如 `relic/UT_Relic_50010.png`），6894 条大约 500KB，
-    比每次重扫 6688 个 bundle 划得多。
+    比每次重扫 6688 个 bundle 划得多。doc 里带 `root`，换图库时不至于拿旧名单判缺。
     """
     doc = {"at": time.strftime("%Y-%m-%d %H:%M:%S"),
+           "root": os.path.normpath(out_root),
            "game": gdir,
            "count": len(names),
            "files": sorted(names)}
     try:
-        with open(index_path(out_root), "w", encoding="utf-8") as f:
+        with open(index_path(), "w", encoding="utf-8") as f:
             json.dump(doc, f, ensure_ascii=False)
     except OSError:
         pass
 
 
 def read_index(out_root: str) -> dict | None:
+    """读清单。清单绑在某个图库上，路径对不上就当没清单（换库先重解一次）。"""
+    doc = None
     try:
-        with open(index_path(out_root), encoding="utf-8") as f:
+        with open(index_path(), encoding="utf-8") as f:
             doc = json.load(f)
-        return doc if isinstance(doc, dict) else None
     except (OSError, json.JSONDecodeError):
+        doc = None
+    if not isinstance(doc, dict) or not doc.get("files"):
+        doc = _adopt_legacy_index(out_root)     # 首次运行：把图库里的老清单收编进来
+    if not isinstance(doc, dict):
         return None
+    root = str(doc.get("root") or "")
+    if root and out_root:
+        same = os.path.normcase(os.path.normpath(root)) == \
+            os.path.normcase(os.path.normpath(out_root))
+        if not same:
+            return None
+    return doc
 
 
 def check(out_root: str) -> dict:

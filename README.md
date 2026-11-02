@@ -205,14 +205,15 @@
 1. 在面板里把 `art_root` 填成想放素材的父目录（不用自己建子目录）
 2. 发 `/app load`
 3. bot 会从游戏本体（Steam 里的《星引擎 Party》）解包全部 `Texture2D`，写进
-   `<art_root>\Astral Party\<类别>\<资源名>.png`，同时在图库根目录写一份 `_index.json` 记录这次的清单
+   `<art_root>\Astral Party\<类别>\<资源名>.png`，解包统计另存插件数据目录，图库里只留图片
 
 之后所有图鉴（`/app hero`、`/app card`、`/app relic`……）都从这个库出图。图库按英文子目录分类：`chibi` / `portrait` / `cg` / `emoji` / `land` / `card` / `buff` / `relic` / `achieve` / `cardback` / `headshot` 等三十来类。
 
 - `art_root` 留空时发 `/app load` 会直接报「加载失败」，提示去配置，不会假装成功
 - 素材只能从游戏本体解包，所以这台机器得装着《星引擎 Party》；找不到游戏目录同样报「加载失败」
 - 已经存在的文件默认跳过，所以重复跑只补新素材；游戏更新后重新发一次即可
-- **完整性自查**：解包时会在图库根目录写一份 `_index.json`（记录「游戏里应该有这 6894 张」）。
+- **完整性自查**：解包时会把「游戏里应该有这 6894 张」写成清单，存在插件数据目录
+  `data/plugin_data/astrbot_plugin_astralparty_pilot/art_index.json`（图库里不放任何记账文件）。
   之后发 `/app load check`（或 `/app reload`）会拿清单和磁盘逐条比对，几秒就知道齐没齐；
   缺图或还没清单会**自动补解包**（只写缺的那几张），齐全时只报现状、不再啰嗦内存和磁盘。
 - 想知道图库里都有什么、各多少张：发 `/app list`，一个分类一行，图鉴在用和暂未接分开列
