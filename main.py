@@ -497,7 +497,7 @@ class AstralPartyPilotPlugin(Star):
             async for result in self._app_achieve(event, joined):
                 yield result
             return
-        if sub in ("list", "ls", "统计", "目录", "素材"):
+        if sub == "list":
             # /app list：图库有哪些分类、各多少张（不校验、不解包）
             yield event.plain_result(self._art_list())
             return
