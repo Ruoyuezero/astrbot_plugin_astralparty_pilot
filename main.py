@@ -14,6 +14,7 @@ import os
 import re
 import tempfile
 import time
+import unicodedata
 
 from astrbot.api import logger
 from astrbot.api.event import AstrMessageEvent, filter
@@ -90,6 +91,7 @@ HELP_SECTIONS = [
         ("/app load", "从游戏本体解包美术素材，填满图库（首次必做）"),
         ("/app load check", "图库体检：报现状 + 查完整性，缺图自动补（不解包时可用）"),
         ("/app reload", "同 check，缺图就自动补齐（等同 /app load check 补图）"),
+        ("/app list", "素材清点：每个分类一行，报张数（图鉴在用 / 暂未接分开）"),
     ]),
     ("🎴", "卡牌图鉴", [
         ("/app card", "列出全部手牌（中文名 + 序号）"),
@@ -495,6 +497,10 @@ class AstralPartyPilotPlugin(Star):
             async for result in self._app_achieve(event, joined):
                 yield result
             return
+        if sub in ("list", "ls", "统计", "目录", "素材"):
+            # /app list：图库有哪些分类、各多少张（不校验、不解包）
+            yield event.plain_result(self._art_list())
+            return
         if sub in ("reload", "补齐", "补"):
             # /app reload：体检 + 缺图自动补齐，走的就是 check 那条路
             async for result in self._app_load(event, "check"):
@@ -506,7 +512,7 @@ class AstralPartyPilotPlugin(Star):
             return
         yield event.plain_result(
             f"bot 没看懂「{sub}」这个图鉴子命令呢～\n"
-            "可用：card / map / land / buff / monster / monsterCG / hero / heroskins / heroCG / heroemoji / relic / achieve / load / reload\n"
+            "可用：card / map / land / buff / monster / monsterCG / hero / heroskins / heroCG / heroemoji / relic / achieve / list / load / reload\n"
             "查别人：/app <UID>（例如 /app 2425110）\n"
             "看本机（局内卡 / 档案卡）：/appa（仅管理员）\n"
             "登录账号看档案：/app in · /app uid · /app out\n"
@@ -676,6 +682,54 @@ class AstralPartyPilotPlugin(Star):
                     "「<该目录>\\Astral Party」，之后图鉴都从那里出图。")
         return (f"🖼 图库还是空的：{AS.home()}\n"
                 "发 /app load，bot 会从游戏本体解包素材过来（几分钟）。")
+
+    @staticmethod
+    def _disp_w(text: str) -> int:
+        """按显示宽度算长度：中文/全角算 2 格，用来对齐两列。"""
+        return sum(2 if unicodedata.east_asian_width(c) in ("W", "F") else 1 for c in text)
+
+    def _art_list(self) -> str:
+        """素材清点：图库里每个子目录一行，报中文名 + 目录名 + 张数。
+
+        和 /app load check 的分工：check 关心「齐不齐」，list 只关心「有什么、各多少」，
+        所以不读 _index.json、不做校验，也不念并发和磁盘 —— 纯扫目录。
+        """
+        base = AS.base()
+        if not base:
+            return ("❌ 配置 art_root：没填 —— 还没有图库可以统计\n"
+                    "   去面板 → 插件配置 → 星趴助手，填一个目录后保存，再发 /app load。")
+        if not ARTL.path_usable(base):
+            return (f"❌ art_root 有误：{base}\n"
+                    "   系统找不到这个路径，请检查盘符和目录名是否写对了。")
+        home = AS.home()
+        if not os.path.isdir(home):
+            return (f"素材根目录：{home}\n"
+                    "状态：❌ 目录还不存在（发 /app load 自动创建并解包）")
+        cnt = ARTL.count_files(home)
+        if not cnt:
+            return f"素材根目录：{home}\n状态：目录是空的（发 /app load 解包）"
+
+        total = sum(cnt.values())
+        used = [(AS.ART_USED[k], k, cnt[k]) for k in AS.ART_USED if cnt.get(k)]
+        idle = sorted(((AS.ART_IDLE_LABEL.get(d, d), d, n)
+                       for d, n in cnt.items() if d not in AS.ART_USED),
+                      key=lambda x: -x[2])
+
+        def row(label: str, dirname: str, n: int) -> str:
+            # 中文按 2 格算宽度补齐，数字才对齐；名字超长时至少留一格，不硬挤
+            name = f"{label} {dirname}"
+            return name + " " * max(1, 25 - self._disp_w(name)) + str(n)
+
+        lines = [f"📂 素材统计 · {len(cnt)} 个目录 · 共 {total} 张", home, ""]
+        if used:
+            lines.append(f"图鉴在用 {sum(x[2] for x in used)} 张")
+            lines.extend(row(*x) for x in used)
+        if idle:
+            if used:
+                lines.append("")
+            lines.append(f"暂未接图鉴 {sum(x[2] for x in idle)} 张")
+            lines.extend(row(*x) for x in idle)
+        return "\n".join(lines)
 
     def _load_report(self, chk: dict | None = None) -> str:
         """图库现状：配置 / 目录 / 完整性 / 游戏位置。
