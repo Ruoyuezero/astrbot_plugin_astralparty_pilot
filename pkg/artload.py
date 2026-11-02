@@ -284,6 +284,30 @@ def avail_mb() -> int:
     return 0
 
 
+def path_usable(path: str) -> bool:
+    """配置的路径能不能落地 —— 只校验「根」（盘符 / 挂载点）在不在。
+
+    子目录不存在是正常的（解包时会自己建），不算法；盘符写了不存在的
+    （比如填成 `Q:\\pics`）才算写错 —— 这种路径后面一碰就抛 WinError 3，
+    提前拦下来给一句人话，比把异常原文甩给主人强。
+    """
+    if not (path or "").strip():
+        return False
+    if os.name != "nt":
+        return os.path.isdir(os.sep)
+    try:
+        p = os.path.abspath(path.strip())
+        drive = os.path.splitdrive(p)[0]
+    except (OSError, ValueError):
+        return False
+    if not drive:                                        # 相对路径：交给当前工作盘
+        return True
+    try:
+        return os.path.exists(drive + os.sep)            # 盘符不存在时 exists 只返回 False
+    except OSError:
+        return False
+
+
 def free_disk_gb(path: str) -> float:
     """path 所在磁盘的剩余空间（GB）；探测不到返回 -1。"""
     try:
