@@ -13,6 +13,7 @@ from PIL import Image, ImageDraw, ImageFont
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 from . import assets as AS        # 手牌原图走外部素材库（配置 art_root）
+from . import artlib as AL        # 取图统一走 artlib：实时解包模式下会按需解出来
 
 # 配色（浅色简洁风）
 BG = (250, 248, 243)          # 米白底
@@ -99,7 +100,7 @@ _FAMILIES = {
 
 # 单字重字体（黑体 / MS UI Gothic 系列）没有粗体字面，标题就只能和正文一样重。
 # 这里在渲染层给「粗位」补 1px 描边，笔画变粗但字形不变，正好补回层级。
-FAUX_BOLD_STROKE = 0.5      # 单字重字体「假粗体」的描边宽度（px，太大字会糊）
+FAUX_BOLD_STROKE = 1        # 单字重字体「假粗体」的描边宽度（px；Pillow 只吃整数，0.5 会 TypeError）
 
 
 class _FauxBoldFont(ImageFont.FreeTypeFont):
@@ -108,15 +109,16 @@ class _FauxBoldFont(ImageFont.FreeTypeFont):
     def getmask2(self, text, mode="", direction=None, features=None, language=None,
                  stroke_width=0, anchor=None, ink=0, start=None, *args, **kwargs):
         return super().getmask2(text, mode, direction, features, language,
-                                (stroke_width or 0) + FAUX_BOLD_STROKE, anchor, ink, start,
-                                *args, **kwargs)
+                                int(stroke_width or 0) + FAUX_BOLD_STROKE,
+                                anchor, ink, start, *args, **kwargs)
 
     def getmask(self, text, mode="", *args, **kwargs):
-        kwargs["stroke_width"] = (kwargs.get("stroke_width") or 0) + FAUX_BOLD_STROKE
+        kwargs["stroke_width"] = int(kwargs.get("stroke_width") or 0) + FAUX_BOLD_STROKE
         return super().getmask(text, mode, *args, **kwargs)
 
 
 def _font(size: int, bold: bool = False) -> ImageFont.FreeTypeFont:
+    size = int(size)          # 字号一律取整，float 会让 FreeType 报 TypeError
     key = (FONT_FAMILY, size, bold)
     if key in _FONT_CACHE:
         return _FONT_CACHE[key]
@@ -176,8 +178,8 @@ def _image_path_for_no(no: str) -> str | None:
     if not no:
         return None
     for suffix in ("", "_sfw"):
-        p = AS.path("handcard", f"UT_HandCard_{no}{suffix}.png")
-        if os.path.exists(p):
+        p = AL.icon("handcard", f"UT_HandCard_{no}{suffix}.png")
+        if p:
             return p
     return None
 

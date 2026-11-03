@@ -21,6 +21,7 @@ HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MAPS_DIR = os.path.join(HERE, "maps")
 
 from . import assets as AS        # 地块图标走外部素材库「地块」目录
+from . import artlib as AL        # 取图统一走 artlib：实时解包模式下会按需解出来
 
 from . import wiki_mapmeta as WM
 
@@ -88,8 +89,7 @@ def _icon_path(t: int) -> str | None:
     name = LAND_ICON.get(t)
     if not name:
         return None
-    p = AS.path("land", f"UT_Platform_{name}.png")
-    return p if os.path.exists(p) else None
+    return AL.icon("land", f"UT_Platform_{name}.png") or None
 
 
 def _load_map(scene: str) -> dict:

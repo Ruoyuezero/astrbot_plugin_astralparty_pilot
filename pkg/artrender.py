@@ -423,7 +423,7 @@ def hero_list_cells() -> list[tuple[str, str, str | None]]:
     """[(名字, 皮肤标签, 图片路径)]，按角色编号排序；总览只取原始皮肤。"""
     cells = []
     for h in sorted(kb.heroes().values(), key=lambda x: int(x["id"])):
-        arts = artlib.hero_chibi(h["id"])
+        arts = artlib.hero_chibi(h["id"], first=True)
         if not arts:
             cells.append((h["name"], str(h["id"]), None))
             continue
@@ -458,7 +458,7 @@ def render_hero_list(out_path: str, cols: int = 6) -> str:
     draw = ImageDraw.Draw(canvas)
 
     draw.text((margin, margin), "星趴英雄图鉴", font=_font(30, True), fill=TITLE)
-    info = f"{n_hero} 位 · 数字为角色 ID（皮肤与立绘见 /app heroskins 名字）"
+    info = f"{n_hero} 位 · 数字为角色 ID（皮肤与立绘见 /app skin 名字）"
     draw.text((margin + _font(30, True).getlength("星趴英雄图鉴") + 16, margin + 8),
               info, font=_font(17), fill=MUTE)
     draw.line([margin, margin + header_h - 14, W - margin, margin + header_h - 14], fill=RULE)

@@ -1,47 +1,56 @@
 {
   "art_root": {
-    "type": "string",
-    "description": "美术素材库目录（填父目录，不要写到 Astral Party 这一层）。留空＝没有图库，图鉴一律不出图。/app load 会在这个目录下建 Astral Party 文件夹，把游戏美术素材解包进去，之后整个图鉴都用这个库。解包并发按物理核数与内存自动调配（内存够就按核数开满，紧张自动降，最低 1 个），输出约 1.7GB",
+    "type": "text",
+    "description": "美术素材库目录（填父目录）",
+    "hint": "留空＝不建图库，改走「实时解包」：插件自带映射表基线（6894 条，值存相对游戏目录的路径），同一游戏版本开箱即用、换机器不用重建；表对不上当前游戏时才发 /app load 重扫（约 3 分钟），游戏更新后用 /app update 重建。之后查哪张解哪张，不占磁盘。\n填了＝从外部图库出图：/app load 会在这个目录下建 Astral Party 文件夹并整库解包（约 1.7GB，并发按物理核与内存自动调配）。\n注意：填父目录，不要写到 Astral Party 这一层。\n填了但盘不在（移动硬盘拔了 / 盘符写错）会自动回退「实时解包」，盘插回来立刻切回外部库。",
     "default": ""
   },
   "load_mem_limit": {
     "type": "int",
-    "description": "解包并发完全按机器自动调配，一般不用填（0＝自动）。自动策略：上限就是物理核数（8 核→8 个、16 核→16 个），再按当前可用内存扣掉 1GB 余量、每 330MB 一个进程，两者取小的；内存富裕就跑满核数，紧张就自动降。每个子进程跑 60~200 个 bundle 就换新进程（按内存余量动态定），内存不会越跑越高。填了值就当成可用内存上限，在自动结果上再压一层（例如 2048＝最多按 2GB 内存算并发）",
+    "description": "解包内存上限（0＝自动）",
+    "hint": "一般不用填。自动策略：并发上限＝物理核数；再按可用内存扣 1GB 余量、每 330MB 一个进程，两者取小。每个子进程跑 60~200 个 bundle 就换新进程，内存不会越跑越高。\n填了值就当成可用内存上限，在自动结果上再压一层（例如 2048＝最多按 2GB 算并发）。",
     "default": 0
   },
   "card_font": {
     "type": "string",
-    "description": "卡面字体族（地图卡不受影响，单独走自己的字体栈）：simhei=黑体（默认，单字重靠描边加粗）/ yahei=微软雅黑 / msuigothic_cn=MS UI Gothic+雅黑补字（插件自带）/ msuigothic=MS UI Gothic 原样（缺简体字形，会出方块）/ msgothic=MS Gothic / yugothic=Yu Gothic / meiryo / dengxian=等线 / harmony=HarmonyOS Sans / misans=MiSans",
+    "description": "卡面字体",
+    "hint": "simhei＝黑体（默认）/ yahei＝微软雅黑 / msuigothic_cn＝MS UI Gothic＋雅黑补字（插件自带）/ msuigothic / msgothic / yugothic / meiryo / dengxian＝等线 / harmony＝HarmonyOS Sans / misans＝MiSans。\n地图卡不受影响，单独走自己的字体栈。",
     "default": "simhei"
   },
   "live_client_ver": {
     "type": "string",
-    "description": "查号用的客户端版本号（例如 3.3.0）。留空＝自动从游戏目录读，一般不用填；游戏大更新后查号报 10012 才需要手动指定",
+    "description": "客户端版本号（可留空）",
+    "hint": "查号用，例如 3.3.0。留空＝自动从游戏目录读，一般不用填；游戏大更新后查号报 10012 才需要手动指定。",
     "default": ""
   },
   "alt_sid": {
-    "type": "string",
-    "description": "查别人时用的小号登录票 sid（国服）。填一个不玩的小号，查 /app <UID> 时用它握手，就不会顶掉本机正在玩的主号。获取方法：在游戏里登录小号 → 打开 %USERPROFILE%\\AppData\\LocalLow\\feimo\\AstralParty_CN\\BnSdk\\110001933\\Log 下最新日志 → 找到 login success, sid: 后面那串。留空＝退回用本机最近登录票（查别人时可能顶掉主号，不推荐）",
+    "type": "text",
+    "description": "查号用的小号 sid",
+    "hint": "填一个不玩的小号登录票，查 /app <UID> 时就不会顶掉本机在玩的主号。\n取法：游戏里登录小号 → 打开 %USERPROFILE%\\AppData\\LocalLow\\feimo\\AstralParty_CN\\BnSdk\\110001933\\Log 下最新日志 → 找「login success, sid:」后面那串。\n留空＝退回用本机最近登录票（查别人时可能顶掉主号，不推荐）。",
     "default": ""
   },
   "pilot_prefer": {
     "type": "string",
-    "description": "代打默认倾向：eco=发育 / atk=进攻 / def=防守",
+    "description": "代打默认倾向",
+    "hint": "eco＝发育 / atk＝进攻 / def＝防守",
     "default": "eco"
   },
   "login_port": {
     "type": "int",
-    "description": "/app in 扫码登录网页的端口（0＝自动挑一个空闲端口）。网页监听 0.0.0.0（所有网卡），手机需与 bot 同一局域网才能扫码打开；端口只在 /app in 后短时存在，用完可 /app out 关掉，请勿映射到公网",
+    "description": "扫码登录端口（0＝自动）",
+    "hint": "/app in 扫码登录网页的端口，0＝自动挑一个空闲端口。网页监听 0.0.0.0（所有网卡），手机需与 bot 同一局域网才能扫码打开；端口只在 /app in 后短时存在，用完可 /app out 关掉，请勿映射到公网。",
     "default": 0
   },
   "login_host": {
     "type": "string",
-    "description": "/app in 二维码里用的主机地址（留空＝自动探测本机局域网 IP）。如果 bot 跑在有公网域名/端口映射的服务器上，填那个域名，例如 party.example.com:8720",
+    "description": "二维码里的主机地址",
+    "hint": "留空＝自动探测本机局域网 IP。bot 跑在有公网域名/端口映射的服务器上时，填那个域名，例如 party.example.com:8720",
     "default": ""
   },
   "admin_qqs": {
     "type": "string",
-    "description": "管理员 QQ，多个用逗号分隔（例如 123456789,10001）。/appa（看本机对局 + 整套代打指令）只允许这些人使用；留空＝只认 AstrBot 全局管理员",
+    "description": "管理员 QQ（逗号分隔）",
+    "hint": "例如 123456789,10001。/appa（看本机对局 + 整套代打指令）只允许这些人使用；留空＝只认 AstrBot 全局管理员。",
     "default": ""
   }
 }

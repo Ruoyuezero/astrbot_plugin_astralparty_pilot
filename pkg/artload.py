@@ -370,6 +370,16 @@ def plan_jobs(mem_mb: int = 0, cores: int | None = None) -> tuple[int, int]:
     return max(1, min(cpu_cap, mem_cap)), avail
 
 
+# 「只补缺的」模式：run(only=[...]) 时由进程池 initializer 注入到每个子进程，
+# 免得把几千条相对路径塞进每个任务参数里反复 pickle。None ＝ 正常整库解包。
+_ONLY: set | None = None
+
+
+def _init_only(only) -> None:
+    global _ONLY
+    _ONLY = only
+
+
 def _worker(job) -> tuple[int, int, list, list]:
     """解一个 bundle。返回 (成功数, 跳过数, 失败样例, 落盘的相对路径清单)。
 
@@ -425,6 +435,9 @@ def _worker(job) -> tuple[int, int, list, list]:
             cat = category_of(name)
             rel = "%s/%s.png" % (cat, name)
             dst = os.path.join(out_root, cat, "%s.png" % name)
+            if _ONLY is not None and rel.lower() not in _ONLY:
+                t = None                                     # 不在补缺名单里：连解码都省了
+                continue
             if skip_existing and os.path.exists(dst):
                 skip += 1
                 names.append(rel)
@@ -452,11 +465,14 @@ def _worker(job) -> tuple[int, int, list, list]:
 
 
 def run(out_root: str, gdir: str | None = None, jobs: int = 0,
-        skip_existing: bool = True, on_progress=None, mem_mb: int = 0) -> dict:
+        skip_existing: bool = True, on_progress=None, mem_mb: int = 0,
+        only=None) -> dict:
     """把游戏素材解到 out_root，返回统计。
 
     on_progress(done, total, ok, skip) 每 20 个 bundle 回一次，给上层报进度用。
     mem_mb > 0 时按这个内存预算算并发（0＝读本机当前可用内存自动决定）。
+    only 给一组相对路径（如 `relic/UT_Relic_50010.png`）时进入「补缺」模式：
+    只有名单内的图才解码落盘，其余连解码都跳过 —— 扫描量不变，但省掉最费的解码。
     """
     t0 = time.time()
     gdir = gdir or game_dir()
@@ -497,6 +513,7 @@ def run(out_root: str, gdir: str | None = None, jobs: int = 0,
     ok = skip = 0
     errs: list = []
     seen_names: set = set()                    # 这次扫到的「图上应该有」的相对路径
+    only_low = {str(x).lower() for x in only} if only else None
     payload = [(f, out_root, skip_existing) for f in files]
 
     # 多进程解包，分批复用新进程池：
@@ -510,7 +527,9 @@ def run(out_root: str, gdir: str | None = None, jobs: int = 0,
     while idx < total:
         chunk = payload[idx: idx + max(1, recycle * tried)]
         try:
-            with ProcessPoolExecutor(max_workers=tried) as ex:
+            with ProcessPoolExecutor(max_workers=tried,
+                                     initializer=_init_only,
+                                     initargs=(only_low,)) as ex:
                 for a, b, e, ns in ex.map(_worker, chunk, chunksize=4):
                     ok += a
                     skip += b
@@ -527,6 +546,7 @@ def run(out_root: str, gdir: str | None = None, jobs: int = 0,
                 tried = halved
                 continue
             # 单进程都起不来：多进程本身不可用（权限 / 打包限制），就地同步跑完剩下的
+            _init_only(only_low)
             if on_progress:
                 on_progress(idx, total, ok, skip)
             for i, f in enumerate(files[idx:]):
@@ -538,6 +558,7 @@ def run(out_root: str, gdir: str | None = None, jobs: int = 0,
                 if on_progress and (idx + i + 1) % 50 == 0:
                     on_progress(idx + i + 1, total, ok, skip)
             idx = total
+            _init_only(None)
             errs.insert(0, "多进程不可用（%s），已退回单进程" % exc)
             break
 
@@ -557,9 +578,18 @@ def run(out_root: str, gdir: str | None = None, jobs: int = 0,
         "warn": warn,
         "errors": errs[:8],
         "indexed": len(seen_names),
+        "only": len(only_low) if only_low else 0,
         "seconds": round(time.time() - t0, 1),
     }
-    _write_index(out_root, seen_names, gdir)
+    if only_low:
+        # 补缺只扫到名单内的图，清单要跟旧名单合并，不能拿局部结果覆盖整份
+        try:
+            seen_names.update((read_index(out_root) or {}).get("files") or [])
+        except Exception:                                # noqa: BLE001
+            pass
+    n_idx = _write_index(out_root, seen_names, gdir)
+    if n_idx:
+        stats["indexed"] = n_idx                     # 清单实际条数（去重后），报告里用它
     try:
         with open(datapaths.path(MANIFEST_FILE), "w", encoding="utf-8") as f:
             json.dump({"at": time.strftime("%Y-%m-%d %H:%M:%S"), **stats},
@@ -600,22 +630,32 @@ def _adopt_legacy_index(out_root: str) -> dict | None:
         return None
 
 
-def _write_index(out_root: str, names, gdir: str = "") -> None:
+def _write_index(out_root: str, names, gdir: str = "") -> int:
     """把「游戏里应该有这些图」写成索引，供以后的完整性检查用。
 
-    只记相对路径（形如 `relic/UT_Relic_50010.png`），6894 条大约 500KB，
+    只记相对路径（形如 `relic/UT_Relic_50010.png`），6891 条大约 500KB，
     比每次重扫 6688 个 bundle 划得多。doc 里带 `root`，换图库时不至于拿旧名单判缺。
+
+    写入前按**小写**去一次重：游戏里有几组只差大小写的重名贴图
+    （`misc/FIght-dodge-001` 与 `Fight-dodge-001` 之类），Windows 的文件名不区分
+    大小写，它们落到磁盘上就是同一个文件。留着两条会让清单张数（6894）比磁盘
+    实际文件数（6891）多，看起来像对不上账，所以这里只留先排序时的那一条。
     """
+    uniq: dict = {}
+    for rel in sorted(names):
+        uniq.setdefault(rel.lower(), rel)
+    files = sorted(uniq.values())
     doc = {"at": time.strftime("%Y-%m-%d %H:%M:%S"),
            "root": os.path.normpath(out_root),
            "game": gdir,
-           "count": len(names),
-           "files": sorted(names)}
+           "count": len(files),
+           "files": files}
     try:
         with open(index_path(), "w", encoding="utf-8") as f:
             json.dump(doc, f, ensure_ascii=False)
     except OSError:
-        pass
+        return 0
+    return len(files)
 
 
 def read_index(out_root: str) -> dict | None:

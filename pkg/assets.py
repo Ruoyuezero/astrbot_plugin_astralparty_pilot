@@ -57,7 +57,7 @@ LEGACY = {
     "handcard": "手牌",
 }
 
-# 「图鉴真正在用的目录」——给 /app load check 报现状用，别拿 SUBDIRS 顶替：
+# 「图鉴真正在用的目录」——给 /app check 报现状用，别拿 SUBDIRS 顶替：
 # achieve 在 ALL_SUBDIRS 里（/app achieve 一直在用），player_photo / account_bg / misc
 # 是奖励图标（artlib._ITEM_KINDS）的来源，牌背/骰子/头像这些才是真没接。
 # 键必须是磁盘上的英文目录名（count_files 的键），中文只作说明，不能拿去查张数。

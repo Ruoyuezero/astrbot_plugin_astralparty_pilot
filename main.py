@@ -28,6 +28,7 @@ from .pkg import buffrender as BR
 from .pkg import artlib as AL
 from .pkg import artrender as AR
 from .pkg import artload as ARTL
+from .pkg import artlive as ALIVE
 from .pkg import landrender as LR
 from .pkg import liveapi as LV
 from .pkg import livestate as LS
@@ -88,9 +89,9 @@ def _profile_text(d: dict) -> str:
 # 指令一览：图片卡和纯文本都从这份数据生成，改一处两边同步
 HELP_SECTIONS = [
     ("🖼", "美术图库", [
-        ("/app load", "从游戏本体解包美术素材，填满图库（首次必做）"),
-        ("/app load check", "图库体检：报现状 + 查完整性，缺图自动补（不解包时可用）"),
-        ("/app reload", "同 check，缺图就自动补齐（等同 /app load check 补图）"),
+        ("/app load", "准备素材：外库模式按完整性解包 / 只补缺；实时模式确保映射表可用"),
+        ("/app check", "图库体检：只报目录现状和解包进度，不解包"),
+        ("/app update", "游戏更新后刷新：外库增量补素材，实时模式重建映射表"),
         ("/app list", "素材清点：每个分类一行，报张数（图鉴在用 / 暂未接分开）"),
     ]),
     ("🎴", "卡牌图鉴", [
@@ -112,14 +113,13 @@ HELP_SECTIONS = [
     ("👹", "怪物图鉴", [
         ("/app monster", "按地图分类列出全部怪物"),
         ("/app monster <名字|ID>", "怪物卡（立绘 + 数值 + 机制，认别名）"),
-        ("/app monsterCG <名字|ID>", "怪物战斗 CG 原图"),
     ]),
     ("🧝", "角色图鉴", [
         ("/app hero", "列出全部角色（局内小人，数字为角色 ID）"),
         ("/app hero <名字|ID>", "角色卡（立绘 + 属性 + 技能，认别名）"),
-        ("/app heroskins <名字|ID>", "皮肤总览（第一行各皮肤小人，后面立绘）"),
-        ("/app heroCG <名字|ID>", "角色全部战斗 CG（一行两张）"),
-        ("/app heroemoji <名字|ID>", "角色表情包（8 个一行）"),
+        ("/app skin <名字|ID>", "皮肤总览（第一行各皮肤小人，后面立绘）"),
+        ("/app cg <名字|ID>", "角色全部战斗 CG（一行两张）"),
+        ("/app emoji <名字|ID>", "角色表情包（8 个一行）"),
     ]),
     ("🎯", "筹码图鉴", [
         ("/app relic", "列出全部筹码（按流派分组，图标 + 编号 + 名称）"),
@@ -469,23 +469,19 @@ class AstralPartyPilotPlugin(Star):
             async for result in self._app_monster(event, joined):
                 yield result
             return
-        if sub in ("monstercg", "怪物cg", "怪cg"):
-            async for result in self._app_monster_cg(event, joined):
-                yield result
-            return
         if sub in ("hero", "角色"):
             async for result in self._app_hero(event, joined):
                 yield result
             return
-        if sub in ("heroskins", "skins", "皮肤", "立绘"):
+        if sub in ("skin", "皮肤", "立绘"):
             async for result in self._app_hero_skins(event, joined):
                 yield result
             return
-        if sub in ("herocg", "cg", "战斗cg"):
+        if sub in ("cg", "战斗cg"):
             async for result in self._app_hero_cg(event, joined):
                 yield result
             return
-        if sub in ("heroemoji", "emoji", "表情", "表情包"):
+        if sub in ("emoji", "表情", "表情包"):
             async for result in self._app_hero_emoji(event, joined):
                 yield result
             return
@@ -501,9 +497,14 @@ class AstralPartyPilotPlugin(Star):
             # /app list：图库有哪些分类、各多少张（不校验、不解包）
             yield event.plain_result(self._art_list())
             return
-        if sub in ("reload", "补齐", "补"):
-            # /app reload：体检 + 缺图自动补齐，走的就是 check 那条路
-            async for result in self._app_load(event, "check"):
+        if sub in ("update", "更新", "增量"):
+            # /app update：游戏更新后增量解包，完了刷新完整性清单
+            async for result in self._app_load(event, "update"):
+                yield result
+            return
+        if sub in ("check", "查", "查看", "status", "info"):
+            # /app check：图库体检，只报目录现状和解包进度，不解包
+            async for result in self._app_check(event):
                 yield result
             return
         if sub in ("load", "载入", "加载", "解包", "图库"):
@@ -512,7 +513,7 @@ class AstralPartyPilotPlugin(Star):
             return
         yield event.plain_result(
             f"bot 没看懂「{sub}」这个图鉴子命令呢～\n"
-            "可用：card / map / land / buff / monster / monsterCG / hero / heroskins / heroCG / heroemoji / relic / achieve / list / load / reload\n"
+            "可用：card / map / land / buff / monster / hero / skin / cg / emoji / relic / achieve / list / load / update\n"
             "查别人：/app <UID>（例如 /app 2425110）\n"
             "看本机（局内卡 / 档案卡）：/appa（仅管理员）\n"
             "登录账号看档案：/app in · /app uid · /app out\n"
@@ -674,7 +675,13 @@ class AstralPartyPilotPlugin(Star):
     # ------------------------------------------------ 怪物 / 角色（美术卡） ----
     # ------------------------------------------------ 美术素材（解包） ----
     def _art_hint(self) -> str:
-        """图库不能用时给的一句话（区分「没配路径」和「配了但空」）。"""
+        """图库不能用时给的一句话（区分「没配路径」「外库不可用」「配了但空」）。"""
+        if AL.live_mode():
+            if AS.configured():
+                return ("🖼 外部图库不可用（%s），已自动回退「实时解包」：查哪张解哪张。\n"
+                        "   把盘插回来 / 改对 art_root 就自动切回外部库。" % (AS.home() or AS.base()))
+            return ("🖼 art_root 没填，走的是「实时解包」：插件自带映射表基线，"
+                    "同版本游戏开箱即用；游戏更新过再发 /app update 重建。")
         if not AS.configured():
             return ("🖼 bot 还没有美术图库呢。\n"
                     "插件配置里的「美术素材库目录」（art_root）是空的 —— 填一个父目录，"
@@ -691,10 +698,35 @@ class AstralPartyPilotPlugin(Star):
     def _art_list(self) -> str:
         """素材清点：图库里每个子目录一行，报中文名 + 目录名 + 张数。
 
-        和 /app load check 的分工：check 关心「齐不齐」，list 只关心「有什么、各多少」，
+        和 /app check 的分工：check 关心「齐不齐」，list 只关心「有什么、各多少」，
         所以不读完整性清单、不做校验，也不念并发和磁盘 —— 纯扫目录。
         """
         base = AS.base()
+        if AL.live_mode():
+            m = ALIVE.names_of("") or []
+            cnt: dict = {}
+            for rel in m:
+                d = rel.split("/", 1)[0]
+                cnt[d] = cnt.get(d, 0) + 1
+            if not cnt:
+                return ("🖼 实时解包模式：映射表还没建\n"
+                        "   发 /app load 建表（约 3 分钟），之后查哪张解哪张。")
+            idle = sorted(((AS.ART_IDLE_LABEL.get(d, d), d, n)
+                           for d, n in cnt.items() if d not in AS.ART_USED),
+                          key=lambda x: -x[2])
+            used = [(AS.ART_USED[k], k, cnt[k]) for k in AS.ART_USED if cnt.get(k)]
+            lines = [f"📂 实时解包 · {len(cnt)} 个类别 · 共 {sum(cnt.values())} 张", ""]
+            if used:
+                lines.append(f"图鉴在用 {sum(x[2] for x in used)} 张")
+                lines += [f"{lbl} {d}" + " " * max(1, 25 - self._disp_w(f"{lbl} {d}")) + str(n)
+                          for lbl, d, n in used]
+            if idle:
+                if used:
+                    lines.append("")
+                lines.append(f"暂未接图鉴 {sum(x[2] for x in idle)} 张")
+                lines += [f"{lbl} {d}" + " " * max(1, 25 - self._disp_w(f"{lbl} {d}")) + str(n)
+                          for lbl, d, n in idle]
+            return "\n".join(lines)
         if not base:
             return ("❌ 配置 art_root：没填 —— 还没有图库可以统计\n"
                     "   去面板 → 插件配置 → 星趴助手，填一个目录后保存，再发 /app load。")
@@ -745,6 +777,21 @@ class AstralPartyPilotPlugin(Star):
             游戏目录：… / bundle：N 个（不再念并发和磁盘）
         """
         base = AS.base()
+        if AL.live_mode():
+            head = f"🖼 模式：实时解包（{AL.live_reason()}）\n"
+            info = ALIVE.info()
+            if not info.get("ok"):
+                return head + "映射表：❌ 还没建（发 /app load 建表，约 3 分钟）"
+            src = "插件内置" if info.get("source") == "bundled" else "本机"
+            ck = ALIVE.check_map()
+            if not ck.get("ok"):
+                return (head +
+                        f"映射表：⚠️ {info.get('count')} 条（{src}）和当前游戏版本对不上"
+                        f"（抽样 {ck.get('hit')}/{ck.get('checked')}）\n"
+                        "· 发 /app load 重建，约 3 分钟")
+            return (head +
+                    f"映射表：✅ {info.get('count')} 条｜来源 {src}｜建表时间 {info.get('at') or '未知'}\n"
+                    f"存放：{info.get('path')}")
         if not base:
             return ("❌ 配置 art_root：没填 —— 图鉴出不了图\n"
                     "   去面板 → 插件配置 → 星趴助手，填一个目录后保存。")
@@ -772,7 +819,7 @@ class AstralPartyPilotPlugin(Star):
                 elif state == "missing":
                     lines = [f"素材根目录：{home}",
                              f"状态：❌️ 校验未通过，共 {total} 张图，目录缺失 "
-                             "（发 /app reload 自动补齐）"]
+                             "（发 /app load 只补缺失的）"]
                     need_unpack = False
                 else:
                     # 有图但还没清单：等同于还没解包完，让主人跑一次 load 生成清单
@@ -795,25 +842,28 @@ class AstralPartyPilotPlugin(Star):
                          % (("%.1f" % disk) if disk >= 0 else "未知"))
         return "\n".join(lines)
 
+    async def _app_check(self, event: AstrMessageEvent):
+        """/app check：图库体检，只报目录现状和解包进度，绝不解包。"""
+        home = AS.home()
+        chk = ARTL.check(home) if (home and os.path.isdir(home)) else {"state": "unindexed"}
+        # 只体检、不解包：回复严格按格式，不加任何尾巴
+        yield event.plain_result(self._load_report(chk))
+
     async def _app_load(self, event: AstrMessageEvent, joined: str):
         """/app load：把游戏美术素材解包到图库。"""
-        if (joined or "").strip().lower() in ("check", "查", "查看", "状态", "status", "info",
-                                              "reload", "补齐", "补"):
-            home = AS.home()
-            chk = ARTL.check(home) if (home and os.path.isdir(home)) else {"state": "unindexed"}
-            # 回复严格按格式，不加任何尾巴；补解包在后台静默进行，跑完再发结果
-            yield event.plain_result(self._load_report(chk))
-            if chk.get("state") not in ("missing", "unindexed"):
-                return                              # 齐全，什么都不用补
-            if self._load_task and not self._load_task.done():
-                return                              # 已经有一轮在跑，等它跑完
-            gdir = await asyncio.to_thread(ARTL.game_dir)
-            if not AS.configured() or not home or not gdir or not os.path.isdir(gdir):
-                return                              # 前提不满足，报告里已经写明原因
-            self._load_prog = 0
-            self._load_umo = getattr(event, "unified_msg_origin", "") or ""
-            loop = asyncio.get_running_loop()
-            self._load_task = loop.create_task(self._do_load(gdir, home))
+        if (joined or "").strip().lower() in ("check", "查", "查看", "状态", "status", "info"):
+            # 旧写法 /app load check 已经改成 /app check，别让它误触发解包
+            yield event.plain_result(
+                "图库体检已经改成 /app check 啦～\n"
+                "（/app load 现在只负责解包，不会再顺手体检）")
+            return
+
+        is_update = (joined or "").strip().lower() in ("update", "更新", "增量")
+
+        if AL.live_mode():
+            # art_root 没填 / 外库不可用：不建图库，只建「图名 -> bundle」映射表，之后按需解包
+            async for result in self._app_live(event, force=is_update):
+                yield result
             return
 
         if self._load_task and not self._load_task.done():
@@ -828,6 +878,12 @@ class AstralPartyPilotPlugin(Star):
                 "bot 会在那个目录下建 Astral Party 文件夹，把游戏美术素材解包进去；"
                 "之后整个图鉴都用这个库。")
             return
+        if not ARTL.path_usable(AS.base()):
+            yield event.plain_result(
+                f"❌ 加载失败：art_root 指向的位置不存在：{AS.base()}\n"
+                "盘没插上、或路径写错了。插好盘（或改对路径）再发 /app load；\n"
+                "想不插盘也能出图，就把 art_root 清空 —— bot 会改用「实时解包」。")
+            return
 
         gdir = await asyncio.to_thread(ARTL.game_dir)
         if not gdir:
@@ -841,6 +897,20 @@ class AstralPartyPilotPlugin(Star):
             return
 
         out = AS.home()
+        # 先体检再动手：完整就一张不写，缺只补缺的，空库才从零解。
+        chk = {"state": "unindexed", "total": 0, "missing": []}
+        have = 0
+        if out and os.path.isdir(out):
+            chk = await asyncio.to_thread(ARTL.check, out)
+            cnt = await asyncio.to_thread(ARTL.count_files, out)
+            have = sum(cnt.values())
+        missing = chk.get("missing") or []
+        if chk.get("state") == "ok" and not is_update:
+            yield event.plain_result(
+                "✅ 图库已完整（%d 张），无需再解包。\n· 图库：%s"
+                % (chk.get("total") or 0, out))
+            return
+
         jobs, avail = ARTL.plan_jobs(0)
         cores = ARTL.physical_cores()
         disk = ARTL.free_disk_gb(out)
@@ -854,18 +924,125 @@ class AstralPartyPilotPlugin(Star):
             tip += "\n· 内存偏紧，已自动降载；关掉游戏/浏览器能少等一会儿。"
         if 0 <= disk < ARTL.MIN_DISK_GB:
             tip += "\n· 磁盘余量不多，写满会中断，建议先清点空间。"
+        if is_update:
+            head = ("🔄 增量更新：重扫全部 bundle，只写新出现的素材，完了刷新完整性清单\n"
+                    f"· 图库：{out}\n")
+        elif missing:
+            head = ("🔧 补缺失素材\n"
+                    f"· 图库：{out}\n"
+                    f"· 缺 {len(missing)} 张（只写缺的，已有的其余一张不碰）\n")
+        elif have:
+            head = ("🔍 图库里有 %d 张，但还没有完整性清单，先跑一遍把清单建起来\n"
+                    f"· 图库：{out}\n"
+                    "· 已有的图会自动跳过，不会覆盖\n" % have)
+        else:
+            head = "📦 从零开始解包美术素材\n" f"· 输出：{out}\n"
         self._load_prog = 0
         self._load_umo = getattr(event, "unified_msg_origin", "") or ""
         loop = asyncio.get_running_loop()
-        self._load_task = loop.create_task(self._do_load(gdir, out))
+        self._load_task = loop.create_task(
+            self._do_load(gdir, out, [] if is_update else missing,
+                          "update" if is_update else ""))
         yield event.plain_result(
-            "📦 开始解包美术素材\n"
-            f"· 游戏：{gdir}\n"
-            f"· 输出：{out}\n"
-            f"{plan_line}\n{res_line}{tip}\n"
-            "· 过程几分钟，完了 bot 主动说结果～（中途发 /app load check 可以看进度）")
+            head + f"· 游戏：{gdir}\n{plan_line}\n{res_line}{tip}\n"
+            "· 完了 bot 主动说结果～（中途发 /app check 可以看进度）")
 
-    async def _do_load(self, gdir: str, out: str):
+    # ------------------------------------------------------ 实时解包模式 ----
+    async def _app_live(self, event: AstrMessageEvent, force: bool = False):
+        """art_root 没填 / 外库不可用时的 /app load：确保「图名 -> bundle」映射表可用。
+
+        插件自带一份基线表（值存相对游戏目录的路径，同一游戏版本跨机器通用），
+        所以常态是**不用建表**；只有游戏更新 / 换渠道 / 换盘导致抽样对不上时才重扫。
+        force=True（/app update）时无条件重建。
+        """
+        gdir = await asyncio.to_thread(ARTL.game_dir)
+        if not gdir:
+            yield event.plain_result(
+                "❌ 找不到游戏目录。\n"
+                f"{AL.live_reason()}，走「实时解包」时素材直接从游戏本体读，"
+                "所以这台机器得装着《星引擎 Party / Astral Party》。")
+            return
+        if not os.path.isdir(gdir):
+            yield event.plain_result(f"❌ 游戏目录不存在：{gdir}")
+            return
+
+        if not force:
+            ck = await asyncio.to_thread(ALIVE.check_map, gdir)
+            if ck.get("ok"):
+                src = ("插件自带（随插件分发，同版本通用）" if ck.get("source") == "bundled"
+                       else "本机已建")
+                yield event.plain_result(
+                    f"✅ 映射表已就绪，无需重建\n"
+                    f"· {ck.get('count')} 条｜来源：{src}\n"
+                    "· 查哪张解哪张，不用整库解包、不占磁盘\n"
+                    "· 游戏更新过想刷新：/app update")
+                return
+
+        if self._load_task and not self._load_task.done():
+            yield event.plain_result(f"⏳ 正在建映射表呢（{self._load_prog}%），好了 bot 会说一声。")
+            return
+        self._load_prog = 0
+        self._load_umo = getattr(event, "unified_msg_origin", "") or ""
+        loop = asyncio.get_running_loop()
+        self._load_task = loop.create_task(self._do_live(gdir))
+        why = ""
+        if force:
+            why = "\n· 游戏更新 → 重建全表"
+        else:
+            ck = ALIVE.check_map(gdir)
+            if ck.get("count"):
+                why = (f"\n· 现有表 {ck.get('count')} 条对不上当前游戏"
+                       f"（抽样 {ck.get('hit')}/{ck.get('checked')}）→ 重建")
+        yield event.plain_result(
+            f"🔎 {AL.live_reason()} → 走「实时解包」\n"
+            f"· 游戏：{gdir}\n"
+            "· 正在扫全部 bundle，建立「图名 → bundle」映射表（实测约 3 分钟，8 进程）\n"
+            "· 建好后查哪张解哪张，不用整库解包、不占磁盘"
+            f"{why}\n"
+            "· 完了 bot 主动说结果～")
+
+
+    async def _do_live(self, gdir: str):
+        from astrbot.api.event import MessageChain
+        from astrbot.api.message_components import Plain
+
+        last = {"v": -1}
+
+        def prog(done: int, total: int, _n: int) -> None:
+            p = int(done * 100 / max(1, total))
+            self._load_prog = p
+            if p // 20 != last["v"] // 20:
+                last["v"] = p
+                logger.info(f"[星趴] 建映射表 {p}%（{done}/{total}）")
+
+        try:
+            st = await asyncio.to_thread(ALIVE.build_map, gdir, 0, prog)
+        except Exception as exc:                            # noqa: BLE001
+            logger.error(f"[星趴] 建映射表失败：{exc}")
+            st = {"ok": False, "why": f"建表时出错：{exc}"}
+        self._load_prog = 100
+        AL.refresh()                                        # 索引缓存作废，下次按新表建
+
+        if st.get("ok"):
+            text = ("✅ 映射表已建好（%.0f 秒）\n"
+                    "· 图名 %d 条｜bundle %d 个\n"
+                    "· 存：%s（值存相对游戏目录的路径，换机器/换盘不用重建）\n"
+                    "以后 app 系列查哪张解哪张，不用整库解包。"
+                    % (st.get("seconds") or 0, st.get("count") or 0,
+                       st.get("bundles") or 0, ALIVE.map_path()))
+        else:
+            text = "❌ 建表失败：%s\n修好后重发 /app load。" % (st.get("why") or "未知原因")
+        logger.info("[星趴] " + text.replace("\n", " / "))
+        umo = self._load_umo
+        if umo:
+            try:
+                await self.context.send_message(umo, MessageChain([Plain(text)]))
+                return
+            except Exception as exc:                        # noqa: BLE001
+                logger.error(f"[星趴] 映射表结果推送失败：{exc}")
+
+    async def _do_load(self, gdir: str, out: str, only: list | None = None,
+                       mode: str = ""):
         """后台解包；完了把结果推回发起命令的会话。"""
         from astrbot.api.event import MessageChain
         from astrbot.api.message_components import Plain
@@ -881,11 +1058,12 @@ class AstralPartyPilotPlugin(Star):
 
         try:
             st = await asyncio.to_thread(ARTL.run, out, gdir, 0, True, prog,
-                                         self._conf_int("load_mem_limit", 0))
+                                         self._conf_int("load_mem_limit", 0), only)
         except Exception as exc:                        # noqa: BLE001
             logger.error(f"[星趴] 解包失败：{exc}")
             st = {"ok": False, "why": f"解包时出错：{exc}"}
         self._load_prog = 100
+        st["mode"] = mode
         if st.get("ok"):
             try:                                        # 解完立刻体检，回话里直接说齐没齐
                 st["chk"] = await asyncio.to_thread(ARTL.check, out)
@@ -901,17 +1079,29 @@ class AstralPartyPilotPlugin(Star):
                 return
             except Exception as exc:                    # noqa: BLE001
                 logger.error(f"[星趴] 解包结果推送失败：{exc}")
-        # 推不出去就只能写日志了（命令那边已经回过「开始」，主人回头发 /app load check 看）
+        # 推不出去就只能写日志了（命令那边已经回过「开始」，主人回头发 /app check 看）
 
     def _load_result_text(self, st: dict) -> str:
         if not st.get("ok"):
             return ("❌ 解包失败：" + str(st.get("why") or "未知原因")
                     + "\n图鉴还是用不了，修好后重发 /app load。")
         sec = st.get("seconds") or 0
-        head = (f"✅ 美术素材解包完成（{sec:.0f} 秒）\n"
-                f"· 输出：{st.get('out')}\n"
-                f"· bundle {st.get('bundles')} 个｜新出图 {st.get('written')} 张"
-                f"｜已有跳过 {st.get('skipped')} 张")
+        only = st.get("only") or 0
+        if st.get("mode") == "update":
+            head = (f"✅ 增量更新完成（{sec:.0f} 秒）\n"
+                    f"· 输出：{st.get('out')}\n"
+                    f"· bundle {st.get('bundles')} 个｜新出图 {st.get('written')} 张"
+                    f"｜已有跳过 {st.get('skipped')} 张")
+        elif only:
+            head = (f"✅ 美术素材补齐完成（{sec:.0f} 秒）\n"
+                    f"· 输出：{st.get('out')}\n"
+                    f"· 名单缺 {only} 张｜补回 {st.get('written')} 张"
+                    f"｜bundle 扫了 {st.get('bundles')} 个")
+        else:
+            head = (f"✅ 美术素材解包完成（{sec:.0f} 秒）\n"
+                    f"· 输出：{st.get('out')}\n"
+                    f"· bundle {st.get('bundles')} 个｜新出图 {st.get('written')} 张"
+                    f"｜已有跳过 {st.get('skipped')} 张")
         jobs = st.get("jobs")
         if jobs:
             cores = st.get("cores") or 0
@@ -935,15 +1125,19 @@ class AstralPartyPilotPlugin(Star):
             top = sorted(cnt.items(), key=lambda x: -x[1])[:10]
             lines.append(f"· 图库合计 {total} 张：" + " · ".join(f"{k} {v}" for k, v in top))
         chk = st.get("chk") or {}
-        if chk.get("state") == "ok":
-            lines.append(f"· 完整性 ✅ {chk.get('total')} 张齐全（清单已存，以后 /app load check 秒验）")
+        ok_all = chk.get("state") == "ok"
+        if ok_all:
+            lines.append(f"· 完整性 ✅ {chk.get('total')} 张齐全（清单已存，以后 /app check 秒验）")
         elif chk.get("state") == "missing":
             lines.append(f"· 完整性 ⚠ 清单 {chk.get('total')} 张，仍缺 {len(chk.get('missing') or [])} 张；"
-                         "重发 /app load check 会再补一轮")
+                         "重发 /app load 会再补一轮")
         errs = st.get("errors") or []
         if errs:
             lines.append("· 有 {} 条异常，样例：{}".format(len(errs), errs[0][:120]))
-        lines.append("现在 /app hero、/app card、/app relic 这些都能出图了。")
+        if st.get("mode") == "update":
+            lines.append(f"· 完整性清单已刷新：{st.get('indexed')} 条")
+        if ok_all:                                  # 只有校验通过才敢说图鉴能用
+            lines.append("现在 /app hero、/app card、/app relic 这些都能出图了。")
         return "\n".join(lines)
 
     def _art_check(self) -> str:
@@ -987,28 +1181,6 @@ class AstralPartyPilotPlugin(Star):
             logger.error(f"[星趴] 渲染怪物简介卡失败：{exc}")
             yield event.plain_result("渲染简介卡出错了，先用文字版：\n" + fmt_monster(m))
 
-    async def _app_monster_cg(self, event: AstrMessageEvent, joined: str):
-        if not joined:
-            yield event.plain_result("要带上怪物名字哦，例如：/app monsterCG 小浣熊")
-            return
-        m, hint = _monster_pick(joined)
-        if hint:
-            yield event.plain_result(hint)
-            return
-        if not m:
-            yield event.plain_result(f"知识库里没有「{joined}」这只怪物呢")
-            return
-        cg = AL.monster_cg(m["no"])
-        if cg:
-            yield event.image_result(cg)
-            return
-        portrait = AL.monster_portrait(m["no"])
-        if portrait:
-            yield event.image_result(portrait)
-            yield event.plain_result(f"「{m['name']}」还没有战斗CG，先发立绘给主人～")
-            return
-        yield event.plain_result(f"「{m['name']}」还没有立绘和CG呢")
-
     async def _app_hero(self, event: AstrMessageEvent, joined: str):
         bad = self._art_check()
         if bad:
@@ -1044,7 +1216,7 @@ class AstralPartyPilotPlugin(Star):
 
     async def _app_hero_skins(self, event: AstrMessageEvent, joined: str):
         if not joined:
-            yield event.plain_result("要带上角色名字哦，例如：/app heroskins 照")
+            yield event.plain_result("要带上角色名字哦，例如：/app skin 照")
             return
         h, _via = _hero_resolve(joined)
         if not h:
@@ -1061,7 +1233,7 @@ class AstralPartyPilotPlugin(Star):
 
     async def _app_hero_cg(self, event: AstrMessageEvent, joined: str):
         if not joined:
-            yield event.plain_result("要带上角色名字哦，例如：/app heroCG 照")
+            yield event.plain_result("要带上角色名字哦，例如：/app cg 照")
             return
         h, _via = _hero_resolve(joined)
         if not h:
@@ -1078,7 +1250,7 @@ class AstralPartyPilotPlugin(Star):
 
     async def _app_hero_emoji(self, event: AstrMessageEvent, joined: str):
         if not joined:
-            yield event.plain_result("要带上角色名字或编号哦，例如：/app heroemoji 124")
+            yield event.plain_result("要带上角色名字或编号哦，例如：/app emoji 124")
             return
         h, _via = _hero_resolve(joined)
         if not h:

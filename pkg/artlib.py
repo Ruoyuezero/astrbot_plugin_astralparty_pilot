@@ -21,6 +21,7 @@ import os
 import re
 
 from . import assets as AS
+from . import artlive as LIVE
 
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -36,6 +37,7 @@ ART_ALIAS = {"1049": "1050"}
 
 _cfg: dict = {}
 _index_cache: dict | None = None
+_index_key: tuple = ()
 
 
 def configure(cfg: dict | None) -> None:
@@ -49,12 +51,47 @@ def root() -> str:
     return AS.root()
 
 
+def live_mode() -> bool:
+    """art_root 没填、或填了但盘不在（移动硬盘拔了 / 盘符写错）时，走「实时解包」。
+
+    判定只看 art_root 那一层的「根」在不在（`path_usable`）：子目录还没建不算错，
+    那是首次解包前的正常状态；盘没插才算不可用，这时自动回退到实时解包。
+    前提是这台机器装着游戏，没装就还是当没图库处理（提示去配置）。
+    """
+    if AS.configured() and _root_usable():
+        return False                                    # 外部库在位 → 优先用外部库
+    try:
+        from .artload import game_dir
+        return bool(game_dir())
+    except Exception:                                   # noqa: BLE001
+        return False
+
+
+def _root_usable() -> bool:
+    """art_root 那层能不能落地：只看盘符 / 挂载点在不在，子目录缺失不算错。"""
+    b = AS.base()
+    if not b:
+        return False
+    try:
+        from .artload import path_usable
+        return path_usable(b)
+    except Exception:                                   # noqa: BLE001
+        return os.path.isdir(b)
+
+
+def live_reason() -> str:
+    """实时解包的原因，用来拼提示语：没填 / 外部库不可用。"""
+    if not AS.configured():
+        return "art_root 未填"
+    return "外部库不可用：%s" % AS.base()
+
+
 def dir_of(kind: str) -> str:
     """图库目录。
 
     只看 `art_root` 指向的外部图库（插件里不再打包美术素材）。
     外部还认改名前的旧中文目录名；两边都没有就返回按命名规则算出的路径，
-    由调用方判空跳过。
+    由调用方判空跳过。图库为空（art_root 没填）时改指实时解包缓存目录。
     """
     sub = AS._sub(kind)
     r = root()
@@ -71,6 +108,8 @@ def dir_of(kind: str) -> str:
     bun = os.path.join(HERE, "images", "art", sub)
     if os.path.isdir(bun):
         return bun
+    if live_mode():
+        return os.path.join(LIVE.cache_root(), sub)      # 按需解包落这儿
     return ext
 
 
@@ -79,7 +118,9 @@ _CORE_KINDS = ("chibi", "portrait", "cg", "emoji", "relic", "buff", "land", "han
 
 
 def available() -> bool:
-    return any(os.path.isdir(dir_of(k)) for k in _CORE_KINDS)
+    if any(os.path.isdir(dir_of(k)) for k in _CORE_KINDS):
+        return True
+    return live_mode() and bool(LIVE.info().get("ok"))       # 实时解包：映射表已建好
 
 
 def describe() -> str:
@@ -118,6 +159,15 @@ _IGNORE_SUFFIX = re.compile(r"_(?:sfw|en|jp)(?:_|\.)| #[0-9]+\.png$", re.IGNOREC
 
 
 def _files(kind: str):
+    """某个类别下的文件名清单。
+
+    实时解包模式下不扫目录，直接拿映射表的 key（图名），
+    这样连「图都还没解出来」也能把索引建全。
+    """
+    if live_mode():
+        names = LIVE.names_of(AS._sub(kind))
+        if names is not None:
+            return names
     d = dir_of(kind)
     try:
         out = []
@@ -133,9 +183,14 @@ def _files(kind: str):
 
 
 def index() -> dict:
-    """扫描三个目录，返回 {"heroes": {...}, "monsters": {...}}（带缓存）。"""
-    global _index_cache
-    if _index_cache is not None:
+    """扫描三个目录，返回 {"heroes": {...}, "monsters": {...}}（带缓存）。
+
+    缓存按「实际生效的目录」作键：外库插上/拔掉、换 art_root 都会自动重建，
+    不会拿着上一次（比如实时缓存目录）的路径去开图。
+    """
+    global _index_cache, _index_key
+    key = tuple(dir_of(k) for k in ("chibi", "portrait", "cg", "emoji"))
+    if _index_cache is not None and key == _index_key:
         return _index_cache
 
     heroes: dict[str, dict] = {}
@@ -187,10 +242,62 @@ def index() -> dict:
         h["cg"] = {s: h["cg"][s] for s in sorted(h["cg"], key=_suffix_key)}
 
     _index_cache = {"heroes": heroes, "monsters": monsters}
+    _index_key = key
     return _index_cache
 
 
 # ---------------------------------------------------------------- 查询 ----
+def refresh() -> None:
+    """映射表重建后清掉索引缓存，下次查询重新扫。"""
+    global _index_cache
+    _index_cache = None
+
+
+def _ready(p: str | None) -> str | None:
+    """拿一张图的可用路径。
+
+    图库模式：文件不在就算没有。
+    实时解包模式：不在缓存里就从 bundle 解出来（第一次约 10~70ms，之后直接命中）。
+    """
+    if not p:
+        return None
+    if os.path.isfile(p):
+        return p
+    if not live_mode():
+        return None
+    return LIVE.ensure(p)
+
+
+def _ready_map(d: dict) -> dict:
+    out = {}
+    for k, p in d.items():
+        q = _ready(p)
+        if q:
+            out[k] = q
+    return out
+
+
+# ---- 给别的模块用的取图入口：一律走这里，不要自己去 assets.dir_of 拼路径 ----
+def names(kind: str) -> list:
+    """某个类别的文件名清单。实时模式下来自映射表，图还没解出来也能列全。"""
+    return _files(kind)
+
+
+def ready(path: str | None) -> str:
+    """把索引里存的路径变成「现在能打开」的路径（实时模式按需解包）。没有返回空串。"""
+    return _ready(path) or ""
+
+
+def icon(kind: str, filename: str) -> str:
+    """某类别下某张图的可用路径；实时解包模式下当场解出来。没有返回空串。"""
+    if not filename:
+        return ""
+    d = dir_of(kind)
+    if not d:
+        return ""
+    return _ready(os.path.join(d, filename)) or ""
+
+
 def skin_label(sfx: str) -> str:
     if not sfx:
         return "原始"
@@ -199,21 +306,33 @@ def skin_label(sfx: str) -> str:
     return f"皮肤 {sfx}"
 
 
-def hero_chibi(hid) -> list[tuple[str, str]]:
-    """[(皮肤后缀, 图片路径)]，原始皮肤在最前。"""
+def hero_chibi(hid, first: bool = False) -> list[tuple[str, str]]:
+    """[(皮肤后缀, 图片路径)]，原始皮肤在最前。
+
+    first=True 时只解出第一张（原始皮肤；没有就取第一个皮肤）——
+    角色总览只要一张缩略图，没必要把 3~4 套皮肤全从 bundle 解出来。
+    """
     h = index()["heroes"].get(str(hid)) or {}
-    return list((h.get("chibi") or {}).items())
+    items = list((h.get("chibi") or {}).items())
+    if not first:
+        return list(_ready_map(dict(items)).items())
+    if not items:
+        return []
+    pick = next(((s, p) for s, p in items if s == ""), items[0])
+    q = _ready(pick[1])
+    return [(pick[0], q)] if q else []
 
 
 def hero_portraits(hid) -> list[tuple[str, str]]:
     h = index()["heroes"].get(str(hid)) or {}
-    return list((h.get("portrait") or {}).items())
+    return list(_ready_map(h.get("portrait") or {}).items())
 
 
 def hero_cgs(hid) -> list[tuple[str, dict]]:
     """[(皮肤后缀, {帧号: 路径})]。"""
     h = index()["heroes"].get(str(hid)) or {}
-    return list((h.get("cg") or {}).items())
+    return [(sfx, d) for sfx, d in ((s, _ready_map(f or {}))
+                                    for s, f in (h.get("cg") or {}).items()) if d]
 
 
 def relic_icon(filename: str) -> str | None:
@@ -221,7 +340,7 @@ def relic_icon(filename: str) -> str | None:
     if not filename:
         return None
     p = os.path.join(dir_of("relic"), filename)
-    return p if os.path.isfile(p) else None
+    return _ready(p) if os.path.isfile(p) or live_mode() else None
 
 
 # 品质底框（圆盘）：蓝 / 紫 / 金（游戏内部叫 Orange）
@@ -251,7 +370,7 @@ def achieve_icon(filename: str) -> str | None:
     if not filename:
         return None
     p = os.path.join(dir_of("achieve"), filename)
-    return p if os.path.isfile(p) else None
+    return _ready(p) if os.path.isfile(p) or live_mode() else None
 
 
 # 奖励图标散落在多个解包目录里（货币在 relic、头像在 player_photo、背景在 account_bg…）
@@ -266,13 +385,17 @@ def item_icon(filename: str) -> str | None:
         p = os.path.join(dir_of(kind), filename)
         if os.path.isfile(p):
             return p
+        if live_mode():
+            q = _ready(p)
+            if q:
+                return q
     return None
 
 
 def hero_emojis(hid) -> list[tuple[str, str]]:
     """[(表情序号, 图片路径)]，按序号升序。"""
     h = index()["heroes"].get(str(hid)) or {}
-    return list((h.get("emoji") or {}).items())
+    return list(_ready_map(h.get("emoji") or {}).items())
 
 
 def monster_portrait(no) -> str | None:
@@ -282,7 +405,7 @@ def monster_portrait(no) -> str | None:
     if not p:
         alias = ART_ALIAS.get(k)
         p = (ix.get(alias) or {}).get("portrait") if alias else None
-    return p
+    return _ready(p)
 
 
 def monster_cg(no) -> str | None:
@@ -292,7 +415,7 @@ def monster_cg(no) -> str | None:
     if not p:
         alias = ART_ALIAS.get(k)
         p = (ix.get(alias) or {}).get("cg") if alias else None
-    return p
+    return _ready(p)
 
 
 def art_note(no) -> str:

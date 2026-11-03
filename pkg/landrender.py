@@ -27,6 +27,7 @@ from .artrender import Blocks, GOLD, _ellipsis, _fit, _open, _paste_center
 
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 from . import assets as AS        # 地块图标走外部素材库「地块」目录
+from . import artlib as AL        # 取图统一走 artlib：实时解包模式下会按需解出来
 
 _PLAT = re.compile(r"^UT_Platform_([0-9A-Za-z]+)\.png$")
 _TILE = re.compile(r"^UT_Land_([0-9A-Za-z]+)\.png$")
@@ -39,20 +40,21 @@ ICON_OVERRIDE = {1: "108"}
 
 # ---------------------------------------------------------------- 素材索引 ----
 _index_cache: dict | None = None
+_index_key: str = ""
 
 
 def index() -> dict:
-    """{"icon": {英文标识: 路径}, "tile": {角色ID: 路径}}（带缓存）。"""
-    global _index_cache
-    if _index_cache is not None:
+    """{"icon": {英文标识: 路径}, "tile": {角色ID: 路径}}（带缓存）。
+
+    路径只是「理论上在哪」，取图时再交给 artlib.ready()，实时解包模式下会在那一刻解出来。
+    缓存按目录路径作键：换了 art_root（或从外库切到实时）就自动重建。
+    """
+    global _index_cache, _index_key
+    land_dir = AL.dir_of("land")
+    if _index_cache is not None and _index_key == land_dir:
         return _index_cache
     icons, tiles = {}, {}
-    land_dir = AS.dir_of("land")
-    try:
-        names = os.listdir(land_dir)
-    except OSError:
-        names = []
-    for f in names:
+    for f in AL.names("land"):
         if not f.lower().endswith(".png"):
             continue
         p = os.path.join(land_dir, f)
@@ -64,16 +66,18 @@ def index() -> dict:
         if m:
             tiles[m.group(1)] = p
     _index_cache = {"icon": icons, "tile": tiles}
+    _index_key = land_dir
     return _index_cache
 
 
 def available() -> bool:
-    return bool(index()["icon"] or index()["tile"])
+    ix = index()
+    return bool(ix["icon"] or ix["tile"])
 
 
 def describe() -> str:
     ix = index()
-    return f"{AS.dir_of('land')}（地形图标 {len(ix['icon'])} · 角色地块 {len(ix['tile'])}）"
+    return f"{AL.dir_of('land')}（地形图标 {len(ix['icon'])} · 角色地块 {len(ix['tile'])}）"
 
 
 def icon_for(land: dict) -> str | None:
@@ -82,14 +86,20 @@ def icon_for(land: dict) -> str | None:
     t = int(land.get("type") or 0)
     ov = ICON_OVERRIDE.get(t)
     if ov and ix.get(ov):
-        return ix[ov]
+        return AL.ready(ix[ov]) or None
     en = str(land.get("en") or "")
-    return ix.get(en) or ix.get(str(t))
+    for p in (ix.get(en), ix.get(str(t))):
+        if p:
+            q = AL.ready(p)
+            if q:
+                return q
+    return None
 
 
 def tile_for(cid) -> str | None:
     """角色地块圆片：UT_Land_<角色ID>.png。"""
-    return index()["tile"].get(str(cid))
+    p = index()["tile"].get(str(cid))
+    return (AL.ready(p) or None) if p else None
 
 
 # ---------------------------------------------------------------- 数据整理 ----

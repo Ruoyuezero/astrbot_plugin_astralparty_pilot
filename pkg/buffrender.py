@@ -29,6 +29,7 @@ BUFF_DROP_IDS = {"10000"}
 BUFF_DROP_NAMES = {"悬赏"}
 
 from . import assets as AS        # 图标走外部素材库：buff/ 与 道具/
+from . import artlib as AL        # 取图统一走 artlib：实时解包模式下会按需解出来
 from .cardrender import _font     # 字体跟卡面配置走（card_font），不再自带字体栈
 
 # 配色（浅色简洁风，与卡牌图鉴一致）
@@ -119,25 +120,23 @@ def _load_meta() -> list[dict]:
     except (FileNotFoundError, json.JSONDecodeError):
         pass
 
-    # 回退：只凭图标目录
+    # 回退：只凭图标目录（实时解包模式下来自映射表，不依赖目录已存在）
     items = []
-    buff_dir = AS.dir_of("buff")
-    if os.path.isdir(buff_dir):
-        for fn in os.listdir(buff_dir):
-            if not fn.endswith(".png"):
-                continue
-            base = fn[len("UT_Buff_"):-4]
-            if base in BUFF_DROP_IDS:
-                continue
-            items.append({
-                "name": CN.get(base, base),
-                "ids": [base],
-                "icon": "buff/" + fn,
-                "icon_kind": "buff",
-                "desc": "",
-                "desc_src": "",
-                "srcs": [],
-            })
+    for fn in AL.names("buff"):
+        if not fn.endswith(".png"):
+            continue
+        base = fn[len("UT_Buff_"):-4] if fn.startswith("UT_Buff_") else fn[:-4]
+        if base in BUFF_DROP_IDS:
+            continue
+        items.append({
+            "name": CN.get(base, base),
+            "ids": [base],
+            "icon": "buff/" + fn,
+            "icon_kind": "buff",
+            "desc": "",
+            "desc_src": "",
+            "srcs": [],
+        })
     items.sort(key=lambda e: e["name"])
     _META_CACHE = items
     return items
@@ -153,8 +152,7 @@ def _icon_path(entry: dict) -> str:
     if not rel:
         return ""
     kind = entry.get("icon_kind") or ("relic" if rel.startswith("relic") else "buff")
-    p = os.path.join(AS.dir_of(kind), os.path.basename(rel))
-    return p if os.path.exists(p) else ""
+    return AL.icon(kind, os.path.basename(rel))
 
 
 def _sort_key(e):
