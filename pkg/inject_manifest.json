@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-07 13:44:55",
+ "generated_at": "2026-11-07 13:45:38",
  "source": "pkg/payload",
- "total": 239,
- "bytes": 83828246,
+ "total": 238,
+ "bytes": 83709462,
  "groups": {
   "bepinex-core": {
    "count": 37,
@@ -35,8 +35,8 @@
    "desc": "doorstop 加载器：靠劫持 winhttp.dll 在游戏启动时挂 BepInEx"
   },
   "plugin": {
-   "count": 3,
-   "bytes": 239017,
+   "count": 2,
+   "bytes": 120233,
    "desc": "代打插件本体 AstralProbe.dll"
   }
  },
@@ -1047,12 +1047,6 @@
    "rel": "BepInEx/plugins/AstralProbe.dll",
    "size": 119808,
    "sha256": "cf13c4bb9c051faec66eb1ccbc732fb0f34ed4d29119fcb3a8666760dad87eed",
-   "group": "plugin"
-  },
-  {
-   "rel": "BepInEx/plugins/AstralProbe.dll.bak_1105_0005",
-   "size": 118784,
-   "sha256": "0d81b3addaa3b2baa8f071c4600a13c20fed95eadf5165b7d8343d0907c28d32",
    "group": "plugin"
   },
   {
