@@ -271,10 +271,10 @@ logs/                 陪玩进程 pid、stdout、每日运行日志
 
 - 游戏配置表与素材版权归《星引擎 Party / Astral Party》开发方所有
 - 地图拓扑与知识库经 biligame 星引擎 Party wiki 及实局数据交叉校验
-- 联机查号的协议细节（包头结构、CMDID、登录字段）与 `BnSdk` 日志取票位置，参考了
-  [**AstralParty_Dex（星趴档案）**](https://github.com/ZtyanCrany/AstralParty_Dex) —— 作者
-  Nemophila & ZtyanCrany，MIT 许可。本项目只取用其协议实测结论，相关实现按需自行重写；
-  代码位置见 `pkg/liveapi.py`、`pkg/feimo.py` 顶部注释
+- 联机查号的协议细节（包头结构、CMDID、登录字段），以及收包循环、等待响应、签名拼参等辅助函数，
+  改写自 [**AstralParty_Dex（星趴档案）**](https://github.com/ZtyanCrany/AstralParty_Dex) —— 作者
+  Nemophila & ZtyanCrany，MIT 许可。具体范围（`pkg/liveapi.py`、`pkg/feimo.py`、
+  `pkg/feimo_signkeys.py`）与许可全文见 [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md)
 - 依赖 [AstrBot](https://github.com/AstrBotDevs/AstrBot)、Pillow、NetworkX
 
 ---
