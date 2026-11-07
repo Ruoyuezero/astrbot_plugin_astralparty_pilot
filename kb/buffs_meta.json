@@ -860,7 +860,7 @@
   ],
   "icon": "buff/UT_Buff_1067.png",
   "icon_kind": "buff",
-  "desc": "真的有罪吗？<br>角色被击倒后，失去1层【罪证】",
+  "desc": "真的有罪吗？\n角色被击倒后，失去1层【罪证】",
   "desc_src": "wiki",
   "srcs": [
    "罪证嫌疑",

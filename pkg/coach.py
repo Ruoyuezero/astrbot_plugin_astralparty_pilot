@@ -79,10 +79,11 @@ def ctl_file(cfg: dict | None = None) -> str:
     return os.path.join(g, "coach_ctl.json") if g else ""
 
 
-ACTIONS = ("card", "skill", "go", "choose", "stop", "buy", "atk", "def", "skip")
+ACTIONS = ("card", "skill", "go", "choose", "stop", "buy", "relic", "atk", "def",
+           "dodge", "skip")
 # /appa on 全自动的授权：go 在就不含 stop（要停手动 /appa stop）；
 # 不含 skip（全自动该打的怪要打）
-FULL_ALLOW = ("card", "skill", "go", "choose", "buy", "atk", "def")
+FULL_ALLOW = ("card", "skill", "go", "choose", "buy", "relic", "atk", "def")
 
 
 def ctl_allow(cfg: dict | None = None) -> list[str]:
@@ -97,8 +98,21 @@ def ctl_allow(cfg: dict | None = None) -> list[str]:
     return [x for x in ACTIONS if x in a]
 
 
+def ctl_once(cfg: dict | None = None) -> list[str]:
+    """控制文件里的「一次性授权」清单：这些动作执行完，引擎会自己收回。"""
+    try:
+        with open(ctl_file(cfg), encoding="utf-8") as f:
+            d = json.load(f) or {}
+    except (OSError, ValueError):
+        return []
+    o = d.get("once")
+    if not isinstance(o, list):
+        return []
+    return [x for x in ACTIONS if x in o]
+
+
 def set_allow(cfg: dict | None = None, allow: list[str] | None = None,
-              prefer: str | None = None) -> bool:
+              prefer: str | None = None, once: list[str] | None = None) -> bool:
     """写授权（引擎每帧读一次，改完下一帧就换挡，不用重启进程）。
 
     prefer 只在启动时用；运行中传 None 表示沿用控制文件里原来的倾向。
@@ -114,6 +128,16 @@ def set_allow(cfg: dict | None = None, allow: list[str] | None = None,
     p = prefer if prefer in ("atk", "def", "eco") else old.get("prefer")
     if p in ("atk", "def", "eco"):
         d["prefer"] = p
+    if once is None:
+        # None = 不改动这一项（运行中改授权时沿用原来的标记）
+        if isinstance(old.get("once"), list):
+            keep = [x for x in ACTIONS if x in old["once"] and x in allow]
+            if keep:
+                d["once"] = keep
+    else:
+        once_l = [x for x in ACTIONS if x in once and x in allow]
+        if once_l:
+            d["once"] = once_l
     if isinstance(old.get("auto_skill"), bool):
         d["auto_skill"] = old["auto_skill"]
     try:
@@ -194,7 +218,8 @@ def stop(cfg: dict | None = None) -> str:
 
 
 def start(cfg: dict | None = None, mode: str = "pilot", dry: bool = False,
-          prefer: str = "eco", allow: list[str] | None = None) -> str:
+          prefer: str = "eco", allow: list[str] | None = None,
+          once: list[str] | None = None) -> str:
     h = home(cfg)
     script = engine_script(h)
     if not os.path.exists(script):
@@ -209,7 +234,7 @@ def start(cfg: dict | None = None, mode: str = "pilot", dry: bool = False,
         stop(cfg)
 
     # 先写控制文件：引擎启动时就会读，进程半路重启也记得住授权
-    set_allow(cfg, allow or [])
+    set_allow(cfg, allow or [], once=once)
 
     os.makedirs(datapaths.logs_dir(), exist_ok=True)
     logf = datapaths.log_path("coach_stdout.log")
@@ -223,6 +248,9 @@ def start(cfg: dict | None = None, mode: str = "pilot", dry: bool = False,
     # 这样插件里不用再放一份 config.json
     env = dict(os.environ)
     env["ASTRAL_GAME_DIR"] = game_dir(cfg)
+    # stdout 重定向到日志文件时 Windows 默认用 GBK，引擎里的 emoji/生僻字会直接
+    # 抛 UnicodeEncodeError 把进程打死（表现为「启动后立刻退出、日志只有启动头一行」）
+    env["PYTHONIOENCODING"] = "utf-8"
     # 引擎子进程不 import astrbot，数据/日志目录靠这个变量传下去
     env[datapaths.ENV_KEY] = datapaths.data_dir()
     try:

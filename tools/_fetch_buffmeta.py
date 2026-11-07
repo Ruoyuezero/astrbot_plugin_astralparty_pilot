@@ -54,6 +54,17 @@ for i in range(0, len(titles), 20):
 
 print("取到正文页面:", len(bodies))
 
+def clean_desc(s):
+    """wiki 原文带 HTML，换行是 <br>。这里统一清成纯文本。"""
+    s = re.sub(r"<br\s*/?>", "\n", s or "", flags=re.I)
+    s = re.sub(r"<[^>]{1,80}>", "", s)
+    for a, b in (("&nbsp;", " "), ("&amp;", "&"), ("&lt;", "<"),
+                 ("&gt;", ">"), ("&quot;", '"'), ("&#39;", "'")):
+        s = s.replace(a, b)
+    s = re.sub(r"[ \t]+\n", "\n", s)
+    return s.strip()
+
+
 # 4) 解析 {{Buff|中文名|图标key|说明}}
 PAT = re.compile(r"\{\{[Bb]uff\s*\|([^|}]*)\|([^|}]*)\|([^}]*)\}\}")
 meta = {}
@@ -61,7 +72,7 @@ for title, txt in bodies.items():
     for m in PAT.finditer(txt):
         cn = m.group(1).strip()
         key = m.group(2).strip()
-        desc = m.group(3).strip()
+        desc = clean_desc(m.group(3))
         if not cn:
             continue
         item = meta.setdefault(cn, {"keys": [], "desc": "", "src": []})

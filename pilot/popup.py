@@ -62,16 +62,54 @@ class _BMI(ctypes.Structure):
     _fields_ = [("bmiHeader", _BMIH), ("bmiColors", wintypes.DWORD * 3)]
 
 
+# 64 位下不声明签名，句柄会被当 int32 截断；GetDIBits 写越界则会直接堆损坏
+user32.GetDC.argtypes = [wintypes.HWND]
+user32.GetDC.restype = wintypes.HDC
+user32.ReleaseDC.argtypes = [wintypes.HWND, wintypes.HDC]
+user32.ReleaseDC.restype = ctypes.c_int
+gdi32.CreateCompatibleDC.argtypes = [wintypes.HDC]
+gdi32.CreateCompatibleDC.restype = wintypes.HDC
+gdi32.CreateCompatibleBitmap.argtypes = [wintypes.HDC, ctypes.c_int, ctypes.c_int]
+gdi32.CreateCompatibleBitmap.restype = wintypes.HBITMAP
+gdi32.SelectObject.argtypes = [wintypes.HDC, wintypes.HGDIOBJ]
+gdi32.SelectObject.restype = wintypes.HGDIOBJ
+gdi32.BitBlt.argtypes = [wintypes.HDC, ctypes.c_int, ctypes.c_int, ctypes.c_int,
+                         ctypes.c_int, wintypes.HDC, ctypes.c_int, ctypes.c_int,
+                         wintypes.DWORD]
+gdi32.BitBlt.restype = wintypes.BOOL
+gdi32.GetDIBits.argtypes = [wintypes.HDC, wintypes.HBITMAP, wintypes.UINT, wintypes.UINT,
+                            ctypes.c_void_p, ctypes.POINTER(_BMI), wintypes.UINT]
+gdi32.GetDIBits.restype = ctypes.c_int
+gdi32.DeleteObject.argtypes = [wintypes.HGDIOBJ]
+gdi32.DeleteObject.restype = wintypes.BOOL
+gdi32.DeleteDC.argtypes = [wintypes.HDC]
+gdi32.DeleteDC.restype = wintypes.BOOL
+
+
 def grab(x, y, w, h):
-    """抓屏幕一块，返回 (bytes(BGR 逐行, 自上而下), 宽, 高)。失败返回 (None, 0, 0)。"""
+    """抓屏幕一块，返回 (bytes(BGR 逐行, 自上而下), 宽, 高)。失败返回 (None, 0, 0)。
+
+    24bpp 的 DIB 每行按 4 字节对齐，GetDIBits 会按对齐后的行宽写满
+    stride*h 字节 —— buffer 只按 w*h*3 分配就会被写过界，表现为进程
+    无故退出（0xC0000374 堆损坏）。这里按 stride 分配，取完再把行尾填充
+    去掉，对外仍是紧凑 BGR。
+    """
     if w <= 0 or h <= 0:
         return None, 0, 0
-    hdc = user32.GetDC(0)
+    hdc = user32.GetDC(None)
+    if not hdc:
+        return None, 0, 0
     mem = gdi32.CreateCompatibleDC(hdc)
-    bmp = gdi32.CreateCompatibleBitmap(hdc, w, h)
+    bmp = gdi32.CreateCompatibleBitmap(hdc, w, h) if mem else None
+    if not mem or not bmp:
+        if mem:
+            gdi32.DeleteDC(mem)
+        user32.ReleaseDC(None, hdc)
+        return None, 0, 0
     old = gdi32.SelectObject(mem, bmp)
     try:
-        gdi32.BitBlt(mem, 0, 0, w, h, hdc, int(x), int(y), 0x00CC0020)
+        if not gdi32.BitBlt(mem, 0, 0, w, h, hdc, int(x), int(y), 0x00CC0020):
+            return None, 0, 0
         bi = _BMI()
         bi.bmiHeader.biSize = ctypes.sizeof(_BMIH)
         bi.bmiHeader.biWidth = w
@@ -79,14 +117,24 @@ def grab(x, y, w, h):
         bi.bmiHeader.biPlanes = 1
         bi.bmiHeader.biBitCount = 24
         bi.bmiHeader.biCompression = 0
-        buf = ctypes.create_string_buffer(w * h * 3)
-        gdi32.GetDIBits(mem, bmp, 0, h, buf, ctypes.byref(bi), 0)
-        return buf.raw, w, h
+        stride = (w * 3 + 3) & ~3           # 每行 4 字节对齐
+        buf = ctypes.create_string_buffer(stride * h)
+        if gdi32.GetDIBits(mem, bmp, 0, h, buf, ctypes.byref(bi), 0) != h:
+            return None, 0, 0
+        raw = buf.raw
+        if stride == w * 3:
+            return raw, w, h
+        row = w * 3
+        out = bytearray(row * h)
+        for yy in range(h):
+            out[yy * row:(yy + 1) * row] = raw[yy * stride: yy * stride + row]
+        return bytes(out), w, h
     finally:
-        gdi32.SelectObject(mem, old)
+        if old:
+            gdi32.SelectObject(mem, old)
         gdi32.DeleteObject(bmp)
         gdi32.DeleteDC(mem)
-        user32.ReleaseDC(0, hdc)
+        user32.ReleaseDC(None, hdc)
 
 
 def _ratio(raw, w, h, rgb):

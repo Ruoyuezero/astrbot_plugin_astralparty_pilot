@@ -13,7 +13,7 @@
     data/plugin_data/astrbot_plugin_astralparty_pilot/live_art/<类别>/<图名>.png
 
 游戏更新后：
-    重跑一遍 build_map()（`/app update` 在图库为空时就是干这个），旧表整份换掉。
+    `/app load` 抽样对不上时会重跑一遍 build_map()，旧表整份换掉。
 """
 from __future__ import annotations
 

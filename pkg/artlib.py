@@ -365,12 +365,33 @@ def relic_base(quality: str) -> str | None:
     return relic_icon(name)                     # 兜底：万一插件里没带，再看图库
 
 
+def _bundled_achieve(filename: str) -> str | None:
+    """插件自带的成就图兜底（`assets/achieve/`）。
+
+    只放游戏 bundle 里确实没有的图（目前只有 20401《加入公会》，直接复用 20400 的
+    同一张图），和 relicbase 一样随插件走：图库被清空、换机器重解都不影响这张出图。
+    """
+    p = os.path.join(HERE, "assets", "achieve", filename)
+    return p if os.path.isfile(p) else None
+
+
 def achieve_icon(filename: str) -> str | None:
-    """成就图标。filename 来自 kb/achievements.json 的 icon 字段（如 UT_Achieve_20100.png）。"""
+    """成就图标。filename 来自 kb/achievements.json 的 icon 字段（如 UT_Achieve_20100.png）。
+
+    顺序：解包图库 → 插件自带 `assets/achieve/`。
+    20401《加入公会》的纹理在游戏包里不存在（两个服共 6687+6738 个 bundle 加运行时
+    缓存全扫过，204 段只有 20300/20301/20302/20400），所以插件里放的是 20400 那张。
+    """
     if not filename:
         return None
     p = os.path.join(dir_of("achieve"), filename)
-    return _ready(p) if os.path.isfile(p) or live_mode() else None
+    if os.path.isfile(p):
+        return _ready(p) or _bundled_achieve(filename)
+    if live_mode():
+        q = _ready(p)
+        if q:
+            return q
+    return _bundled_achieve(filename)
 
 
 # 奖励图标散落在多个解包目录里（货币在 relic、头像在 player_photo、背景在 account_bg…）

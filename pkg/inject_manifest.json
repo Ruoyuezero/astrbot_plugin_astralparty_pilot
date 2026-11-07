@@ -1,0 +1,1479 @@
+{
+ "generated_at": "2026-11-07 13:44:55",
+ "source": "pkg/payload",
+ "total": 239,
+ "bytes": 83828246,
+ "groups": {
+  "bepinex-core": {
+   "count": 37,
+   "bytes": 6615139,
+   "desc": "BepInEx 本体（预加载、运行时引导）"
+  },
+  "bepinex-interop": {
+   "count": 127,
+   "bytes": 69575936,
+   "desc": "IL2CPP 程序集互操作层（体积最大，缺了插件加载不起）"
+  },
+  "bepinex-unity": {
+   "count": 67,
+   "bytes": 7330861,
+   "desc": "Unity 引用库（插件编译/运行时的程序集引用）"
+  },
+  "config": {
+   "count": 1,
+   "bytes": 7611,
+   "desc": "BepInEx 配置"
+  },
+  "dependence": {
+   "count": 1,
+   "bytes": 31928,
+   "desc": "游戏额外依赖的 AssetBundle（界面资源）"
+  },
+  "doorstop": {
+   "count": 3,
+   "bytes": 27754,
+   "desc": "doorstop 加载器：靠劫持 winhttp.dll 在游戏启动时挂 BepInEx"
+  },
+  "plugin": {
+   "count": 3,
+   "bytes": 239017,
+   "desc": "代打插件本体 AstralProbe.dll"
+  }
+ },
+ "files": [
+  {
+   "rel": ".doorstop_version",
+   "size": 5,
+   "sha256": "75a2f501000d4fe28f74bc7ee66dae5581959d28b6c44f0c1b0c05cd5ba261e6",
+   "group": "doorstop"
+  },
+  {
+   "rel": "BepInEx/config/BepInEx.cfg",
+   "size": 7611,
+   "sha256": "ac2054356d2c84c858e459f3d327cb8c98b916b538990f132f3626ded656c236",
+   "group": "config"
+  },
+  {
+   "rel": "BepInEx/core/0Harmony.dll",
+   "size": 264192,
+   "sha256": "6c898933b52149e8bcf6722305c7e4d94add47c9e53b364096f91721624c0877",
+   "group": "bepinex-core"
+  },
+  {
+   "rel": "BepInEx/core/AsmResolver.dll",
+   "size": 67584,
+   "sha256": "64b50030b34654f12805ec4d2848551e431c5f0bcd65cd70d6fe2845f715fb12",
+   "group": "bepinex-core"
+  },
+  {
+   "rel": "BepInEx/core/AsmResolver.DotNet.dll",
+   "size": 561664,
+   "sha256": "045bcdf32427f9bd39bee2620c470372583935c8e89b360931e467dd191d46d1",
+   "group": "bepinex-core"
+  },
+  {
+   "rel": "BepInEx/core/AsmResolver.PE.dll",
+   "size": 397824,
+   "sha256": "6ba6d56bf5fd3dd18233b56606a7ed1d42b8c93977b5375716771bf13ea36a1e",
+   "group": "bepinex-core"
+  },
+  {
+   "rel": "BepInEx/core/AsmResolver.PE.File.dll",
+   "size": 40960,
+   "sha256": "8246433a1a6fb4c012c1814acee8a4ff24f3a4fac593569f6a1e343e68c9d8ee",
+   "group": "bepinex-core"
+  },
+  {
+   "rel": "BepInEx/core/AssetRipper.CIL.dll",
+   "size": 45568,
+   "sha256": "1eeff8d76dda5d65e5145ab0d43a3dac672e096e5692c47e0382ebb3c7c817f9",
+   "group": "bepinex-core"
+  },
+  {
+   "rel": "BepInEx/core/AssetRipper.Primitives.dll",
+   "size": 29184,
+   "sha256": "681ba26fd356d9263fdf6afeb1b8f8506802a9503ffa80c9d21e0c4a46743a28",
+   "group": "bepinex-core"
+  },
+  {
+   "rel": "BepInEx/core/BepInEx.Core.dll",
+   "size": 138240,
+   "sha256": "1d492eeecd40cd4feb7dc35aff7f08839928ac1637d4993bbde0060de36b7e0a",
+   "group": "bepinex-core"
+  },
+  {
+   "rel": "BepInEx/core/BepInEx.Core.xml",
+   "size": 91631,
+   "sha256": "6093581edd3f53f496d0ebdc1505199b3c88e7c8a965d506cf4305bc1173862a",
+   "group": "bepinex-core"
+  },
+  {
+   "rel": "BepInEx/core/BepInEx.Preloader.Core.dll",
+   "size": 52736,
+   "sha256": "1a2824268a24d3eca2931daa7b7b378d7338a542502bcf9e2261919095b1eb97",
+   "group": "bepinex-core"
+  },
+  {
+   "rel": "BepInEx/core/BepInEx.Preloader.Core.xml",
+   "size": 16386,
+   "sha256": "f7e68941a96a6bbb42237b428f0b38077ac139597ac24c7cbb51e661f51ae3f1",
+   "group": "bepinex-core"
+  },
+  {
+   "rel": "BepInEx/core/BepInEx.Unity.Common.dll",
+   "size": 13824,
+   "sha256": "1e15d7ada3416d9fecb4514377ca297783ac25877bd53e0fd7ddd32a6cd37369",
+   "group": "bepinex-core"
+  },
+  {
+   "rel": "BepInEx/core/BepInEx.Unity.Common.xml",
+   "size": 1196,
+   "sha256": "d3164c64d07fffbd4e5a28dd4a7201d4971bf15f5d471fc919d4707009fc9114",
+   "group": "bepinex-core"
+  },
+  {
+   "rel": "BepInEx/core/BepInEx.Unity.IL2CPP.dll",
+   "size": 102912,
+   "sha256": "46cf1ef802bdf8cb6587fc1e4d98f7af1073a60487b39a64e230e6f6e4c23aec",
+   "group": "bepinex-core"
+  },
+  {
+   "rel": "BepInEx/core/BepInEx.Unity.IL2CPP.dll.config",
+   "size": 456,
+   "sha256": "ea4436344d4cc4c29f3382655c99828ace3df659107cb2e6b985227027e48cd6",
+   "group": "bepinex-core"
+  },
+  {
+   "rel": "BepInEx/core/BepInEx.Unity.IL2CPP.xml",
+   "size": 9726,
+   "sha256": "9ff8fa972a053b2be0c5b6c0a7da9c2267d2dfb9656be353c07355b07a26ccf1",
+   "group": "bepinex-core"
+  },
+  {
+   "rel": "BepInEx/core/Cpp2IL.Core.dll",
+   "size": 394240,
+   "sha256": "a7ae866298472bfa5176c1b5b71adfa9fe6e2f1deef7b8d50f063c0e2c0ba258",
+   "group": "bepinex-core"
+  },
+  {
+   "rel": "BepInEx/core/Disarm.dll",
+   "size": 139264,
+   "sha256": "40e804c35369825884534734725d06831a534759478c8d9f3f908d80779a1a93",
+   "group": "bepinex-core"
+  },
+  {
+   "rel": "BepInEx/core/dobby.dll",
+   "size": 205312,
+   "sha256": "8015de7d867245a1095d13947a63763878e4cf5fd3d3089b63cc39200b055ded",
+   "group": "bepinex-core"
+  },
+  {
+   "rel": "BepInEx/core/Gee.External.Capstone.dll",
+   "size": 295936,
+   "sha256": "18f9cfbfd10b479143a46b3e417ccfce4a62d4c2770da9ed12d553a0b326302c",
+   "group": "bepinex-core"
+  },
+  {
+   "rel": "BepInEx/core/Iced.dll",
+   "size": 1896448,
+   "sha256": "f058c01321b4cdfc9b9151879e88e59571c8d0ba176fbcf95bc936a8f3d073ed",
+   "group": "bepinex-core"
+  },
+  {
+   "rel": "BepInEx/core/Il2CppInterop.Common.dll",
+   "size": 41472,
+   "sha256": "19828ba87fb2183867fb9fca71aad39d2e858e29c333299fd7cd440267a83713",
+   "group": "bepinex-core"
+  },
+  {
+   "rel": "BepInEx/core/Il2CppInterop.Generator.dll",
+   "size": 231424,
+   "sha256": "49fc21466c0be95dc81fe2c2aefea3f14a46003bb321e689c473475ac397fef6",
+   "group": "bepinex-core"
+  },
+  {
+   "rel": "BepInEx/core/Il2CppInterop.HarmonySupport.dll",
+   "size": 27136,
+   "sha256": "c510046bd63bd437708825786c11834a59c015b1fca7607ef77ba008111021d2",
+   "group": "bepinex-core"
+  },
+  {
+   "rel": "BepInEx/core/Il2CppInterop.Runtime.dll",
+   "size": 302592,
+   "sha256": "9c8652fdd307a9af22f9ec6d48b045d2856e21c152718c1ef06d890ad354a861",
+   "group": "bepinex-core"
+  },
+  {
+   "rel": "BepInEx/core/LibCpp2IL.dll",
+   "size": 312320,
+   "sha256": "dd3bd5417cac3fd203b906a90dbae6719136e61f43c2b4eed55f56242bb10a14",
+   "group": "bepinex-core"
+  },
+  {
+   "rel": "BepInEx/core/Mono.Cecil.dll",
+   "size": 356864,
+   "sha256": "769a59793d4b8885bbbfbc5aee8f57a0d4e34d275c56c60c03994309b87f67e9",
+   "group": "bepinex-core"
+  },
+  {
+   "rel": "BepInEx/core/Mono.Cecil.Mdb.dll",
+   "size": 39424,
+   "sha256": "61637f9940e5e336571cbf945be0f36d6d6050e06288df0f0232d93b26f0bde7",
+   "group": "bepinex-core"
+  },
+  {
+   "rel": "BepInEx/core/Mono.Cecil.Pdb.dll",
+   "size": 89600,
+   "sha256": "a5249a04ad8fd7dfd47e4d0a620aed0f7eb6051e1ddec102c541ca3e12f6e2a8",
+   "group": "bepinex-core"
+  },
+  {
+   "rel": "BepInEx/core/Mono.Cecil.Rocks.dll",
+   "size": 24576,
+   "sha256": "273292babd45f9f34de5054bd9cdfe1d859a7dbf6f4ad5974fe4ead70698ed5b",
+   "group": "bepinex-core"
+  },
+  {
+   "rel": "BepInEx/core/MonoMod.Backports.dll",
+   "size": 29184,
+   "sha256": "cdd6e9f7bcdb98d2c002f63bfbe85ae80ea36261190a741e64283d769a6c6502",
+   "group": "bepinex-core"
+  },
+  {
+   "rel": "BepInEx/core/MonoMod.ILHelpers.dll",
+   "size": 4096,
+   "sha256": "0081403bdcef3340f78c7ccded0be6ae0507b397ee8b9980b44f01bf9f93aed1",
+   "group": "bepinex-core"
+  },
+  {
+   "rel": "BepInEx/core/MonoMod.RuntimeDetour.dll",
+   "size": 112640,
+   "sha256": "1b3d55f53cb9f9f2550daed4dfd300b247d71698a0ace82bc7b9ff38d563594f",
+   "group": "bepinex-core"
+  },
+  {
+   "rel": "BepInEx/core/MonoMod.Utils.dll",
+   "size": 193024,
+   "sha256": "72a5b4249985873d7ecb160cbbed7a1e6540a38ee7618c72c64b9cb068c1438a",
+   "group": "bepinex-core"
+  },
+  {
+   "rel": "BepInEx/core/SemanticVersioning.dll",
+   "size": 34816,
+   "sha256": "a5b57607225a0ebde049e93469f49e5b2d07a7d602a03864ce3a72ccf57103a2",
+   "group": "bepinex-core"
+  },
+  {
+   "rel": "BepInEx/core/StableNameDotNet.dll",
+   "size": 28160,
+   "sha256": "280373b93a140395489d714703ac61f8d02c7aa07ac6e34024f8f0e26901325a",
+   "group": "bepinex-core"
+  },
+  {
+   "rel": "BepInEx/core/WasmDisassembler.dll",
+   "size": 22528,
+   "sha256": "f837036e0db02d6f3dde76de573fd9a847a1175d61818607e40c46952f5c66c0",
+   "group": "bepinex-core"
+  },
+  {
+   "rel": "BepInEx/interop/__Generated.dll",
+   "size": 4608,
+   "sha256": "cb5bb51023bd0ffbf16e018acebdf3df74187ecf8e6b11b1b8305b472f011396",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/Ak.Wwise.Api.WAAPI.dll",
+   "size": 139264,
+   "sha256": "9da496e528c866392a8b54c1c6d75c4b8c10eeb5e69b36b32aa73cc6d238e1cc",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/AK.Wwise.Unity.Addressables.dll",
+   "size": 45568,
+   "sha256": "20d9da01cae85c22f3866dfcae17884f9309c2c7a7be3d2ab8b3ce1801751ade",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/AK.Wwise.Unity.API.dll",
+   "size": 1549312,
+   "sha256": "043e8ac17d17da8661b76d5796dbd1fc744b1fccf3b51fc74e3e185586c417a0",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/AK.Wwise.Unity.API.WwiseTypes.dll",
+   "size": 45568,
+   "sha256": "361a000d0558a089ea9ff946b8c8500f927d88a4667184cd62fe2c4b36b1537e",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/AK.Wwise.Unity.MonoBehaviour.dll",
+   "size": 183296,
+   "sha256": "96bbf356963299efa5b5e99fe6bb085e89efd3313da222ac05b200db9ab6b55d",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/AK.Wwise.Unity.Timeline.dll",
+   "size": 54784,
+   "sha256": "fc051840a4ec8c367d0b1861d521a2834266a3d3bc9c152b2768df7cff05f0ac",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/AppConfig.dll",
+   "size": 254976,
+   "sha256": "24b44ed6050ccedbcba6fa37b499c0121b8fe17c690d7f52200edc150865c748",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/Assembly-CSharp.dll",
+   "size": 163328,
+   "sha256": "c3d043d6593f45b4973480ffcb7fcbc400bc291dc97188b78d5d15c8fc29845d",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/assembly-hash.txt",
+   "size": 32,
+   "sha256": "adfb05e0780b212a94dc1113c2eafa6480b96b7b5e70c04c81eb1618ce56f3f4",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/BnNewtonsoft.Json.dll",
+   "size": 1063424,
+   "sha256": "4fb9653e50286388d8890248c177ed5c58889a3db4c204797550cb0799d82ad0",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/BnSdk.dll",
+   "size": 697344,
+   "sha256": "df9bb3619ccc733ad213d96b61820ae66b97fbcf6512c49387a3be8136df76bd",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/BnSdk.Runtime.dll",
+   "size": 204288,
+   "sha256": "d491835f6695131efd115124ca708df1785863cad8474af4da5b1194eaeab1b1",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/Cinemachine.dll",
+   "size": 681472,
+   "sha256": "a860b6c22221bdc6ae326f2a169697002028885e20b4678b7c72f1b6678bca29",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/CriMw.CriWare.Assets.Addressables.Runtime.dll",
+   "size": 39424,
+   "sha256": "e91cd4cb27fac9f0a94001a8d89526e3066a307e0ca9226e05b93b3b70175558",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/CriMw.CriWare.Assets.Runtime.dll",
+   "size": 74752,
+   "sha256": "f87b90bfb0cd83c0731e7495d807b423f84dc9c7460f45c6bd939e6fbd3f6a0f",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/CriMw.CriWare.Runtime.dll",
+   "size": 1222656,
+   "sha256": "7c837a01c570d3a9f8a76ff2ed7f58ecdc37c6bb024410bc265ad44d5bbd19af",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/DOTween.dll",
+   "size": 542720,
+   "sha256": "0c1b1819c786cc92267800f506c287132444bdfc90120aee60c769d796150db1",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/DOTween.Modules.dll",
+   "size": 107520,
+   "sha256": "84233980a9e74abb47649b8c52884c4aacb83dbb2aed84e52f49f89fdc34cb82",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/DOTweenPro.dll",
+   "size": 37376,
+   "sha256": "6fcf745bc322769b9719fb15c21305f0b644633501890fc06d331db8836ba721",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/DOTweenPro.Scripts.dll",
+   "size": 36864,
+   "sha256": "4cb55b8d60c8c7a321b9c2c087bb47b20579b760188da9ee4a2115e921390ad4",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/EasySave3.Runtime.dll",
+   "size": 681472,
+   "sha256": "5cfca09a58d059d74fa382efcfd9a168479bd9eccd56ed46ae0067dd3d82cbb0",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/Facepunch.Steamworks.Win64.dll",
+   "size": 787456,
+   "sha256": "151072a90b518a2d16e51db34cdf29ed07c8e6a3fe13bd072d5ab705cb516fc2",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/FluffyGroomingTool.dll",
+   "size": 371200,
+   "sha256": "51f13ab87ea17fb394e1aadf632b2b61b720040efde2cfec472b37696194c52a",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/Google.Protobuf.Runtime.dll",
+   "size": 1270784,
+   "sha256": "ec0ce5e31dd60d37e7c0cb4bf2e199f62c5730d6a1a42d99c80057472b0bf986",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/HybridCLR.Runtime.dll",
+   "size": 4096,
+   "sha256": "60bfc8776e1b3bdf2739f6ceeb39d1faf8360e95375f447d8c98d9d6b0367a75",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/ICSharpCode.SharpZipLib.dll",
+   "size": 7680,
+   "sha256": "c1b2c1d7affd020e7cac3e39907e95cd580758948f4faf34e33c9b47174a9ab5",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/Il2CppMono.Security.dll",
+   "size": 306688,
+   "sha256": "ede615878093d12802064d4d65bbd55406b5a782959a640365044cc8e694a14e",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/Il2Cppmscorlib.dll",
+   "size": 6866432,
+   "sha256": "8dafb9fbd94367680fa5a6e46199440971ed0234511dd2aae2802133b3fa2bda",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/Il2CppSystem.Configuration.dll",
+   "size": 11264,
+   "sha256": "ac4761344386e7575fdff6d91da4b8dbd262deac8b0d0e6115bfad752b01bbc0",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/Il2CppSystem.Core.dll",
+   "size": 1775104,
+   "sha256": "2c1323e190bfe9b5f0481fb4fe66c9cf4dfd0ca7e07581d803f1e7ed3a884cb1",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/Il2CppSystem.Data.dll",
+   "size": 1385472,
+   "sha256": "ea3aedd646844c3e41fcddd0125a25bdff459d5726d6fe33a03de9dc986cae5a",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/Il2CppSystem.dll",
+   "size": 2794496,
+   "sha256": "fe3c4dd55fd609a14db925e3b9622df8348f5ad03652c6d6d871c06c18087776",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/Il2CppSystem.Drawing.dll",
+   "size": 28160,
+   "sha256": "8fecd278d8d3c4b957811c0b7cb68841535ba572bbde57526aab5f4a9d334d66",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/Il2CppSystem.Numerics.dll",
+   "size": 70656,
+   "sha256": "a8bd070d14295a4cd990aaadbf557d7d1652cdd330ebf864759d04b9115b96ae",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/Il2CppSystem.Runtime.CompilerServices.Unsafe.dll",
+   "size": 7168,
+   "sha256": "9976a2ec4472b7f94bf039aad6cdd00b30c7dcec57359e5b80900669843277eb",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/Il2CppSystem.Runtime.Serialization.dll",
+   "size": 6656,
+   "sha256": "fa6e1019a7d023d62d6ffaffd161fd634803d678e564d997b539887077f640d7",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/Il2CppSystem.Xml.dll",
+   "size": 2915328,
+   "sha256": "dfebb6da20dfb87b72c6ebad1f5c63c9d0d3b6e658ce25dd1d0817ae8e291788",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/Il2CppSystem.Xml.Linq.dll",
+   "size": 99328,
+   "sha256": "4b44cc78ccbe54d34fb16c7736e8e50e6e777904a607741f9753068e01e4d44c",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/MethodAddressToToken.db",
+   "size": 1486424,
+   "sha256": "986f1437bea95c8a96a18b05b45edd7763a1e941f4bc012a8d203c0588dc9901",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/MethodXrefScanCache.db",
+   "size": 20137096,
+   "sha256": "2a5b7035155838e3d4d4e14efdf97ba165ccf25078444627dbbccbed0b967a96",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/sc.stylizedwater2.runtime.dll",
+   "size": 103936,
+   "sha256": "4eea4df3f38261fb49abe47088a9ed0e34d9ad26eb4632739006117ba8361504",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/spine-csharp.dll",
+   "size": 519680,
+   "sha256": "f6da832c88bfdb0c12eea3deb8b0e99a29b4e7f0d4ee829126b7302d6d3624ce",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/spine-unity.dll",
+   "size": 569856,
+   "sha256": "20fbdd31fc7546cd70f92a52dbea2aef4b830e2f3c2514ab361807350da91bc9",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/StompyRobot.SRF.dll",
+   "size": 243712,
+   "sha256": "2014f3264b91ee5b030ddebf1a3e7897833987b5b664384d1b33d1027d7dae12",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/UniTask.Addressables.dll",
+   "size": 24576,
+   "sha256": "1b4305df17aacad77c1e265109655803bcb7e2c13910c79f9fbd693aeb6910a3",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/UniTask.dll",
+   "size": 1463808,
+   "sha256": "1de0a79045d0623f72b91418c012c0f3e51d600d474401edf01a72597699212c",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/UniTask.DOTween.dll",
+   "size": 20992,
+   "sha256": "b431ad97994969449502b6370e1306653a6d22343d4ccdba3307237b5198ccf3",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/Unity Timer.dll",
+   "size": 26112,
+   "sha256": "55bc7ea867b04411efe8b8def189e5922854b73a3fd8341273c06f446df873d4",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/Unity.Addressables.dll",
+   "size": 355328,
+   "sha256": "b30e35cfca8dac1e2ccbb749e83272586e69b446e0a9e0256b668a694ab3521d",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/Unity.Burst.dll",
+   "size": 45056,
+   "sha256": "a3daf67019a5ac17d06b31adbd64c13058a39c2c62a1f7376de638c3d9837489",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/Unity.Mathematics.dll",
+   "size": 83456,
+   "sha256": "fd76e326be2f1d733550b5a7721864a451bce412ed8791887276dbbd1c8113f5",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/Unity.MemoryProfiler.dll",
+   "size": 10240,
+   "sha256": "27e5fd9ad6a33114f92fdc515a24afde3fac9c6c00acae6ad3a623a4f111a35e",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/Unity.Profiling.Core.dll",
+   "size": 5632,
+   "sha256": "fcb93c3ebab253bec19325483fa8d4d7252ce11fb5ac42040972eda6c1ef68ef",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/Unity.RenderPipeline.Universal.ShaderLibrary.dll",
+   "size": 5632,
+   "sha256": "57002d0f30936ed454e0613919d30cb09af25e8cc8e184d6560e2521a018306c",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/Unity.RenderPipelines.Core.Runtime.dll",
+   "size": 1542656,
+   "sha256": "4f47db071fc0e830c5c5154ec9876a7cc9cd114af44426af9aaf41376aaeeb94",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/Unity.RenderPipelines.Universal.Runtime.dll",
+   "size": 1959936,
+   "sha256": "89571551f8bdb582ae8a1e03bcc276fdf82e9924471b6c608ff197feb12d9309",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/Unity.ResourceManager.dll",
+   "size": 466432,
+   "sha256": "c2cefe2a2246bb9fb80d3f5ef983689df758bc4591bde214e32e47bffa11dd34",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/Unity.TextMeshPro.dll",
+   "size": 880128,
+   "sha256": "c04a4189569fa115b9f577f51287818c22cca053bd5927a6c90d48291ce9a79b",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/Unity.Timeline.dll",
+   "size": 306688,
+   "sha256": "4cffbf0af641a1968055113b55d58e9413fe86a1f34a597a74aa5394f130c75f",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/UnityEngine.AccessibilityModule.dll",
+   "size": 3584,
+   "sha256": "1b889da4e073fe166cd021cbad5701fc40e39c9888a6bf8dfe3569f4fb15fad4",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/UnityEngine.AIModule.dll",
+   "size": 54272,
+   "sha256": "0389bc3da799127d4e749db1e1928d0a0226caf1f8b409d10d79043e7be2159d",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/UnityEngine.AndroidJNIModule.dll",
+   "size": 155648,
+   "sha256": "2bf8fc18d007e5ad7956dcf414ef99d881af37f93b0fbd592ffd4733ba46d90e",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/UnityEngine.AnimationModule.dll",
+   "size": 402944,
+   "sha256": "f95e090f4046ab64365b135ababe624d909d172f4edcbfffe2cb38c39528c7af",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/UnityEngine.AssetBundleModule.dll",
+   "size": 43008,
+   "sha256": "6c498751900470501fbe377b2cb96c7d3ad8bac2d6883ffb4e247e51f8465f59",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/UnityEngine.AudioModule.dll",
+   "size": 135680,
+   "sha256": "35de5fd2ac73c355930e494d32ba88b02d5576a180ea990326953333ee67e035",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/UnityEngine.ClothModule.dll",
+   "size": 19456,
+   "sha256": "faabe2cac17b7f483ef766364476afdaf5635e5602b37ce62454e5eace7df627",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/UnityEngine.ClusterInputModule.dll",
+   "size": 6144,
+   "sha256": "cdcda14b6a00b7ff6a806ce91325dde2befb5967bed4acfd3957cc35d047a442",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/UnityEngine.ClusterRendererModule.dll",
+   "size": 6656,
+   "sha256": "d316cb07e1ebbf48c50880a1f47725e284f61f679a432123aff327751b8da666",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/UnityEngine.ContentLoadModule.dll",
+   "size": 4096,
+   "sha256": "8a2e5474fb4889d5a8e665d6d25dd48eb94135edaf7741d6c9e60e490848e454",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/UnityEngine.CoreModule.dll",
+   "size": 3998720,
+   "sha256": "0d0a62444f45c7fa1b5f5ebe6be7b4e55bf4f43d24fbfb7890f8be037fe3660d",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/UnityEngine.CrashReportingModule.dll",
+   "size": 5120,
+   "sha256": "204aa68a8997074d19a6b48877ab70147629b314685128043b941909cc286b01",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/UnityEngine.DirectorModule.dll",
+   "size": 24576,
+   "sha256": "80ba6fadae9fa890085eeaee9cdd25501b2ca07ebb9da9cb4ba1a4e11143f165",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/UnityEngine.dll",
+   "size": 2560,
+   "sha256": "7b22a567ed8ec026ff53e7489e5e467004f83686ea7fad0c7104421391db7e0d",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/UnityEngine.DSPGraphModule.dll",
+   "size": 10240,
+   "sha256": "e92596726a6239e2bf270b1419513a473b292c1378d371f064bf3daedfe32df1",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/UnityEngine.GameCenterModule.dll",
+   "size": 11264,
+   "sha256": "6bf8c897ebefec5cf3e1331760d4ea882e59a32dd6ba49e3f66bd46c2d745117",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/UnityEngine.GIModule.dll",
+   "size": 2048,
+   "sha256": "927a6112632de148155981aa7ce82d69668d8f0dc44226d42993eeeb0fe26c79",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/UnityEngine.GridModule.dll",
+   "size": 12800,
+   "sha256": "daa7b42e14467c8394f5ea9c0e2a6b0f5f6c7d75b556c2631f74d3b4e0d09113",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/UnityEngine.HotReloadModule.dll",
+   "size": 2048,
+   "sha256": "cf597ae6ede1e040c55a95b2168f7fef30e1a006b46a1465c56f46bb35e0c2a1",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/UnityEngine.ImageConversionModule.dll",
+   "size": 11264,
+   "sha256": "403927e04016f71915f3569f04fda67963e7231798ba2aa6f733ab2f40f3a864",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/UnityEngine.IMGUIModule.dll",
+   "size": 532480,
+   "sha256": "230827f763014f096a58c3087871ca1aae1283819c3b6719a48beeb7450727a3",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/UnityEngine.InputLegacyModule.dll",
+   "size": 64512,
+   "sha256": "8f75c96c970a66cfa4391a9899a3d4b63de1a44411edc70356e362e9b06af65d",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/UnityEngine.InputModule.dll",
+   "size": 12288,
+   "sha256": "f81940e1b426c198e24f84dbf630f4ec28f573e535088e63f6cfe9ff4eb622d1",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/UnityEngine.JSONSerializeModule.dll",
+   "size": 6656,
+   "sha256": "1fc56731706db21fef7a6bcde875e004ae3a9ebf2848ef92b66a9849da3c2a4d",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/UnityEngine.LocalizationModule.dll",
+   "size": 4608,
+   "sha256": "a4c565f1fa29077abe424e3334152d49bb553ce4d558859619e1424237de7c06",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/UnityEngine.ParticleSystemModule.dll",
+   "size": 525312,
+   "sha256": "0fbf5b45d3e26820c767203768df52e92b358ad72ae94906bcf9b32b267f3b02",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/UnityEngine.PerformanceReportingModule.dll",
+   "size": 3072,
+   "sha256": "78a973e9ac1d3e6621aac5d23163fe4dcaa9ebc87ffdced64fc164c2a725c61f",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/UnityEngine.Physics2DModule.dll",
+   "size": 252416,
+   "sha256": "c358615e82f5f11478dcfba917fae7ea84e0a4cacd046e89d120a97f00c85d83",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/UnityEngine.PhysicsModule.dll",
+   "size": 384000,
+   "sha256": "dc501d79528c31891246d5f93e3b955eb1ecaa601d5b288bd243388df71da682",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/UnityEngine.ProfilerModule.dll",
+   "size": 2048,
+   "sha256": "acf6f1c3e46e6edc41290f82fc15d5efb9f9ecd37964a3c48f719534544d1d66",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/UnityEngine.PropertiesModule.dll",
+   "size": 150528,
+   "sha256": "dafed5f245e0d7e328ae56baa192307346686c50a5066ec31e2d06f8142422f3",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/UnityEngine.RuntimeInitializeOnLoadManagerInitializerModule.dll",
+   "size": 2048,
+   "sha256": "306fd02a14260b7e0b066e04f8bf1bb6e9200656669012542a9371f619ffc983",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/UnityEngine.ScreenCaptureModule.dll",
+   "size": 6656,
+   "sha256": "d3136a4ab72b7f6eec541bc89b916e553fc04722ab95f8908a3faeca516c3b67",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/UnityEngine.SharedInternalsModule.dll",
+   "size": 36352,
+   "sha256": "6bde8089e73d16b65408060ab9d799dca4241b055583126abd87f833cff37896",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/UnityEngine.SpriteMaskModule.dll",
+   "size": 9728,
+   "sha256": "fd7740cdf833c8f69d661862d8ab5426c966f90fb7962e35c199d609114994a2",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/UnityEngine.SpriteShapeModule.dll",
+   "size": 9216,
+   "sha256": "01d87c2a89f9ee4220b1ac471b88bdb4d770f0edb37026e5142d7196eefd4404",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/UnityEngine.StreamingModule.dll",
+   "size": 4096,
+   "sha256": "ea3e6f4d791384989b63838b85ce5b9ffdaedc735c081367cf9c32f34f3d77b1",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/UnityEngine.SubstanceModule.dll",
+   "size": 6656,
+   "sha256": "8a78bf474a9dd92c52dbc775b33ed078e30d15647bea2ed3a192e0e6d0e49ac4",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/UnityEngine.SubsystemsModule.dll",
+   "size": 27648,
+   "sha256": "f45b763dc61a36c676231042eb7f918773c7e0ded803261f9a61e6a683f1c9da",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/UnityEngine.TerrainModule.dll",
+   "size": 118272,
+   "sha256": "9677efe735dd3c2b6243d79d8cafdf4cea84bc9e959eead4780d611e5becebf2",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/UnityEngine.TerrainPhysicsModule.dll",
+   "size": 4096,
+   "sha256": "bd4bd99b4f40fea141a6f8fcbc70cdc55b77495eeeb385f04e9c56bdb5f0bb76",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/UnityEngine.TextCoreFontEngineModule.dll",
+   "size": 112640,
+   "sha256": "8facdf8f8d2a7b41115d6184228f15db9c634d15db1f2e394f75110e67c4c30f",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/UnityEngine.TextCoreTextEngineModule.dll",
+   "size": 373248,
+   "sha256": "c34e6e62a03ef94bb5d6fc3adf9b0f121ab94ecf2cf3fa6380ab9ac475d99408",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/UnityEngine.TextRenderingModule.dll",
+   "size": 61440,
+   "sha256": "2456116ce62a1ecaa22f739f7995163df5701f8872a3039ef75a602329448ace",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/UnityEngine.TilemapModule.dll",
+   "size": 71168,
+   "sha256": "f4675a9c3c6b06d97cea0adde1b560545d8f8f78afcd8a0541386f59065598c1",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/UnityEngine.TLSModule.dll",
+   "size": 5120,
+   "sha256": "c0289679dab9e8ace2b99823f4e082ff8793d20e303825af57d498949f3db532",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/UnityEngine.UI.dll",
+   "size": 803840,
+   "sha256": "97968b866608e5bc06066615fd722320468ddffd2bb6d6afeeef64181fcf5d77",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/UnityEngine.UIElementsModule.dll",
+   "size": 3696128,
+   "sha256": "767d6c6db38729e1b3870c8ac13e48131bcf13746730eba6d6a2268ace605089",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/UnityEngine.UIModule.dll",
+   "size": 61440,
+   "sha256": "1fc1d93bb99ddba6ab614f7d52f5ca7640cc37e8e0e5a25943417013e8e0324b",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/UnityEngine.UmbraModule.dll",
+   "size": 2048,
+   "sha256": "1725ca1b9426f0a1816c77ba7dbc903a09423c2ccb1f1d524d142ecac2bad460",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/UnityEngine.UnityAnalyticsCommonModule.dll",
+   "size": 3072,
+   "sha256": "c26098dd8cc87e644c6ae51b1612f5a40690e7fb793b8c4aa8907e46c5d6ed26",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/UnityEngine.UnityAnalyticsModule.dll",
+   "size": 58368,
+   "sha256": "f8e3b8ad8a5d2a1f6e024d5a44d9b34fd7883529a3dbfa209ba4681a52772d63",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/UnityEngine.UnityConnectModule.dll",
+   "size": 8704,
+   "sha256": "6821d076ef8ed0c36e536c82550e50a49c7b4e654adc1011e7554430c2ba6b8e",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/UnityEngine.UnityCurlModule.dll",
+   "size": 7168,
+   "sha256": "e2649fa5f359907f50d3f2e8c5a935f4b9e0941bd58e2e8472d3158b4f6f1961",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/UnityEngine.UnityTestProtocolModule.dll",
+   "size": 2048,
+   "sha256": "f20ce649f944c7d2041fa4e132b91bbfe0477706f86172be4a5c11b9d9058e32",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/UnityEngine.UnityWebRequestAssetBundleModule.dll",
+   "size": 11776,
+   "sha256": "7fc9f5f8e28b35fdc18a640c0cc6189a63bfde44b6d2891e1f7616c545ab1577",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/UnityEngine.UnityWebRequestAudioModule.dll",
+   "size": 9216,
+   "sha256": "69bb1d5e18ed22e387227390aafc90cd30f2113fcc0f3cdd6288ee18a53e2841",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/UnityEngine.UnityWebRequestModule.dll",
+   "size": 101888,
+   "sha256": "cb25251fb9589e09cc4988d4bd0436670fd3f9e05d2044d81e17053164a95bd5",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/UnityEngine.UnityWebRequestTextureModule.dll",
+   "size": 8704,
+   "sha256": "69c65c87548b066120a7f7d75b9d0a0d89ee4b0dc27c365e4da26a5da48676af",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/UnityEngine.UnityWebRequestWWWModule.dll",
+   "size": 7168,
+   "sha256": "33a3c7ab7322140e2e626f362cda71bd765578a9863aa247f36db624135d3b96",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/UnityEngine.VehiclesModule.dll",
+   "size": 11264,
+   "sha256": "5498f527de1603f8a2477d8a256f5b19d4638a93846449c9ba76c40c43ac4d78",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/UnityEngine.VFXModule.dll",
+   "size": 86528,
+   "sha256": "6abce025b156121eaf191949b7d0e659242531d10c2cee6ee5b30b26b19c0178",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/UnityEngine.VideoModule.dll",
+   "size": 76800,
+   "sha256": "11e3f871c4d61414a68376849541797c04d6b6ea2fa981df87a942f4eea463bf",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/UnityEngine.VirtualTexturingModule.dll",
+   "size": 15360,
+   "sha256": "308cf868a7bc03b0b18eb0d0889d51468e86773c08304033f3151af3cb061fd9",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/UnityEngine.VRModule.dll",
+   "size": 16384,
+   "sha256": "87ccedd9adbe0f6e37eca254099e3ebf17601bb6131eb287f7ff62e3dce30d80",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/UnityEngine.WindModule.dll",
+   "size": 5632,
+   "sha256": "e128843fa70436dbc978568e3156fe454be771d36700718a12e4dd4e00444723",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/interop/UnityEngine.XRModule.dll",
+   "size": 88576,
+   "sha256": "0326ca06df542fb4f9f7e0059ffa9243c0bd2ce2b399081c51207f2962c15d2c",
+   "group": "bepinex-interop"
+  },
+  {
+   "rel": "BepInEx/plugins/AstralProbe.deps.json",
+   "size": 425,
+   "sha256": "92b6d3e05ad6617cf2eeef654357711529ac091e6d8641857bc5bc74124ffff6",
+   "group": "plugin"
+  },
+  {
+   "rel": "BepInEx/plugins/AstralProbe.dll",
+   "size": 119808,
+   "sha256": "cf13c4bb9c051faec66eb1ccbc732fb0f34ed4d29119fcb3a8666760dad87eed",
+   "group": "plugin"
+  },
+  {
+   "rel": "BepInEx/plugins/AstralProbe.dll.bak_1105_0005",
+   "size": 118784,
+   "sha256": "0d81b3addaa3b2baa8f071c4600a13c20fed95eadf5165b7d8343d0907c28d32",
+   "group": "plugin"
+  },
+  {
+   "rel": "BepInEx/unity-libs/2022.3.62.zip",
+   "size": 1900589,
+   "sha256": "575e7d600f69de8200ccf4db700b3ae6252366c22e8c3434c860e428974518d1",
+   "group": "bepinex-unity"
+  },
+  {
+   "rel": "BepInEx/unity-libs/UnityEngine.AccessibilityModule.dll",
+   "size": 12800,
+   "sha256": "f54038306a28cab00b75f7129cb51317660b7af505f14d624aaf56302cee3913",
+   "group": "bepinex-unity"
+  },
+  {
+   "rel": "BepInEx/unity-libs/UnityEngine.AIModule.dll",
+   "size": 48128,
+   "sha256": "1495ce0c5395189ff140b83dac431c287969716513b0208d2667773f619a5f8a",
+   "group": "bepinex-unity"
+  },
+  {
+   "rel": "BepInEx/unity-libs/UnityEngine.AndroidJNIModule.dll",
+   "size": 84480,
+   "sha256": "0ccd6c4451464fa85642610aed885e223de89105a76e4e12c0390c9a7981387c",
+   "group": "bepinex-unity"
+  },
+  {
+   "rel": "BepInEx/unity-libs/UnityEngine.AnimationModule.dll",
+   "size": 153600,
+   "sha256": "845df2635127c8fb14df3fef45f3c591ee619f0ec310795083469f23432692a7",
+   "group": "bepinex-unity"
+  },
+  {
+   "rel": "BepInEx/unity-libs/UnityEngine.AssetBundleModule.dll",
+   "size": 22528,
+   "sha256": "9ffc3e0225b53281a90d019d6f0cac2dfdbc587ca4c14e44d07e90c8ef58f773",
+   "group": "bepinex-unity"
+  },
+  {
+   "rel": "BepInEx/unity-libs/UnityEngine.AudioModule.dll",
+   "size": 60928,
+   "sha256": "dcff6b27c57942ac3a50c666b0caf9fe6aaf3787f61a262a9776677ec0acd9bb",
+   "group": "bepinex-unity"
+  },
+  {
+   "rel": "BepInEx/unity-libs/UnityEngine.ClothModule.dll",
+   "size": 15872,
+   "sha256": "4b6f08d58fd6bd8208ed0d3d6076667f56be4dddbc2c9400e907e015766a19ea",
+   "group": "bepinex-unity"
+  },
+  {
+   "rel": "BepInEx/unity-libs/UnityEngine.ClusterInputModule.dll",
+   "size": 11264,
+   "sha256": "f711ae6dbf1930107ffea31092ef02d3cdd4bfdbc3aad1ab0bb753063c6fd1c9",
+   "group": "bepinex-unity"
+  },
+  {
+   "rel": "BepInEx/unity-libs/UnityEngine.ClusterRendererModule.dll",
+   "size": 11776,
+   "sha256": "b505e7e5d9ca650298078d4f39ee49f3eda2165969d3daf1f9eca4017dbd65b8",
+   "group": "bepinex-unity"
+  },
+  {
+   "rel": "BepInEx/unity-libs/UnityEngine.ContentLoadModule.dll",
+   "size": 16896,
+   "sha256": "63301c855b2e0b5f44416fa4d3a6666c1b17397146b6af1e93994f2487c579a3",
+   "group": "bepinex-unity"
+  },
+  {
+   "rel": "BepInEx/unity-libs/UnityEngine.CoreModule.dll",
+   "size": 1381888,
+   "sha256": "3518ae230d50006379cd8940eb9909723517a88abcef5fab4e7d4ecba1646fa0",
+   "group": "bepinex-unity"
+  },
+  {
+   "rel": "BepInEx/unity-libs/UnityEngine.CrashReportingModule.dll",
+   "size": 10752,
+   "sha256": "1fe567005f052fc99389afc610123eb608e70f4f30707e07470d0c69a34b8def",
+   "group": "bepinex-unity"
+  },
+  {
+   "rel": "BepInEx/unity-libs/UnityEngine.DirectorModule.dll",
+   "size": 14336,
+   "sha256": "f3ebe936f9574f9265762a2e107272e2b728d52ab9fec7a0947bb6f2feb439db",
+   "group": "bepinex-unity"
+  },
+  {
+   "rel": "BepInEx/unity-libs/UnityEngine.dll",
+   "size": 115712,
+   "sha256": "fb1bcc993f6c5bbf2b6011ad90c1c6eeb3338855e4779333bf5fb5ab7ac1b6c5",
+   "group": "bepinex-unity"
+  },
+  {
+   "rel": "BepInEx/unity-libs/UnityEngine.DSPGraphModule.dll",
+   "size": 18944,
+   "sha256": "36f5ead8f8f3fc8bc0bc42ae9553020ab8b05f65a403446448510dff96aa863a",
+   "group": "bepinex-unity"
+  },
+  {
+   "rel": "BepInEx/unity-libs/UnityEngine.GameCenterModule.dll",
+   "size": 29696,
+   "sha256": "538f8571947a1c87574a29031957401f519aaeb7a0a578bdbcc636933a9aad90",
+   "group": "bepinex-unity"
+  },
+  {
+   "rel": "BepInEx/unity-libs/UnityEngine.GIModule.dll",
+   "size": 9728,
+   "sha256": "8bad2e95fb6e5b617a10a22e6a7d7f387ae1a5dd3bcca177ded67538b47420ce",
+   "group": "bepinex-unity"
+  },
+  {
+   "rel": "BepInEx/unity-libs/UnityEngine.GridModule.dll",
+   "size": 14848,
+   "sha256": "980ed4275e2a0bb637c22ba91847b227ec8bacde5a1f41d49aa0bc8e4a3058ca",
+   "group": "bepinex-unity"
+  },
+  {
+   "rel": "BepInEx/unity-libs/UnityEngine.HotReloadModule.dll",
+   "size": 9728,
+   "sha256": "6d67fb2f4f5b2b9eef017387e4f874fd19cc6b8fdc2fbac702aec465ab8b479c",
+   "group": "bepinex-unity"
+  },
+  {
+   "rel": "BepInEx/unity-libs/UnityEngine.ImageConversionModule.dll",
+   "size": 13824,
+   "sha256": "6a0a97c78a094735c9a37686f7ba7a44079efa333b625f65fce86c8a7673bc13",
+   "group": "bepinex-unity"
+  },
+  {
+   "rel": "BepInEx/unity-libs/UnityEngine.IMGUIModule.dll",
+   "size": 180736,
+   "sha256": "881b8feb0c5cf9906a38b17dfa1aeccfd7ad99bc31d82cddf0286a0faed3b8cb",
+   "group": "bepinex-unity"
+  },
+  {
+   "rel": "BepInEx/unity-libs/UnityEngine.InputLegacyModule.dll",
+   "size": 28672,
+   "sha256": "00d2c567c53a4ce37796874dc84b9e8d7d8ab2a4524ced1fe523b2e3c6760f6b",
+   "group": "bepinex-unity"
+  },
+  {
+   "rel": "BepInEx/unity-libs/UnityEngine.InputModule.dll",
+   "size": 13312,
+   "sha256": "5a9f473c7dcc9dd06de221dbd4cfdadb8afa6ef4f3e9ccf96eb21983c5677bdc",
+   "group": "bepinex-unity"
+  },
+  {
+   "rel": "BepInEx/unity-libs/UnityEngine.JSONSerializeModule.dll",
+   "size": 11776,
+   "sha256": "3a41097459e8f37e469d9c4af558212c82292f8db53a5636b0de6c07fe4dbb48",
+   "group": "bepinex-unity"
+  },
+  {
+   "rel": "BepInEx/unity-libs/UnityEngine.LocalizationModule.dll",
+   "size": 10752,
+   "sha256": "983eb3c996d46314c9be30168058503358ccb7cff1f5d560309d09f1ff61c217",
+   "group": "bepinex-unity"
+  },
+  {
+   "rel": "BepInEx/unity-libs/UnityEngine.ParticleSystemModule.dll",
+   "size": 151040,
+   "sha256": "9dae7cba0aa860adf9d85a5ca764ef578c94def7b577aa9adaf5fae05f941f0b",
+   "group": "bepinex-unity"
+  },
+  {
+   "rel": "BepInEx/unity-libs/UnityEngine.PerformanceReportingModule.dll",
+   "size": 10240,
+   "sha256": "554fd5bab68d8db08bd650d625fbe3b8767cb388b2764a69cd5fb62862d520b7",
+   "group": "bepinex-unity"
+  },
+  {
+   "rel": "BepInEx/unity-libs/UnityEngine.Physics2DModule.dll",
+   "size": 131072,
+   "sha256": "591e09a430b74f353a4db3aefa85f4bd1fff35311236aeb4996d99ee8d12200a",
+   "group": "bepinex-unity"
+  },
+  {
+   "rel": "BepInEx/unity-libs/UnityEngine.PhysicsModule.dll",
+   "size": 128000,
+   "sha256": "43159023a6074a4cb0d4b4b5d7680498eff8042f17e78685672f83ad3ad4b9e1",
+   "group": "bepinex-unity"
+  },
+  {
+   "rel": "BepInEx/unity-libs/UnityEngine.ProfilerModule.dll",
+   "size": 9728,
+   "sha256": "147206136e32b34735844803b54211fbefb6850bbf7bc1157b9bbae95580d2c8",
+   "group": "bepinex-unity"
+  },
+  {
+   "rel": "BepInEx/unity-libs/UnityEngine.PropertiesModule.dll",
+   "size": 144896,
+   "sha256": "e6dc54de624cbad14110e07a64be71404ad407c2222f32a74179fc5586516041",
+   "group": "bepinex-unity"
+  },
+  {
+   "rel": "BepInEx/unity-libs/UnityEngine.RuntimeInitializeOnLoadManagerInitializerModule.dll",
+   "size": 9728,
+   "sha256": "3c9826b1de4a7f7567b067ebfa95313d0deb395611475e53dda9d9aa4f2b3bb7",
+   "group": "bepinex-unity"
+  },
+  {
+   "rel": "BepInEx/unity-libs/UnityEngine.ScreenCaptureModule.dll",
+   "size": 10752,
+   "sha256": "6ab6ed35123c73f92e637a0b8cda35354d7a4c25c76d7f8a16a453af0230d9be",
+   "group": "bepinex-unity"
+  },
+  {
+   "rel": "BepInEx/unity-libs/UnityEngine.SharedInternalsModule.dll",
+   "size": 22528,
+   "sha256": "084ec603fe70d0c82621375464f3200339a31b914711dbaf52f68e9f67e4ab47",
+   "group": "bepinex-unity"
+  },
+  {
+   "rel": "BepInEx/unity-libs/UnityEngine.SpriteMaskModule.dll",
+   "size": 11264,
+   "sha256": "b764adc69267e0cc461532cea6a68ed6c479c2fb798683e479f99f6e8f0cccfb",
+   "group": "bepinex-unity"
+  },
+  {
+   "rel": "BepInEx/unity-libs/UnityEngine.SpriteShapeModule.dll",
+   "size": 15872,
+   "sha256": "4362616620de1e56830b6fd8bdd9519f09fae5c7c5e87c9c41195835467ada24",
+   "group": "bepinex-unity"
+  },
+  {
+   "rel": "BepInEx/unity-libs/UnityEngine.StreamingModule.dll",
+   "size": 10240,
+   "sha256": "31610eb6f6677a71f7b0fff414b6cded2b207d6a14d2d41505674a5e18e947f1",
+   "group": "bepinex-unity"
+  },
+  {
+   "rel": "BepInEx/unity-libs/UnityEngine.SubstanceModule.dll",
+   "size": 14336,
+   "sha256": "40a883dfae1252690f92348293cc03375080d0cc1bf2483045c09f3eef2b982d",
+   "group": "bepinex-unity"
+  },
+  {
+   "rel": "BepInEx/unity-libs/UnityEngine.SubsystemsModule.dll",
+   "size": 24576,
+   "sha256": "fa9d37682cc6838fe3cf2ff2af042a098110816cc86bf8151478541ca0c6e296",
+   "group": "bepinex-unity"
+  },
+  {
+   "rel": "BepInEx/unity-libs/UnityEngine.TerrainModule.dll",
+   "size": 90624,
+   "sha256": "a2ec3bf10a26aaf638683b24ddbb8629b03e69b3b6bb8252c09c234dff311420",
+   "group": "bepinex-unity"
+  },
+  {
+   "rel": "BepInEx/unity-libs/UnityEngine.TerrainPhysicsModule.dll",
+   "size": 10752,
+   "sha256": "c7963117d60ac5f1193dc870c0049136e658d00bf9b0215a8acaa36e4972ad54",
+   "group": "bepinex-unity"
+  },
+  {
+   "rel": "BepInEx/unity-libs/UnityEngine.TextCoreFontEngineModule.dll",
+   "size": 61952,
+   "sha256": "e2bdf3a45f2f4c7a7683bef913f27972b810b7f611762b380aeda8602e1539f1",
+   "group": "bepinex-unity"
+  },
+  {
+   "rel": "BepInEx/unity-libs/UnityEngine.TextCoreTextEngineModule.dll",
+   "size": 238592,
+   "sha256": "bf1ee0c1062104951174ebb63a572df47360aff75a97ec8da6d85c4566887a05",
+   "group": "bepinex-unity"
+  },
+  {
+   "rel": "BepInEx/unity-libs/UnityEngine.TextRenderingModule.dll",
+   "size": 28672,
+   "sha256": "9ef881b3a0c95f6e8fac4f8c034307501d3104cba1c05165dae843ded37d853b",
+   "group": "bepinex-unity"
+  },
+  {
+   "rel": "BepInEx/unity-libs/UnityEngine.TilemapModule.dll",
+   "size": 36352,
+   "sha256": "4e63eb2cd26e94050e4ee114630a2a2879b3b6130966231cb27169c9df914e71",
+   "group": "bepinex-unity"
+  },
+  {
+   "rel": "BepInEx/unity-libs/UnityEngine.TLSModule.dll",
+   "size": 16384,
+   "sha256": "d19493d9a18bd5b354d2878dcd93e71b490300c881cb02ccdbaa3896c440c760",
+   "group": "bepinex-unity"
+  },
+  {
+   "rel": "BepInEx/unity-libs/UnityEngine.UIElementsModule.dll",
+   "size": 1525760,
+   "sha256": "aae86345beae35ff03cf6941fa0dd40caebca32c954fbff15150377e856a4170",
+   "group": "bepinex-unity"
+  },
+  {
+   "rel": "BepInEx/unity-libs/UnityEngine.UIModule.dll",
+   "size": 26112,
+   "sha256": "ec5d1d7459f5732d1173f226d79ebdca1e1a058cd76607e282963451107893d1",
+   "group": "bepinex-unity"
+  },
+  {
+   "rel": "BepInEx/unity-libs/UnityEngine.UmbraModule.dll",
+   "size": 9728,
+   "sha256": "67b754f5ca13a5e8c93e960a38326d94b043032a5c1b1e9af8ea644ab58fc2ca",
+   "group": "bepinex-unity"
+  },
+  {
+   "rel": "BepInEx/unity-libs/UnityEngine.UnityAnalyticsCommonModule.dll",
+   "size": 10752,
+   "sha256": "2d8d67232e45d582aee928ae6c384549d4203c5fda7e559374919f6c9b2f284e",
+   "group": "bepinex-unity"
+  },
+  {
+   "rel": "BepInEx/unity-libs/UnityEngine.UnityAnalyticsModule.dll",
+   "size": 34304,
+   "sha256": "fe01c09daae5e5127bebee7f7e29bf6c8887e1bc1ff087214dae0caebf6b04e7",
+   "group": "bepinex-unity"
+  },
+  {
+   "rel": "BepInEx/unity-libs/UnityEngine.UnityConnectModule.dll",
+   "size": 11264,
+   "sha256": "b6e36bd7f7b876cfbab63353937f604f33347e4e0e148e382a6717bf77d37b51",
+   "group": "bepinex-unity"
+  },
+  {
+   "rel": "BepInEx/unity-libs/UnityEngine.UnityCurlModule.dll",
+   "size": 11264,
+   "sha256": "54389ba862d1985834a044b2ac7f12a12dad5ab736dae3845dd439545f5c9845",
+   "group": "bepinex-unity"
+  },
+  {
+   "rel": "BepInEx/unity-libs/UnityEngine.UnityTestProtocolModule.dll",
+   "size": 9728,
+   "sha256": "01dcbc2cca26f3fd119f7150c43dede40a3499e444d8ddf83be592cf67797b4e",
+   "group": "bepinex-unity"
+  },
+  {
+   "rel": "BepInEx/unity-libs/UnityEngine.UnityWebRequestAssetBundleModule.dll",
+   "size": 12800,
+   "sha256": "80aa27e16ee6d73b7bd788b7a78d2f8e8a9e1b490f35c83ccf076f2a0a146c36",
+   "group": "bepinex-unity"
+  },
+  {
+   "rel": "BepInEx/unity-libs/UnityEngine.UnityWebRequestAudioModule.dll",
+   "size": 12288,
+   "sha256": "986d6b7a2f2c09e570823170d2efe74ccbec0f348695cc748f96bf85e2757477",
+   "group": "bepinex-unity"
+  },
+  {
+   "rel": "BepInEx/unity-libs/UnityEngine.UnityWebRequestModule.dll",
+   "size": 47616,
+   "sha256": "79eb35c28145ef057c649818dee49f5d877e53c00e3982307651e3b13eca27fc",
+   "group": "bepinex-unity"
+  },
+  {
+   "rel": "BepInEx/unity-libs/UnityEngine.UnityWebRequestTextureModule.dll",
+   "size": 11264,
+   "sha256": "1cf6b6895339d4ea885f2007e03947de9ac62aad09db0e6d46c5308e7d489df6",
+   "group": "bepinex-unity"
+  },
+  {
+   "rel": "BepInEx/unity-libs/UnityEngine.UnityWebRequestWWWModule.dll",
+   "size": 20992,
+   "sha256": "02799a463574a5c6b4f647b1d103126ba32ea674c904749f82c63d8079776de8",
+   "group": "bepinex-unity"
+  },
+  {
+   "rel": "BepInEx/unity-libs/UnityEngine.VehiclesModule.dll",
+   "size": 13824,
+   "sha256": "4d27af0efaf54787aae14f60c5b66454cbeddbd7bf170dc4e07e2a92b0f0904e",
+   "group": "bepinex-unity"
+  },
+  {
+   "rel": "BepInEx/unity-libs/UnityEngine.VFXModule.dll",
+   "size": 48128,
+   "sha256": "6bef88905ebe7ff10208927f6650a66d062e9066f7d7f28d6dda6d3acecea673",
+   "group": "bepinex-unity"
+  },
+  {
+   "rel": "BepInEx/unity-libs/UnityEngine.VideoModule.dll",
+   "size": 30720,
+   "sha256": "753688200df11448e71ae695956344cb0954a7790e47c0ed1a0a4c3b1faef4d2",
+   "group": "bepinex-unity"
+  },
+  {
+   "rel": "BepInEx/unity-libs/UnityEngine.VirtualTexturingModule.dll",
+   "size": 25600,
+   "sha256": "102091d43b579783224e4fc2045ca9b4c69574d83535659fa728253aac3fe57e",
+   "group": "bepinex-unity"
+  },
+  {
+   "rel": "BepInEx/unity-libs/UnityEngine.VRModule.dll",
+   "size": 16384,
+   "sha256": "221bf676c56ea8925393054cc94ab8f9ff41cda8d52e163459fe2dfd9db2f405",
+   "group": "bepinex-unity"
+  },
+  {
+   "rel": "BepInEx/unity-libs/UnityEngine.WindModule.dll",
+   "size": 10752,
+   "sha256": "d3cada57c8c97d26e1d5dddd8e77e485d589e125d5922a9fe22702c709c2a12d",
+   "group": "bepinex-unity"
+  },
+  {
+   "rel": "BepInEx/unity-libs/UnityEngine.XRModule.dll",
+   "size": 60416,
+   "sha256": "05af745e03981bfd5804cc7b58dcda35fbcf33a01ef96603de20aff71ee35455",
+   "group": "bepinex-unity"
+  },
+  {
+   "rel": "dependence/apx_modern_assist_ui.bundle",
+   "size": 31928,
+   "sha256": "0bf46c0fbfbfd5dacf360cd00059dd7de44aa68d68243a0054cc3ce8c973d2da",
+   "group": "dependence"
+  },
+  {
+   "rel": "doorstop_config.ini",
+   "size": 1637,
+   "sha256": "7daebb02054747faee66c875a778e0e8d54dad24dd460e1fb69aa31378d9ea8f",
+   "group": "doorstop"
+  },
+  {
+   "rel": "winhttp.dll",
+   "size": 26112,
+   "sha256": "8c6cdbc38836dee87e3368f5de1994d7c0ccebf29e4ce7aba3c0981f9375412c",
+   "group": "doorstop"
+  }
+ ]
+}

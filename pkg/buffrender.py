@@ -22,6 +22,7 @@ from PIL import Image, ImageDraw
 
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 META_PATH = os.path.join(HERE, "kb", "buffs_meta.json")
+IDS_PATH = os.path.join(HERE, "kb", "buffs.json")     # id -> 游戏内显示名
 
 # 游戏里没真正用上的占位 buff（有 id 无图标、对战里不会出现），图鉴里一律不显示。
 # 10000「悬赏」：只有类型表里一条空壳，没有原生图标，接进来就是一张破图。
@@ -91,6 +92,30 @@ CN = {
 }
 
 _META_CACHE = None
+_ID_NAMES_CACHE = None
+
+
+def _id_names() -> dict:
+    """id -> 该 id 在游戏里的显示名（kb/buffs.json）。
+
+    同一个图标常被好几个 id 共用，而每个 id 的名字未必一样
+    （狐火 1241101 / 降神 12401021 / 狐光 12412011），分段时靠它区分。
+    """
+    global _ID_NAMES_CACHE
+    if _ID_NAMES_CACHE is not None:
+        return _ID_NAMES_CACHE
+    names = {}
+    try:
+        with open(IDS_PATH, encoding="utf-8") as f:
+            for x in json.load(f):
+                if isinstance(x, dict) and x.get("id") is not None:
+                    nm = str(x.get("text") or x.get("name") or "")
+                    if nm:
+                        names[str(x["id"])] = nm
+    except (FileNotFoundError, json.JSONDecodeError):
+        pass
+    _ID_NAMES_CACHE = names
+    return names
 
 
 # ---------------------------------------------------------------- 数据 ----
@@ -169,8 +194,9 @@ def _sort_key(e):
 
 
 def list_buff_rows() -> list[tuple[str, str, str]]:
-    """返回 [(中文名, 说明, 图标绝对路径)]。"""
-    return [(e["name"], e.get("desc", ""), _icon_path(e)) for e in _load_meta()]
+    """返回 [(中文名, 说明, 图标绝对路径)]，按 id 从小到大。"""
+    return [(e["name"], e.get("desc", ""), _icon_path(e))
+            for e in sorted(_load_meta(), key=_sort_key)]
 
 
 def find_buff(q: str) -> dict | None:
@@ -198,6 +224,72 @@ def find_buff(q: str) -> dict | None:
             if str(i).startswith(q):
                 return e
     return None
+
+
+def _num_id(s: str) -> tuple[int, int | str]:
+    """id 排序键：纯数字按数值，非数字排最后。"""
+    t = str(s)
+    return (0, int(t)) if t.isdigit() else (1, t)
+
+
+def _split_lines(text: str) -> list[str]:
+    return [t.strip() for t in (text or "").replace("\r", "").split("\n") if t.strip()]
+
+
+def _sections(entry: dict) -> list[tuple[str, list[str]]]:
+    """一个图标挂了多个 id 时，按 id 拆成若干段：[(段头, 该段说明行)]。
+
+    单 id 条目返回空列表，卡片照旧整段显示。多 id 时两种切法：
+    1. 说明行数刚好等于 id 数 → 一个 id 一段，一行对一段（红包 / 白泽赐福）；
+    2. 否则按「id 名字」分组（同名 id 合到一段），说明句按名字归段，
+       归不掉的句子落到最后的「效果」段（狐火 → 狐火 / 降神 / 狐光）。
+    """
+    ids = [str(i) for i in (entry.get("ids") or [])]
+    if len(ids) <= 1:
+        return []
+    ids.sort(key=_num_id)
+    names = _id_names()
+    title = entry["name"]
+    lines = _split_lines(entry.get("desc") or "")
+
+    if lines and len(lines) == len(ids):
+        out = []
+        for i, ln in zip(ids, lines):
+            nm = names.get(i, "")
+            out.append((f"id {i}" + (f" · {nm}" if nm else ""), [ln]))
+        return out
+
+    groups: dict[str, list[str]] = {}
+    order: list[str] = []
+    for i in ids:
+        nm = names.get(i) or title
+        if nm not in groups:
+            groups[nm] = []
+            order.append(nm)
+        groups[nm].append(i)
+
+    assigned = {nm: [] for nm in order}
+    other: list[str] = []
+    last = None
+    for ln in lines:
+        hit = next((nm for nm in order if nm and nm in ln), None)
+        if hit is None:
+            hit = last          # 没提名字的句子跟着上一句走
+        if hit:
+            assigned[hit].append(ln)
+            last = hit
+        else:
+            other.append(ln)
+
+    out = []
+    for nm in order:
+        head = "id " + " / ".join(groups[nm])
+        if nm:
+            head += f" · {nm}"
+        out.append((head, assigned[nm]))
+    if other:
+        out.append(("效果", other))
+    return out
 
 
 def _placeholder(size: int, text: str) -> Image.Image:
@@ -325,12 +417,29 @@ def render_buff(entry: dict, out_path: str) -> str:
     meta_font = _font(15, False)
     body_font = _font(18, False)
     small_font = _font(15, False)
+    sec_font = _font(16, False)    # 分段时的 id 头（不加粗，假粗体会让小写 i 糊成 l）
 
     icon_disp = 168
 
-    # 说明折行
-    body_lines = _wrap(desc, body_font, W - 2 * PAD) if desc else []
-    else_lines = [] if desc else ["游戏内未提供额外效果描述"]
+    # 说明折行：多 id 时按 id 分段，单 id 就是原来那一整段
+    blocks: list[tuple[str, list[str], bool]] = []
+    secs = _sections(entry)
+    all_empty = bool(secs) and not any(lines for _h, lines in secs)
+    has_tail = bool(secs) and secs[-1][0] == "效果"      # 末尾有统一「效果」段
+    for head, lines in secs:
+        if lines:
+            blocks.append((head, _wrap("\n".join(lines), body_font, W - 2 * PAD), False))
+        elif all_empty or has_tail:
+            blocks.append((head, [], False))       # 只列 id：要么末尾有统一说明，要么整条都没有
+        else:
+            blocks.append((head, ["（这个 id 在游戏里没有独立说明）"], True))
+    body_lines: list[str] = []
+    else_lines: list[str] = ["游戏内未提供额外效果描述"] if all_empty else []
+    if not blocks:
+        body_lines = _wrap(desc, body_font, W - 2 * PAD) if desc else []
+        if not body_lines:
+            else_lines = ["游戏内未提供额外效果描述"]
+
     src_lines = []
     if srcs:
         src_text = "、".join(srcs[:8]) + ("…" if len(srcs) > 8 else "")
@@ -340,8 +449,12 @@ def render_buff(entry: dict, out_path: str) -> str:
     title_h = 40
     meta_h = 26
     gap_h = 10
+    sec_head_h = 26
 
-    body_h = (len(body_lines) + len(else_lines)) * line_h
+    body_h = 0
+    for _head, _lines, _mute in blocks:
+        body_h += sec_head_h + len(_lines) * line_h
+    body_h += (len(body_lines) + len(else_lines)) * line_h
     src_h = (len(src_lines) * 22 + gap_h) if src_lines else 0
     panel_h = PAD + title_h + meta_h + body_h + src_h + PAD
     total_h = icon_disp + 14 + panel_h
@@ -364,11 +477,18 @@ def render_buff(entry: dict, out_path: str) -> str:
     kind_label = {"buff": "游戏图标", "relic": "筹码图标"}.get(kind, "")
     meta = "ID " + " / ".join(str(i) for i in ids[:3])
     if len(ids) > 3:
-        meta += " …"
+        meta += f" …（共 {len(ids)} 个）"
     if kind_label:
         meta += " ｜ " + kind_label
     draw.text((PAD, ty), meta, font=meta_font, fill=ACCENT)
     ty += meta_h
+
+    for head, lines, muted in blocks:
+        draw.text((PAD, ty), head, font=sec_font, fill=ACCENT)
+        ty += sec_head_h
+        for ln in lines:
+            draw.text((PAD, ty), ln, font=body_font, fill=MUTE if muted else BODY)
+            ty += line_h
 
     for ln in body_lines:
         draw.text((PAD, ty), ln, font=body_font, fill=BODY)

@@ -2,7 +2,7 @@
   "art_root": {
     "type": "text",
     "description": "美术素材库目录（填父目录）",
-    "hint": "留空＝不建图库，改走「实时解包」：插件自带映射表基线（6894 条，值存相对游戏目录的路径），同一游戏版本开箱即用、换机器不用重建；表对不上当前游戏时才发 /app load 重扫（约 3 分钟），游戏更新后用 /app update 重建。之后查哪张解哪张，不占磁盘。\n填了＝从外部图库出图：/app load 会在这个目录下建 Astral Party 文件夹并整库解包（约 1.7GB，并发按物理核与内存自动调配）。\n注意：填父目录，不要写到 Astral Party 这一层。\n填了但盘不在（移动硬盘拔了 / 盘符写错）会自动回退「实时解包」，盘插回来立刻切回外部库。",
+    "hint": "留空＝不建图库，改走「实时解包」：插件自带映射表基线（6894 条，值存相对游戏目录的路径），同一游戏版本开箱即用、换机器不用重建；表对不上当前游戏时才发 /app load 重扫（约 3 分钟，游戏更新后同样靠它自动重建）。之后查哪张解哪张，不占磁盘。\n填了＝从外部图库出图：/app load 会在这个目录下建 Astral Party 文件夹并整库解包（约 1.7GB，并发按物理核与内存自动调配）。\n注意：填父目录，不要写到 Astral Party 这一层。\n填了但盘不在（移动硬盘拔了 / 盘符写错）会自动回退「实时解包」，盘插回来立刻切回外部库。",
     "default": ""
   },
   "load_mem_limit": {
@@ -27,6 +27,12 @@
     "type": "text",
     "description": "查号用的小号 sid",
     "hint": "填一个不玩的小号登录票，查 /app <UID> 时就不会顶掉本机在玩的主号。\n取法：游戏里登录小号 → 打开 %USERPROFILE%\\AppData\\LocalLow\\feimo\\AstralParty_CN\\BnSdk\\110001933\\Log 下最新日志 → 找「login success, sid:」后面那串。\n留空＝退回用本机最近登录票（查别人时可能顶掉主号，不推荐）。",
+    "default": ""
+  },
+  "deploy_src": {
+    "type": "text",
+    "description": "代打文件源目录（/appa 注入用）",
+    "hint": "填 AstralPartyPilot 仓库里的 game_files 目录。/appa 会把里面的 winhttp.dll、doorstop_config.ini、.doorstop_version 和整棵 BepInEx 同步进游戏根目录，插件本体 AstralProbe.dll 在 BepInEx/plugins 里一起带走。\r\n留空＝优先用插件自带的 pkg/payload（跟着插件走，换机器不用配）；里面没有时才找游戏目录同级的 game_files。\r\n只覆盖比目标新的文件，旧文件备份到游戏目录的 _pilot_backup\\时间戳\\ 下；游戏开着时被占用的 dll 会跳过，关掉游戏再发一次即可。",
     "default": ""
   },
   "pilot_prefer": {

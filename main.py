@@ -38,6 +38,7 @@ from .pkg import account as ACC
 from .pkg import loginweb as LW
 from .pkg import feimo as FM
 from .pkg import coach as CO
+from .pkg import deploy as DEP
 from .pkg import coachcard as CCARD
 from .pkg import helpcard as HC
 
@@ -91,7 +92,6 @@ HELP_SECTIONS = [
     ("🖼", "美术图库", [
         ("/app load", "准备素材：外库模式按完整性解包 / 只补缺；实时模式确保映射表可用"),
         ("/app check", "图库体检：只报目录现状和解包进度，不解包"),
-        ("/app update", "游戏更新后刷新：外库增量补素材，实时模式重建映射表"),
         ("/app list", "素材清点：每个分类一行，报张数（图鉴在用 / 暂未接分开）"),
     ]),
     ("🎴", "卡牌图鉴", [
@@ -141,18 +141,20 @@ HELP_SECTIONS = [
     ]),
     ("🎮", "陪玩（仅管理员 · 🚧 开发中，未完全实装）", [
         ("🚧 开发中", "陪玩代打（/appa 系列）尚在开发，未完全实装，请静待更新"),
-        ("/appa", "看本机：在局内→局内卡，不在局→档案卡"),
+        ("/appa", "注入代打组件：dll / BepInEx 装进游戏根目录"),
         ("/appa on", "全自动代打：出牌、技能、移动、战斗全交给 bot"),
         ("/appa card", "半自动代打：把这一项交给 bot（一次一项，其余归你）"),
         ("/appa off", "玩家自主操控：bot 只推建议，鼠标不碰"),
-        ("/appa atk", "经过怪物时：攻击"),
-        ("/appa skip", "经过怪物/商店时：跳过；被怪物攻击时：闪避"),
-        ("/appa def", "怪物反击/怪物回合被攻击时：防御"),
+        ("/appa me", "看一眼局内卡：我的角色、血量、金币、所在格"),
+        ("/appa atk", "经过怪物时：攻击；站在突击格上则先选怪，再发一次就是攻击"),
+        ("/appa skip", "经过怪物/商店/筹码时：跳过，出牌阶段点「取消」，战斗界面点「放过」"),
+        ("/appa def", "怪物反击/怪物回合被攻击时：防御（站着硬扛）"),
+        ("/appa dodge", "怪物反击/怪物回合被攻击时：闪避"),
         ("/appa buy", "经过商店时：购买"),
-        ("/appa skill", "只开技能"),
         ("/appa go", "只移动 / 选「继续移动」"),
         ("/appa choose", "遇岔路自动选更优的一条"),
         ("/appa stop", "停下来（不继续走）"),
+        ("/appa relic", "只选筹码（三选一挑品质最好的）"),
     ]),
 ]
 
@@ -167,34 +169,48 @@ PILOT_ACT_ALIAS = {
     "路线": "choose", "选方向": "choose", "方向": "choose",
     "stop": "stop", "停下": "stop", "停下来": "stop", "停留": "stop", "停": "stop",
     "不走了": "stop",
-    "buy": "buy", "买": "buy", "购买": "buy", "买卡": "buy", "商店": "buy", "筹码": "buy",
+    "relic": "relic", "relics": "relic", "选筹码": "relic", "挑筹码": "relic",
+    "筹码": "relic",
+    "buy": "buy", "买": "buy", "购买": "buy", "买卡": "buy", "商店": "buy",
     # 战斗三件套
     "atk": "atk", "attack": "atk", "打怪": "atk", "攻击": "atk", "打它": "atk",
     "开战": "atk", "干它": "atk",
     "def": "def", "defend": "def", "防御": "def", "防守": "def", "防": "def", "苟": "def",
     "skip": "skip", "跳过": "skip", "跳": "skip", "略过": "skip", "不管": "skip",
     "无视": "skip",
+    "dodge": "dodge", "闪避": "dodge", "躲": "dodge", "闪": "dodge",
 }
 PILOT_ACT_CN = {"card": "出牌", "skill": "开技能", "go": "移动/继续", "choose": "岔路选路",
-                "stop": "停下", "buy": "商店购买", "atk": "攻击怪物", "def": "防御",
-                "skip": "闪避"}
+                "stop": "停下", "buy": "商店购买", "relic": "选筹码",
+                "atk": "攻击怪物", "def": "防御", "dodge": "闪避", "skip": "跳过"}
 
 APPA_HELP = (
     "🚧 陪玩（/appa 系列）尚在开发中，未完全实装，行为可能随版本变化，请静待更新。\n"
     "\n"
-    "🎮 陪玩指令（仅管理员）· 不带参数看本机：局内出局内卡，不在局出档案卡\n"
+    "🧩 注入（仅管理员）· 不带参数＝把代打必需的程序装进游戏根目录\n"
+    "/appa ········· 注入 dll：winhttp.dll + doorstop + BepInEx + 插件本体（游戏要关着）\n"
+    "\n"
+    "🎮 陪玩指令（仅管理员）\n"
     "① 全自动代打 ··· /appa on —— 出牌 / 技能 / 移动 / 战斗都交给 bot\n"
     "② 半自动代打 ··· /appa card（出牌）· skill（技能）· go（移动）等，一次交给 bot 一项\n"
     "③ 你自己操控 ··· /appa off —— bot 只推建议，鼠标不碰\n"
     "\n"
     "其余单项（每个只管一件事，方便单独调）\n"
-    "/appa ········· 看本机：局内出局内卡，不在局出档案卡\n"
     "/appa atk ····· 经过怪物时：攻击\n"
-    "/appa def ····· 怪物反击 / 怪物回合被攻击时：防御\n"
-    "/appa skip ···· 经过怪物/商店时跳过；被怪物攻击时闪避\n"
+    "　　　　　　　站在突击格上：先替你选一只怪传送过去，再发一次 /appa atk 才是打；\n"
+    "　　　　　　　改用 /appa skip 则传送过去但放过\n"
+    "/appa def ····· 怪物反击 / 怪物回合被攻击时：防御（站着硬扛）\n"
+    "/appa dodge ··· 怪物反击 / 怪物回合被攻击时：闪避\n"
+    "/appa skip ···· 经过怪物/商店/筹码时跳过；出牌阶段点「取消」；战斗界面点「放过」\n"
     "/appa choose ·· 遇岔路自动选更优的一条\n"
     "/appa stop ···· 停下来（不继续走）\n"
-    "/appa buy ····· 经过商店时：购买"
+    "/appa relic ··· 只选筹码（三选一挑品质最好的）\n"
+    "/appa buy ····· 经过商店时：购买\n"
+    "/appa me ······ 看一眼局内卡：角色 / 血量 / 金币 / 所在格"
+    "\n"
+    "⌨️ 动作类子命令（card / skill / go / choose / stop / buy / relic / atk / def / dodge / skip）"
+    "做成了静默不回话，做不成会回一条说明 + 理由（如 appa card 没牌可出）；"
+    "想确认授权结果发 /appa me 看局内卡就行"
 )
 
 
@@ -390,6 +406,9 @@ def _hero_resolve(q: str):
 class AstralPartyPilotPlugin(Star):
     """把 AstralPartyPilot 的知识库与决策能力搬进 QQ。"""
 
+    # 库路径不可用时的统一提示：/app check 与 /app load 共用，改一处两边同步
+    ART_PATH_ERR = ("[WinError 3] 系统找不到指定的路径。art_root有误，请检查路径是否正确。")
+
     def __init__(self, context: Context, config: dict | None = None) -> None:
         super().__init__(context)
         self.config = config or {}
@@ -497,11 +516,6 @@ class AstralPartyPilotPlugin(Star):
             # /app list：图库有哪些分类、各多少张（不校验、不解包）
             yield event.plain_result(self._art_list())
             return
-        if sub in ("update", "更新", "增量"):
-            # /app update：游戏更新后增量解包，完了刷新完整性清单
-            async for result in self._app_load(event, "update"):
-                yield result
-            return
         if sub in ("check", "查", "查看", "status", "info"):
             # /app check：图库体检，只报目录现状和解包进度，不解包
             async for result in self._app_check(event):
@@ -513,9 +527,9 @@ class AstralPartyPilotPlugin(Star):
             return
         yield event.plain_result(
             f"bot 没看懂「{sub}」这个图鉴子命令呢～\n"
-            "可用：card / map / land / buff / monster / hero / skin / cg / emoji / relic / achieve / list / load / update\n"
+            "可用：card / map / land / buff / monster / hero / skin / cg / emoji / relic / achieve / list / load\n"
             "查别人：/app <UID>（例如 /app 2425110）\n"
-            "看本机（局内卡 / 档案卡）：/appa（仅管理员）\n"
+            "看本机（局内卡 / 档案卡）：/app\n"
             "登录账号看档案：/app in · /app uid · /app out\n"
             "代打请用 /appa（/appa on 全自动 · /appa card 半自动 · /appa off 交回自己）\n"
             "发 /app help 看完整说明"
@@ -681,7 +695,7 @@ class AstralPartyPilotPlugin(Star):
                 return ("🖼 外部图库不可用（%s），已自动回退「实时解包」：查哪张解哪张。\n"
                         "   把盘插回来 / 改对 art_root 就自动切回外部库。" % (AS.home() or AS.base()))
             return ("🖼 art_root 没填，走的是「实时解包」：插件自带映射表基线，"
-                    "同版本游戏开箱即用；游戏更新过再发 /app update 重建。")
+                    "同版本游戏开箱即用；游戏更新过对不上，再发 /app load 会自动重建。")
         if not AS.configured():
             return ("🖼 bot 还没有美术图库呢。\n"
                     "插件配置里的「美术素材库目录」（art_root）是空的 —— 填一个父目录，"
@@ -796,7 +810,7 @@ class AstralPartyPilotPlugin(Star):
             return ("❌ 配置 art_root：没填 —— 图鉴出不了图\n"
                     "   去面板 → 插件配置 → 星趴助手，填一个目录后保存。")
         if not ARTL.path_usable(base):
-            return "[WinError 3] 系统找不到指定的路径。art_root有误，请检查路径是否正确。"
+            return self.ART_PATH_ERR
 
         home = AS.home()
         need_unpack = True
@@ -858,11 +872,15 @@ class AstralPartyPilotPlugin(Star):
                 "（/app load 现在只负责解包，不会再顺手体检）")
             return
 
-        is_update = (joined or "").strip().lower() in ("update", "更新", "增量")
+        # 前置：先按 /app check 那套判断库路径能不能落地。art_root 配了但盘不在
+        # （移动硬盘拔了 / 盘符写错）就直接回 check 的原话，别默默去建实时映射表。
+        if AS.base() and not ARTL.path_usable(AS.base()):
+            yield event.plain_result(self.ART_PATH_ERR)
+            return
 
         if AL.live_mode():
             # art_root 没填 / 外库不可用：不建图库，只建「图名 -> bundle」映射表，之后按需解包
-            async for result in self._app_live(event, force=is_update):
+            async for result in self._app_live(event):
                 yield result
             return
 
@@ -905,7 +923,7 @@ class AstralPartyPilotPlugin(Star):
             cnt = await asyncio.to_thread(ARTL.count_files, out)
             have = sum(cnt.values())
         missing = chk.get("missing") or []
-        if chk.get("state") == "ok" and not is_update:
+        if chk.get("state") == "ok":
             yield event.plain_result(
                 "✅ 图库已完整（%d 张），无需再解包。\n· 图库：%s"
                 % (chk.get("total") or 0, out))
@@ -924,10 +942,7 @@ class AstralPartyPilotPlugin(Star):
             tip += "\n· 内存偏紧，已自动降载；关掉游戏/浏览器能少等一会儿。"
         if 0 <= disk < ARTL.MIN_DISK_GB:
             tip += "\n· 磁盘余量不多，写满会中断，建议先清点空间。"
-        if is_update:
-            head = ("🔄 增量更新：重扫全部 bundle，只写新出现的素材，完了刷新完整性清单\n"
-                    f"· 图库：{out}\n")
-        elif missing:
+        if missing:
             head = ("🔧 补缺失素材\n"
                     f"· 图库：{out}\n"
                     f"· 缺 {len(missing)} 张（只写缺的，已有的其余一张不碰）\n")
@@ -941,19 +956,17 @@ class AstralPartyPilotPlugin(Star):
         self._load_umo = getattr(event, "unified_msg_origin", "") or ""
         loop = asyncio.get_running_loop()
         self._load_task = loop.create_task(
-            self._do_load(gdir, out, [] if is_update else missing,
-                          "update" if is_update else ""))
+            self._do_load(gdir, out, missing))
         yield event.plain_result(
             head + f"· 游戏：{gdir}\n{plan_line}\n{res_line}{tip}\n"
             "· 完了 bot 主动说结果～（中途发 /app check 可以看进度）")
 
     # ------------------------------------------------------ 实时解包模式 ----
-    async def _app_live(self, event: AstrMessageEvent, force: bool = False):
+    async def _app_live(self, event: AstrMessageEvent):
         """art_root 没填 / 外库不可用时的 /app load：确保「图名 -> bundle」映射表可用。
 
         插件自带一份基线表（值存相对游戏目录的路径，同一游戏版本跨机器通用），
         所以常态是**不用建表**；只有游戏更新 / 换渠道 / 换盘导致抽样对不上时才重扫。
-        force=True（/app update）时无条件重建。
         """
         gdir = await asyncio.to_thread(ARTL.game_dir)
         if not gdir:
@@ -966,17 +979,16 @@ class AstralPartyPilotPlugin(Star):
             yield event.plain_result(f"❌ 游戏目录不存在：{gdir}")
             return
 
-        if not force:
-            ck = await asyncio.to_thread(ALIVE.check_map, gdir)
-            if ck.get("ok"):
-                src = ("插件自带（随插件分发，同版本通用）" if ck.get("source") == "bundled"
-                       else "本机已建")
-                yield event.plain_result(
-                    f"✅ 映射表已就绪，无需重建\n"
-                    f"· {ck.get('count')} 条｜来源：{src}\n"
-                    "· 查哪张解哪张，不用整库解包、不占磁盘\n"
-                    "· 游戏更新过想刷新：/app update")
-                return
+        ck = await asyncio.to_thread(ALIVE.check_map, gdir)
+        if ck.get("ok"):
+            src = ("插件自带（随插件分发，同版本通用）" if ck.get("source") == "bundled"
+                   else "本机已建")
+            yield event.plain_result(
+                f"✅ 映射表已就绪，无需重建\n"
+                f"· {ck.get('count')} 条｜来源：{src}\n"
+                "· 查哪张解哪张，不用整库解包、不占磁盘\n"
+                "· 游戏更新后对不上，再发 /app load 就会自动重建")
+            return
 
         if self._load_task and not self._load_task.done():
             yield event.plain_result(f"⏳ 正在建映射表呢（{self._load_prog}%），好了 bot 会说一声。")
@@ -986,13 +998,10 @@ class AstralPartyPilotPlugin(Star):
         loop = asyncio.get_running_loop()
         self._load_task = loop.create_task(self._do_live(gdir))
         why = ""
-        if force:
-            why = "\n· 游戏更新 → 重建全表"
-        else:
-            ck = ALIVE.check_map(gdir)
-            if ck.get("count"):
-                why = (f"\n· 现有表 {ck.get('count')} 条对不上当前游戏"
-                       f"（抽样 {ck.get('hit')}/{ck.get('checked')}）→ 重建")
+        ck = ALIVE.check_map(gdir)
+        if ck.get("count"):
+            why = (f"\n· 现有表 {ck.get('count')} 条对不上当前游戏"
+                   f"（抽样 {ck.get('hit')}/{ck.get('checked')}）→ 重建")
         yield event.plain_result(
             f"🔎 {AL.live_reason()} → 走「实时解包」\n"
             f"· 游戏：{gdir}\n"
@@ -1041,8 +1050,7 @@ class AstralPartyPilotPlugin(Star):
             except Exception as exc:                        # noqa: BLE001
                 logger.error(f"[星趴] 映射表结果推送失败：{exc}")
 
-    async def _do_load(self, gdir: str, out: str, only: list | None = None,
-                       mode: str = ""):
+    async def _do_load(self, gdir: str, out: str, only: list | None = None):
         """后台解包；完了把结果推回发起命令的会话。"""
         from astrbot.api.event import MessageChain
         from astrbot.api.message_components import Plain
@@ -1063,7 +1071,6 @@ class AstralPartyPilotPlugin(Star):
             logger.error(f"[星趴] 解包失败：{exc}")
             st = {"ok": False, "why": f"解包时出错：{exc}"}
         self._load_prog = 100
-        st["mode"] = mode
         if st.get("ok"):
             try:                                        # 解完立刻体检，回话里直接说齐没齐
                 st["chk"] = await asyncio.to_thread(ARTL.check, out)
@@ -1087,12 +1094,7 @@ class AstralPartyPilotPlugin(Star):
                     + "\n图鉴还是用不了，修好后重发 /app load。")
         sec = st.get("seconds") or 0
         only = st.get("only") or 0
-        if st.get("mode") == "update":
-            head = (f"✅ 增量更新完成（{sec:.0f} 秒）\n"
-                    f"· 输出：{st.get('out')}\n"
-                    f"· bundle {st.get('bundles')} 个｜新出图 {st.get('written')} 张"
-                    f"｜已有跳过 {st.get('skipped')} 张")
-        elif only:
+        if only:
             head = (f"✅ 美术素材补齐完成（{sec:.0f} 秒）\n"
                     f"· 输出：{st.get('out')}\n"
                     f"· 名单缺 {only} 张｜补回 {st.get('written')} 张"
@@ -1134,8 +1136,6 @@ class AstralPartyPilotPlugin(Star):
         errs = st.get("errors") or []
         if errs:
             lines.append("· 有 {} 条异常，样例：{}".format(len(errs), errs[0][:120]))
-        if st.get("mode") == "update":
-            lines.append(f"· 完整性清单已刷新：{st.get('indexed')} 条")
         if ok_all:                                  # 只有校验通过才敢说图鉴能用
             lines.append("现在 /app hero、/app card、/app relic 这些都能出图了。")
         return "\n".join(lines)
@@ -1687,6 +1687,10 @@ class AstralPartyPilotPlugin(Star):
         if sub in ("help", "h", "帮助", "?", "？", "菜单", "说明"):
             yield event.plain_result(APPA_HELP)
             return
+        if sub in ("me", "我", "自己", "局内", "局内卡", "状态"):
+            async for result in self._appa_me(event):
+                yield result
+            return
         if sub in ("off", "no", "关", "关闭", "取消", "退出", "noc"):
             async for result in self._appa_off(event):
                 yield result
@@ -1695,8 +1699,8 @@ class AstralPartyPilotPlugin(Star):
             async for result in self._appa_on(event, list(CO.FULL_ALLOW), full=True):
                 yield result
             return
-        if sub in ("", "st", "查", "状态", "进度", "看"):
-            async for result in self._appa_view(event):
+        if not sub:
+            async for result in self._appa_deploy(event):
                 yield result
             return
 
@@ -1704,7 +1708,10 @@ class AstralPartyPilotPlugin(Star):
         if not act:
             yield event.plain_result(f"「{sub}」不是代打子命令呢～\n{APPA_HELP}")
             return
-        async for result in self._appa_on(event, [act], full=False):
+        # 动作类子命令（card/skill/go/choose/stop/buy/relic/atk/def/skip）
+        # 都是一次性的：做成了就一声不吭（连着发好几条时，回话会把
+        # /appa on、/appa off 的关键反馈埋掉）；做不成才回一条说明 + 理由。
+        async for result in self._appa_once(event, act):
             yield result
 
     # ------------------------------------------------------------ 状态查询 ----
@@ -1746,6 +1753,91 @@ class AstralPartyPilotPlugin(Star):
         pid = cur.get("pid")
         tail = f"（pid {pid}）" if pid else ""
         return f"🤖 代打：{tag}{tail} ｜ 授权：{allow_cn or '无'}"
+
+    async def _appa_deploy(self, event: AstrMessageEvent):
+        """/appa：把代打必需的程序注入游戏根目录。
+
+        装的是 winhttp.dll、doorstop_config.ini、.doorstop_version，以及整棵 BepInEx
+        （插件本体 AstralProbe.dll 就在 BepInEx/plugins 里）。只做部署不碰对局状态：
+        源里没有的运行产物不复制，目标里已有的也不删；游戏开着时被占用的 dll 跳过。
+        """
+        if await asyncio.to_thread(DEP.game_alive):
+            yield event.plain_result(
+                "⚠️ 游戏正在运行，先完全退出游戏再发 /appa。\n"
+                "开着游戏注入，winhttp.dll 和 BepInEx 里的 dll 都替换不了；"
+                "关掉游戏后重发这一条就行。")
+            return
+        res = await asyncio.to_thread(DEP.run, self.config)
+        if res["error"]:
+            yield event.plain_result(f"⚠️ {res['error']}")
+            return
+        lines = []
+        if res["copied"]:
+            mb = res["bytes"] / 1048576
+            lines.append(f"🧩 注入完成：写入 {res['copied']} 个文件"
+                         f"（{mb:.1f} MB），用时 {res['elapsed']} 秒")
+        else:
+            lines.append(f"🧩 无需写入：{res['same']} 个文件都已是同版"
+                         f"（用时 {res['elapsed']} 秒）")
+
+        if res["repaired"]:
+            lines.append(f"🔧 {res['repaired']} 个文件内容不符，已重写并复核通过")
+        # 清单校验：源对清单、目标对源，都看 SHA256
+        mt = res["manifest_total"]
+        total = res["total"]
+        if mt:
+            lines.append(f"📋 校验：清单 {mt} 项 · 源一致 {mt - len(res['src_bad'])}/{mt} · 目标一致 {res['verify_ok']}/{total}")
+        else:
+            lines.append(f"📋 校验：没找到注入清单，按目录扫描注入 · 目标一致 {res['verify_ok']}/{total}")
+        if res["src_bad"]:
+            head = "、".join(res["src_bad"][:3])
+            tail = "…" if len(res["src_bad"]) > 3 else ""
+            lines.append(f"⚠️ {len(res['src_bad'])} 个源文件与清单不符（{head}{tail}），清单可能过期，重新生成一下")
+        if res["verify_bad"]:
+            head = "、".join(rel for rel, _ in res["verify_bad"][:3])
+            lines.append(f"⚠️ {len(res['verify_bad'])} 个文件校验不一致（{head}）")
+        if res["missing"]:
+            head = "、".join(res["missing"][:3])
+            lines.append(f"⚠️ 清单里 {len(res['missing'])} 项源里没有（{head}）")
+        lines.append(f"源：{res['src']}\n目标：{res['dst']}")
+        if res["backup"]:
+            lines.append(f"旧文件备份在 {res['backup']}")
+        if res["locked"]:
+            head = "、".join(res["locked"][:3])
+            tail = "…" if len(res["locked"]) > 3 else ""
+            lines.append(f"⚠️ {len(res['locked'])} 个文件被游戏占用没换掉（{head}{tail}）"
+                         "\n关掉游戏再发一次 /appa 就好")
+        if res["failed"]:
+            head = "、".join(rel for rel, _ in res["failed"][:3])
+            lines.append(f"⚠️ {len(res['failed'])} 个文件写入失败（{head}）")
+        lines.append("启动游戏后 dll 会自动加载；要开代打发 /appa on")
+        yield event.plain_result("\n".join(lines))
+
+    # 查询入口已按需求取消（/appa 改成注入）；这个函数暂时没有调用点，先留着，
+    # 哪天想把「看本机」挂回 /appa 的子命令，直接接上就行。
+    async def _appa_me(self, event: AstrMessageEvent):
+        """/appa me：只看局内卡（我的角色、血量、金币、所在格）。
+
+        /app <uid> 的路子是「本机在局就出局内卡、否则出名片」；这里语义更窄 ——
+        只回答「我现在这局什么状态」，所以不在对局就直接说清楚，不去翻档案。
+        """
+        st = await asyncio.to_thread(LS.read)
+        me = LS.me(st) if st else None
+        if not me:
+            yield event.plain_result("🕹 现在不在对局里呢，进局后再发 /appa me～"
+                                     "（想看角色档案卡就发 /app）")
+            return
+        cur = await asyncio.to_thread(CO.current, self.config)
+        allow_cn = "、".join(PILOT_ACT_CN[a] for a in cur["allow"] if a in PILOT_ACT_CN)
+        fd, tmp = tempfile.mkstemp(suffix=".png", prefix="appa_me_")
+        os.close(fd)
+        try:
+            await asyncio.to_thread(LC.render_ingame, {}, st, me, tmp)
+            yield event.image_result(tmp)
+            yield event.plain_result(self._pilot_line(cur, allow_cn))
+        except Exception as exc:  # noqa: BLE001
+            logger.error(f"[星趴] 渲染局内卡失败：{exc}")
+            yield event.plain_result(f"局内卡没画出来：{exc}")
 
     async def _appa_view(self, event: AstrMessageEvent):
         """/appa（不带参数）：局内出局内卡，不在局出档案卡。
@@ -1849,11 +1941,23 @@ class AstralPartyPilotPlugin(Star):
         prefer = self._conf_str("pilot_prefer", "eco") or "eco"
 
         cur = await asyncio.to_thread(CO.current, self.config)
+        if not full:
+            # 单项授权是**叠加**，不是覆盖：一个回合本来就是 出牌 → 技能 → 移动，
+            # 主人会连着发 /appa card、/appa skill、/appa go，三个都得留着。
+            # 但每一项都是**一次性**的：引擎替我做完这一下，自己就把这项撤掉，
+            # 不会在后面的回合里一直自作主张。/appa on 才是常驻全覆盖。
+            old_allow = await asyncio.to_thread(CO.ctl_allow, self.config)
+            picks = [a for a in CO.ACTIONS if a in (set(old_allow) | set(picks))]
+            once = list(picks)
+        else:
+            once = []
+
         if cur["running"]:
-            await asyncio.to_thread(CO.set_allow, self.config, picks, None)
+            await asyncio.to_thread(CO.set_allow, self.config, picks, None, once)
             msg = f"沿用原进程（pid {cur['pid']}），下一帧生效"
         else:
-            msg = await asyncio.to_thread(CO.start, self.config, "pilot", False, prefer, picks)
+            msg = (await asyncio.to_thread(CO.start, self.config, "pilot", False,
+                                           prefer, picks, once))
 
         names = "、".join(PILOT_ACT_CN[a] for a in picks)
         lines = []
@@ -1861,21 +1965,131 @@ class AstralPartyPilotPlugin(Star):
             lines.append(f"🎮 模式① 全自动代打 —— {msg}")
             lines.append(f"交给 bot：{names}")
             lines.append("遇到怪物默认打、被打不闪避；不代「停下来」，想停发 /appa stop")
-            lines.append("想看当前进度就发 /appa（不带参数）")
+            lines.append("想看当前进度就发 /app")
         else:
-            lines.append(f"🎯 模式② 半自动代打 · 只代「{names}」—— {msg}")
+            lines.append(f"🎯 模式② 半自动代打 · 代「{names}」这一次 —— {msg}")
+            lines.append("这些都是**一次性**的：做完一下自动收回授权，要再来一次就再发一遍")
             lines.append("其余动作仍归你自己点，bot 不碰")
         if not await asyncio.to_thread(LS.running):
             lines.append("💡 现在没检测到游戏进程，进对局后才会动。")
         lines.append("要转成模式③（你自己操控）：/appa off")
         yield event.plain_result("\n".join(lines))
 
+    # ------------------------------------------------- 一次性动作的结果 ----
+    async def _appa_once(self, event: AstrMessageEvent, act: str):
+        """跑一个一次性动作：成了就静默，没成才回一条「为什么没做成」。"""
+        async for _ in self._appa_on(event, [act], full=False):
+            pass
+        ok, why = await self._appa_wait_once(act)
+        if not ok:
+            yield event.plain_result(why)
+
+    async def _appa_wait_once(self, act: str, timeout: float = 8.0):
+        """等引擎把这一项做完。
+
+        判据是控制文件：引擎做完就自己把这一项从 allow/once 里撤掉。
+        等不到就撤回授权（免得它在后面某一帧突然替主人动手）并给出理由。
+        """
+        t0 = time.time()
+        while time.time() - t0 < timeout:
+            await asyncio.sleep(0.4)
+            try:
+                allow = await asyncio.to_thread(CO.ctl_allow, self.config)
+                once = await asyncio.to_thread(CO.ctl_once, self.config)
+            except Exception:  # noqa: BLE001
+                continue
+            if act not in allow and act not in once:
+                return True, ""
+        try:
+            allow = [a for a in await asyncio.to_thread(CO.ctl_allow, self.config) if a != act]
+            once = [a for a in await asyncio.to_thread(CO.ctl_once, self.config) if a != act]
+            await asyncio.to_thread(CO.set_allow, self.config, allow, None, once)
+        except Exception:  # noqa: BLE001
+            pass
+        return False, await asyncio.to_thread(self._appa_why, act)
+
+    def _appa_why(self, act: str) -> str:
+        """「这一下为什么没做成」——读引擎最近一帧，能说到点子上。"""
+        cn = PILOT_ACT_CN.get(act, act)
+        head = f"⚠️ /appa {act}（{cn}）这一下没做成，授权已收回。\n"
+        try:
+            d = CO.read(self.config) or {}
+        except Exception:  # noqa: BLE001
+            d = {}
+        if not d:
+            return head + "引擎还没写过状态 —— 游戏没开，或者还没进对局。"
+        pid = d.get("pid")
+        try:
+            if pid and not CO.alive(int(pid)):
+                return head + "引擎进程已经不在（游戏没开 / 代打没启动）。"
+        except Exception:  # noqa: BLE001
+            pass
+        if not d.get("in_match"):
+            return head + "现在不在对局里。"
+        stage = d.get("stage") or "none"
+        stage_cn = d.get("stage_cn") or stage
+        mine = bool(d.get("my_turn"))
+        actd = d.get("act") or {}
+        ev = d.get("event") or {}
+        lines = [str(x) for x in (ev.get("lines") or [])]
+        why = str(d.get("why") or "").strip()
+        tail = f"（引擎：{why}）" if why else ""
+
+        if act == "card":
+            if d.get("fight"):
+                note = str(d.get("fight_note") or "").strip()
+                return head + (note + "。" if note else "战斗界面里没出成这张战斗牌。")
+            if stage != "card":
+                return head + f"现在不是出牌阶段 —— 当前是「{stage_cn}」。"
+            if any("没有可出的牌" in l for l in lines):
+                return head + "手牌里没有现在能出的牌。"
+            if any("都出不了" in l for l in lines):
+                return head + "手上的牌这会儿都出不了（战斗牌 / 地块牌 / 认不出目标）。"
+            return head + f"有牌但这下没点成{tail}。"
+        if act == "skill":
+            if stage != "card":
+                return head + f"现在不是出牌 / 技能阶段 —— 当前是「{stage_cn}」。"
+            cd = (d.get("me") or {}).get("skillCD")
+            if cd:
+                return head + f"技能还在冷却（剩 {cd} 回合）。"
+            return head + f"技能键没按下去{tail}。"
+        if act == "go":
+            # 移动和出牌不冲突：出牌阶段点移动键就是「这轮不出牌，直接走」
+            # （2026-11-05 主人纠正：可以不出牌直接移动，别叫人先把手牌走完）
+            if stage in ("card", "move"):
+                return head + f"移动键没点下去{tail}。"
+            return head + f"这一步按不了移动 —— 当前是「{stage_cn}」。"
+        if act in ("atk", "def", "dodge"):
+            aid = int(actd.get("id") or 0)
+            if aid not in (5047, 5039) and stage not in ("battle", "fight"):
+                return head + f"现在没有战斗弹窗 / 战斗界面 —— 当前是「{stage_cn}」。"
+            return head + f"这一下没点成{tail}。"
+        if act == "buy":
+            if not (actd.get("shop")):
+                return head + "现在不在商店界面。"
+            return head + f"买了但没成功（钱不够 / 卡买不了）{tail}。"
+        if act == "relic":
+            if not (actd.get("relic")):
+                return head + "现在不在选筹码的三选一界面。"
+            return head + f"筹码没选成{tail}。"
+        if act == "choose":
+            if not (actd.get("arrows")):
+                return head + "现在没有岔路可走。"
+            return head + f"岔路没选成{tail}。"
+        if act == "stop":
+            return head + f"现在没有可停下的地方 / 停靠站弹窗 —— 当前是「{stage_cn}」。"
+        if not mine:
+            return head + f"还没轮到主人动手 —— 当前是「{stage_cn}」。"
+        if actd.get("name"):
+            return head + f"卡在「{actd.get('name')}」（动作 id {actd.get('id')}）{tail}。"
+        return head + f"当前是「{stage_cn}」，没有可以做的「{cn}」{tail}。"
+
     async def _appa_off(self, event: AstrMessageEvent):
         msg = await asyncio.to_thread(CO.stop, self.config)
         self._stop_push()
         yield event.plain_result(
             f"🖐 模式③ 玩家自主操控：{msg}\n"
-            "授权一并收回，鼠标完全归你；bot 只在旁边看，需要建议再发 /appa。")
+            "授权一并收回，鼠标完全归你；bot 只在旁边看，想看本机发 /app。")
 
     def _ensure_push(self, event: AstrMessageEvent) -> None:
         umo = getattr(event, "unified_msg_origin", "") or ""

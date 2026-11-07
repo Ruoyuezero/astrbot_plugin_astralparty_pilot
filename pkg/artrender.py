@@ -1349,6 +1349,30 @@ def _round_pic(path: str | None, size: int, radius: int = 14) -> Image.Image | N
     return tile
 
 
+def _cut_pic(path: str | None, size: int) -> Image.Image | None:
+    """奖励小图标：保留它自己的透明通道，不套方框。
+
+    货币图标外圈有一层近黑描边，缩到 24px 会糊成一坨黑底，所以先把外圈的黑边
+    抠成透明再贴，图标就直接落在卡片底色上。
+    """
+    im = _open(path) if path else None
+    if not im:
+        return None
+    px = im.load()
+    w, h = im.size
+    cx, cy = w / 2, h / 2
+    r = min(w, h) / 2 * 0.65
+    for y in range(h):
+        for x in range(w):
+            cr, cg, cb, _ = px[x, y]
+            if max(cr, cg, cb) <= 45 and (x - cx) ** 2 + (y - cy) ** 2 > r * r:
+                px[x, y] = (cr, cg, cb, 0)
+    im = _fit(im, size, size)
+    tile = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    tile.paste(im, ((size - im.width) // 2, (size - im.height) // 2), im)
+    return tile
+
+
 def render_achieve_list(out_path: str, cols: int = 8) -> str:
     """成就总览：一张图铺开，每格是成就图 + 中文名 + 数字 ID。"""
     rows = sorted(kb.achievements(), key=lambda r: int(r.get("id") or 0))
@@ -1465,7 +1489,7 @@ def render_achieve_card(ach: dict, out_path: str) -> str:
     if rw_icon or rw_amt is not None:
         draw.text((tx, rw_y + 2), "奖励", font=_font(15, True), fill=MUTE)
         rx = tx + 40
-        ri = _round_pic(artlib.item_icon(rw_icon), 24, 6) if rw_icon else None
+        ri = _cut_pic(artlib.item_icon(rw_icon), 24) if rw_icon else None
         if ri:
             canvas.paste(ri, (rx, rw_y), ri)
             rx += 30

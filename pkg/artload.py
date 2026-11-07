@@ -659,7 +659,14 @@ def _write_index(out_root: str, names, gdir: str = "") -> int:
 
 
 def read_index(out_root: str) -> dict | None:
-    """读清单。清单绑在某个图库上，路径对不上就当没清单（换库先重解一次）。"""
+    """读清单。
+
+    以**当前 art_root 为准**：清单里的 root 和图库实际路径对不上（图库被改名、
+    换盘、搬家）时，不当成"没清单"作废，而是把 root 改绑到新路径、把同一份
+    files 写回去，再交给调用方比对——路径一致就直接比对，不一致就先改绑再比对，
+    之后的判定完全一致。这样只是改个文件夹名，不用重扫 6688 个 bundle。
+    `rebound_from` 留旧路径，方便事后追查这次是跟谁改绑的。
+    """
     doc = None
     try:
         with open(index_path(), encoding="utf-8") as f:
@@ -675,7 +682,14 @@ def read_index(out_root: str) -> dict | None:
         same = os.path.normcase(os.path.normpath(root)) == \
             os.path.normcase(os.path.normpath(out_root))
         if not same:
-            return None
+            doc["rebound_from"] = root
+            doc["rebound_at"] = time.strftime("%Y-%m-%d %H:%M:%S")
+            doc["root"] = os.path.normpath(out_root)
+            try:
+                with open(index_path(), "w", encoding="utf-8") as f:
+                    json.dump(doc, f, ensure_ascii=False)
+            except OSError:
+                pass                            # 写不进去也照常体检，别让 check 挂掉
     return doc
 
 

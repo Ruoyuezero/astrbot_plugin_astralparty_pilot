@@ -22,6 +22,7 @@ sys.path.insert(0, HERE)
 
 import kb
 import decision as D
+import roles as R
 from paths import GAME_DIR, LOGS_DIR
 from wiki_mapmeta import LAND
 import re
@@ -80,8 +81,31 @@ class Game:
         c = self.cardname().get(str(cid))
         return c["zh"] if c else f"#{cid}"
 
+    def _carddesc(self):
+        """kb/cards.json 的效果文本。游戏导出的 cardnames.json 常常只有名字和费用、
+        desc 为空，评分就认不出「攻击力+5」这类增益牌 —— 这里做兜底。"""
+        if getattr(self, "_cd", None) is None:
+            p = os.path.join(ROOT, "kb", "cards.json")
+            m = {}
+            try:
+                with open(p, encoding="utf-8") as f:
+                    for c in json.load(f):
+                        no = str(c.get("no") or "")
+                        txt = " ".join(c.get("eff_pve") or c.get("eff_common") or c.get("eff_pvp") or [])
+                        if no and txt:
+                            m[no] = txt
+            except Exception:
+                pass
+            self._cd = m
+        return self._cd
+
     def cinfo(self, cid):
-        return self.cardname().get(str(cid)) or {}
+        c = self.cardname().get(str(cid)) or {}
+        if c and not c.get("desc"):
+            d = self._carddesc().get(str(cid))
+            if d:
+                c = dict(c, desc=d)
+        return c
 
     # ---- 技能（kb/skills.json，由插件 skills 命令导出后 import_skills.py 生成）----
     def skillinfo(self):
@@ -276,12 +300,44 @@ def cur_stage(st, me=None):
 
 
 # ---------------- 决策 ----------------
+# 出牌阈值：评分不到这个数就不出牌。
+# 2026-11-05 主人要求抬高门槛 —— 之前 1.0 太松，一堆低分牌也会被推出去。
+PLAY_MIN = 2.5
+
+# 骰子 / 改点类牌：收益全在「精确走到升星格、突击格、宝箱格」。
+# 角色升不了星、或者攻击低到打不动怪时，走位换不来任何东西，
+# 这时候把分数压到阈值以下，直接不出。
+DICE_CARDS = {"20005"}                              # 遥控骰子
+DICE_NAME_KW = ("骰", "命运", "方向")
+DICE_MIN_ATK = 10                                   # 攻击低于 10 点，走位没有兑现方向
+DICE_DEMOTE = 0.5                                   # 降权后的分数（< PLAY_MIN 即不出）
+
+# ---------------- PVE 卡牌分层（主人 2026-11-05 口述攻略）----------------
+# 血量高于 2/3 → 优先对怪伤害牌
+PVE_DMG_CARDS = {"21001", "21009", "21007", "21012", "21013"}
+# 血量低于 2/3 → 优先回血牌；手里没有回血牌就继续用伤害牌
+PVE_HEAL_CARDS = {"20002", "20014", "21006", "21020"}
+# 满血时才敢用：升攻 / 后面回合持续回血
+PVE_FULL_HP_CARDS = {"21004", "20008", "20006"}
+
+PVE_DMG_SCORE = 6.5        # 血够了，伤害牌的分数（再按伤害量微调）
+PVE_HEAL_SCORE = 6.5       # 掉血了，回血牌的分数
+PVE_FULL_HP_SCORE = 5.0    # 满血用升攻 / 持续回血：分数下限（要能压过「满血回血浪费」的扣分）
+HP_LOW_RATIO = 2.0 / 3.0
+
+# 「受伤加码」的 buff：毒外卖（每轮开始掉 1 血）、狂暴（受到伤害 +1）。
+# 身上带着这类 buff 时，王之力（自伤 4 点）会把血打穿，直接禁掉。
+HURT_BUFF_NAMES = {"毒外卖", "致命病毒", "狂暴"}
+HURT_BUFF_ID_PREFIX = ("3000601", "2000801")   # state 里给 7 位 id，kb 里是 8 位，按前缀比
+FORBID_WITH_HURT_BUFF = {"21004"}              # 王之力
+WANG_MIN_HP = 6        # 王之力自伤 4 点：血 ≤5 打出去只剩 1 血，白送对面，禁出
+
 # 非战斗时值得主动打的牌（关键词 → 分值）
+# 激光 / 板砖 / 弹弓 / 爆破 都是伤害牌，不在这里手写分值，交给 DAMAGE_RE 按伤害算。
 PLAY_KEYWORDS = {
     "骰": 6.0, "命运": 5.0, "方向": 4.0, "加速": 3.0,
     "恢复": 2.5, "汉堡": 2.5, "蛋糕": 2.5, "大餐": 2.5,
     "抢夺": 2.0, "拾荒": 2.0, "星币": 2.0,
-    "激光": 1.0, "板砖": 1.0, "弹弓": 1.0, "爆破": 1.0,
 }
 
 # 增益牌：加属性 + 有时长（狂暴 / 王之力 / 岿然不动）。
@@ -290,6 +346,8 @@ BUFF_RE = re.compile(r"(攻击力|防御力|移动速度|移动)\s*[+＋]\s*\d")
 DUR_RE = re.compile(r"持续\s*\d+\s*(回合|轮|次)")
 # 伤害量：{damage=6} 或「造成3点伤害」
 DAMAGE_RE = re.compile(r"damage=(\d+)|造成\s*(\d+)\s*点伤害")
+# 自伤：王之力「受到4点伤害，攻击力+5」
+SELF_HARM_RE = re.compile(r"受到\s*\d+\s*点伤害")
 
 
 def damage_of(info):
@@ -339,6 +397,51 @@ def card_kind(info):
     return "effect"
 
 
+def is_dice_card(cid, name):
+    """是不是「改移动点数」那类牌（遥控骰子 / 命运的指引 / 换方向）。"""
+    return str(cid) in DICE_CARDS or any(k in (name or "") for k in DICE_NAME_KW)
+
+
+def star_hopeless(me):
+    """角色还能不能升星。返回 (升不了, 原因)。
+
+    骰子的全部价值就是把自己精确送到该去的格子上；满星没得升、
+    或者星币离下一星还差着，走位就换不来星级 —— 这时候出它等于白扔。
+    """
+    me = me or {}
+    try:
+        star = int(me.get("star") if me.get("star") is not None else (me.get("lv") or 0))
+    except (TypeError, ValueError):
+        star = 0
+    try:
+        need = R.next_star_cost(star)          # 满 3 星返回 0
+    except Exception:                          # noqa: BLE001
+        need = 0 if star >= 3 else {1: 15, 2: 20, 3: 25}.get(star + 1, 0)
+    if not need:
+        return True, f"已 {star} 星，升满了"
+    gold = int(me.get("gold") or 0)
+    if gold < need:
+        return True, f"星币 {gold} 不够升 {star + 1} 星的 {need}"
+    return False, ""
+
+
+def hurt_buffs(me):
+    """身上带没带「受伤加码」的 buff，带就返回名字列表。
+
+    state 里 buff 形如 {"id": 3000601, "name": "致命病毒"}，kb 里记的是 30006011，
+    所以 id 只比前缀；name 也兜一层（毒外卖 的正式名就是「致命病毒」）。
+    """
+    out = []
+    for b in (me or {}).get("buffs") or []:
+        if not isinstance(b, dict):
+            continue
+        nm = str(b.get("name") or "")
+        bid = str(b.get("id") or "")
+        if nm in HURT_BUFF_NAMES or any(bid.startswith(p) for p in HURT_BUFF_ID_PREFIX):
+            out.append(nm or bid)
+    return out
+
+
 def score_card(cid, gi, me=None):
     info = gi.cinfo(cid)
     name = info.get("zh", "")
@@ -354,12 +457,46 @@ def score_card(cid, gi, me=None):
         s = max(s, 5.5)                      # buff 牌优先级仅次于骰子/命运类
     if "恢复" in name or "恢复" in desc:
         s += 1.0
-    if is_heal_card(info) and me and me.get("hp", 0) >= me.get("maxhp", 1):
-        s -= 4.0                             # 满血回血是纯浪费
+    if is_heal_card(info):
+        _mac = int((me or {}).get("maxhp") or 0)
+        _hp = int((me or {}).get("hp") or 0)
+        # 回血牌：全队（自己 + 队友）没人掉到 2/3 以下就别用（2026-11-05 主人）
+        _mates = (me or {}).get("mates") or []
+        _hurt_mate = [p for p in _mates
+                      if (p.get("maxhp") or 0) and (p.get("hp") or 0) / p["maxhp"] <= HP_LOW_RATIO]
+        if _mac and _hp / _mac > HP_LOW_RATIO and not _hurt_mate:
+            s = min(s, DICE_DEMOTE)
     if "自爆" in name or ("失去" in desc and "生命" in desc):
         s -= 3.0
     if "不能" in desc and "使用" in desc:
         s -= 9.0
+    # 骰子类：升不了星、或攻击打不动怪 → 压到阈值以下，不为走位而走位
+    if is_dice_card(cid, name):
+        locked, _why = star_hopeless(me)
+        atk = int((me or {}).get("atk") or 0)
+        if locked or atk < DICE_MIN_ATK:
+            s = min(s, DICE_DEMOTE)
+    # PVE 分层：先看血线，再看手里有没有回血牌
+    cid_s = str(cid)
+    hp = int((me or {}).get("hp") or 0)
+    maxhp = int((me or {}).get("maxhp") or 0)
+    ratio = (hp / maxhp) if maxhp else 1.0
+    if cid_s in PVE_HEAL_CARDS and ratio < HP_LOW_RATIO:
+        s = max(s, PVE_HEAL_SCORE)          # 掉血了 → 回血优先
+    if cid_s in PVE_DMG_CARDS and ratio > HP_LOW_RATIO:
+        # 血够 → 大胆打怪；同档里伤害高的排在前面
+        s = max(s, PVE_DMG_SCORE + 0.2 * damage_of(info))
+    if cid_s in PVE_FULL_HP_CARDS and ratio >= 1.0:
+        s = max(s, PVE_FULL_HP_SCORE)       # 满血才敢升攻 / 吃持续回血
+    # 有毒外卖 / 狂暴在身：受伤加码，自伤牌一律不出
+    if cid_s in FORBID_WITH_HURT_BUFF and hurt_buffs(me):
+        s = min(s, DICE_DEMOTE)
+    # 王之力：血太薄时自伤 4 点会把自己打残，也不出
+    if cid_s == "21004" and 0 < hp < WANG_MIN_HP:
+        s = min(s, DICE_DEMOTE)
+    # 你有我有：双方各得 1 张牌，手牌越多越强
+    if cid_s == "21002":
+        s = max(s, 3.6)
     return s, name, desc
 
 
@@ -483,20 +620,32 @@ def _decide_card(st, me, gi, pref):
 
     # 出手顺序：技能不花手牌、早开早生效，所以默认先开技能；
     # 唯一例外是增益牌 —— 先出它加攻防，后开的技能才能吃到加成。
+    # 自伤型增益牌（王之力：受到4点伤害 + 攻击力+5）不该抢在技能前 ——
+    # 它自己就会让「受伤即失效」的被动（阿兰娜·鼓起勇气）归零，先开技能再出它。
+    self_harm = bool(SELF_HARM_RE.search(info.get("desc") or ""))
     if has_skill:
-        if not (is_buff_card(info) and s >= 0):
+        if not (is_buff_card(info) and s >= 0 and not self_harm):
             act, why = _decide_skill(st, me, gi, pref)
             if act.get("kind") == "skill":
                 return act, why + "（先技能后出牌）"
 
-    if s < 1.0:
-        return {"kind": "pass"}, f"可出牌里没有值得出的（最高《{info.get('zh', '')}》{s:.1f}）"
+    if s < PLAY_MIN:
+        return {"kind": "pass"}, (f"可出牌里没有值得出的（最高《{info.get('zh', '')}》"
+                                  f"{s:.1f}，低于阈值 {PLAY_MIN}）")
     if is_buff_card(info):
         why = f"《{info.get('zh', '')}》是增益牌 → 先出它，再开技能"
     elif damage_of(info):
         why = f"《{info.get('zh', '')}》伤害 {damage_of(info)}（评分 {s:.1f}）"
     else:
         why = f"《{info.get('zh', '')}》{k}，评分 {s:.1f}"
+    # 说明这次是按哪条 PVE 分层挑的，方便复盘
+    cid_s = str(c.get("id") or "")
+    if cid_s in PVE_DMG_CARDS:
+        why += "（血量高于 2/3，优先打怪）"
+    elif cid_s in PVE_HEAL_CARDS:
+        why += "（血量低于 2/3，优先回血）"
+    elif cid_s in PVE_FULL_HP_CARDS:
+        why += "（满血，先上增益）"
     return {"kind": "play", "id": c["id"], "name": info.get("zh", "")}, why
 
 
