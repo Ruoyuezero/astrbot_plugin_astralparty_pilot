@@ -225,6 +225,34 @@ def ticket(qq) -> dict | None:
     return {"platform": rec.get("platform") or "cn", "sid": rec["sid"]}
 
 
+def all_records() -> list[dict]:
+    """本机所有登录态，按 accounts.json 里写入的先后排（先登录的在前）。
+
+    每条都带上 ``qq`` 字段并已解密 sid，给 /appa sid 逐条列出来用。
+    DPAPI 解不开的（换机器 / 换账户）由 load() 返回 None，这里直接跳过 ——
+    一条坏记录不该把整份列表带崩。
+    """
+    out: list[dict] = []
+    for qq in _read_all():
+        rec = load(qq)
+        if rec:
+            out.append(dict(rec, qq=qq))
+    return out
+
+
+def first_ticket() -> dict | None:
+    """本机第一个登录票（accounts.json 第一条），查号没配 alt_sid 时拿它兜底。
+
+    和 /appa sid 列出来的 ① 是同一张；一条登录态都没有时返回 None，
+    由 liveapi 自己退回游戏日志里的票。
+    """
+    for rec in all_records():
+        sid = str(rec.get("sid") or "")
+        if sid:
+            return {"platform": rec.get("platform") or "cn", "sid": sid}
+    return None
+
+
 def describe(qq) -> str:
     """一句话描述当前登录态（不含 sid）。"""
     rec = load(qq)

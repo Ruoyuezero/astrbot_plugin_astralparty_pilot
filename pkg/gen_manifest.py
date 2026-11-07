@@ -33,13 +33,17 @@ SKIP_SUFFIXES = (".log", ".tmp")
 GROUP_DESC = {
     "doorstop": "doorstop 加载器：靠劫持 winhttp.dll 在游戏启动时挂 BepInEx",
     "bepinex-core": "BepInEx 本体（预加载、运行时引导）",
-    "bepinex-interop": "IL2CPP 程序集互操作层（体积最大，缺了插件加载不起）",
+    "bepinex-interop": "IL2CPP 程序集互操作层（66 MB，可缺席：BepInEx 首次启动会按游戏 global-metadata 现生成）",
     "bepinex-unity": "Unity 引用库（插件编译/运行时的程序集引用）",
     "plugin": "代打插件本体 AstralProbe.dll",
     "config": "BepInEx 配置",
     "dependence": "游戏额外依赖的 AssetBundle（界面资源）",
     "misc": "其他随包文件",
 }
+
+# 可缺席分组：源里没有也不算问题（注入时跳过）。与 deploy.OPTIONAL_GROUPS 保持一致。
+# interop 是生成物，插件市场又限制 zip ≤ 16 MB，所以默认不随包分发。
+OPTIONAL_GROUPS = {"bepinex-interop"}
 
 
 def group_of(rel: str) -> str:
@@ -121,6 +125,7 @@ def build(src: str) -> dict:
             "size": size,
             "sha256": sha256_of(p),
             "group": g,
+            "optional": g in OPTIONAL_GROUPS,
         })
     return {
         "generated_at": time.strftime("%Y-%m-%d %H:%M:%S"),

@@ -12,7 +12,8 @@
 签名算法：sign = md5(参数按字母序拼成 ``k=v`` 直接相连 + 渠道密钥)。
 密钥是客户端内置常量，见 ``feimo_signkeys.py``。
 
-协议细节参考 AstralParty_Dex（MIT，Copyright (c) 2026 Nemophila & ZtyanCrany）。
+协议细节与签名拼参（``make_sign``）、嵌套响应取值（``_pick``）改写自 AstralParty_Dex
+（MIT，Copyright (c) 2026 Nemophila & ZtyanCrany）；许可与出处见 THIRD_PARTY_NOTICES.md。
 """
 from __future__ import annotations
 

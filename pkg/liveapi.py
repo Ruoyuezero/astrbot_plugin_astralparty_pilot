@@ -5,12 +5,14 @@
 --------
 * **不装额外依赖**：protobuf 用内置的极简 wire-format 编解码，只认本文件用到的字段。
 * **不存密码**：登录票直接复用本机客户端的登录态
-  - 国服：`BnSdk/110001933/Log/log_*.log` 里的 `login success, sid: …`（每次登录都会刷新）
+  - 国服：`<客户端>/BnSdk/<AppID>/Log/log_*.log` 里的 `login success, sid: …`（每次登录都会刷新；
+    客户端可能是 `AstralParty_CN` 或 `吉星派对`，AppID 也跟着变，所以按通配扫，不写死）
   - 海外服：`AstralParty_INT/mmkv.default` 里 `fl_dft#user_steam` 的 `it`（JWT，约 3 小时）
 * **只读查询**：握手后只发 `GetShowPlayer` / `GetPlayerSimple`，拿到数据立刻断开。
 
-协议细节（包头 35 字节大端、CMDID、登录字段）来自 AstralParty_Dex
-（MIT，Copyright (c) 2026 Nemophila & ZytanCrany）的实测结论，此处按需重写，未引入其代码。
+协议细节（包头 35 字节大端、CMDID、登录字段）以及收包循环 / 等待响应 / varint 解码
+这些辅助实现，改写自 AstralParty_Dex（MIT，Copyright (c) 2026 Nemophila & ZtyanCrany），
+按其异常类型与接口做了调整，逻辑结构同源；许可与出处见 THIRD_PARTY_NOTICES.md。
 """
 from __future__ import annotations
 
@@ -171,10 +173,28 @@ def _enc_str(num: int, s: str) -> bytes:
 # ── 本机登录票 ────────────────────────────────────────────────────────
 FEIMO = os.path.join(os.environ.get("USERPROFILE") or os.path.expanduser("~"),
                      "AppData", "LocalLow", "feimo")
-CN_SDK = os.path.join(FEIMO, "AstralParty_CN", "BnSdk", APP_ID, "Log")
-CN_SDK_ALT = os.path.join(FEIMO, "吉星派对", "BnSdk", APP_ID, "Log")
+CN_CLIENTS = (os.path.join(FEIMO, "AstralParty_CN"), os.path.join(FEIMO, "吉星派对"))
 INT_DIR = os.path.join(FEIMO, "AstralParty_INT")
+
+
+def cn_log_paths() -> list[str]:
+    """国服客户端的 BnSdk 日志文件（不按 AppID 写死）。
+
+    目录长这样：``%USERPROFILE%\\AppData\\LocalLow\\feimo\\<客户端>\\BnSdk\\<AppID>\\Log\\*.log``
+    其中 ``<AppID>`` 会随客户端/渠道变 —— 本机就同时存在 ``AstralParty_CN\\BnSdk\\110001933``
+    和 ``吉星派对\\BnSdk\\110001957`` 两套，写死一个必然漏掉另一套。所以这里按
+    ``BnSdk\\*\\Log`` 通配扫，另外兜一下 ``BnSdk\\Log`` 这种老布局。
+    """
+    out: list[str] = []
+    for root in CN_CLIENTS:
+        out += glob.glob(os.path.join(root, "BnSdk", "*", "Log", "*.log"))
+        out += glob.glob(os.path.join(root, "BnSdk", "Log", "*.log"))
+    return out
 _SID_RE = re.compile(r"login success, sid: ([A-Za-z0-9_\-]+)")
+# 「login success, sid: xxx, uid: yyy」——同一台机器登过几个号，日志里就有几个 uid
+_LOGIN_RE = re.compile(r"login success,\s*sid:\s*([^\s,]+),\s*uid:\s*(\S+)")
+_STEAM_RE = re.compile(r'"openid":"?(\d{10,20})')
+_TS_RE = re.compile(r"^\[(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})")
 _JWT_RE = re.compile(rb"eyJ[A-Za-z0-9_\-]{8,}\.[A-Za-z0-9_\-]{8,}\.[A-Za-z0-9_\-]{10,}")
 
 
@@ -215,10 +235,8 @@ def _mmkv(path: str) -> dict:
 
 
 def cn_ticket() -> dict | None:
-    """国服：从 SDK 日志里捞出最近一次登录的 sid。"""
-    cands: list[str] = []
-    for d in (CN_SDK, CN_SDK_ALT):
-        cands += glob.glob(os.path.join(d, "*.log"))
+    """国服：从 SDK 日志里捞出最近一次登录的 sid（两个客户端、任意 AppID 都扫）。"""
+    cands = cn_log_paths()
     if not cands:
         return None
     for p in sorted(cands, key=os.path.getmtime, reverse=True)[:8]:
@@ -264,6 +282,60 @@ def ticket() -> dict | None:
 
 def tickets() -> list[dict]:
     return [t for t in (cn_ticket(), int_ticket()) if t]
+
+
+def log_tickets(limit: int = 2000) -> list[dict]:
+    """把游戏客户端日志里的登录票按**账号**汇总：同一个 uid 只留最新那张。
+
+    一台机器上登过几个号，BnSdk 的日志里就有几条 `login success, sid: …, uid: …`，
+    所以这里按 uid 去重、按「最近一次登录」从新到旧排。给 /appa sid 列表用，
+    也顺便让人能分清哪张是主号、哪张是小号（uid 是游戏侧的账号标识，
+    同一个号换了票也还是同一个 uid）。
+
+    返回 ``[{platform, sid, uid, steam, at, src}]``；没日志或解析不到时返回 []。
+    """
+    paths = cn_log_paths()
+    if not paths:
+        return []
+    paths.sort(key=os.path.getmtime, reverse=True)   # 新日志先读，先遇到的就是最新的票
+    if limit and limit > 0:
+        paths = paths[:limit]                        # 日志攒到几千个时兜个底，别扫太久
+
+    seen: dict[str, dict] = {}
+    order: list[str] = []
+    for p in paths:
+        try:
+            with open(p, "rb") as f:
+                raw = f.read()
+        except OSError:
+            continue
+        if b"login success" not in raw:              # 先按字节筛，省掉解码
+            continue
+        txt = raw.decode("utf-8", errors="replace")
+        steam = ""
+        m_steam = _STEAM_RE.search(txt)
+        if m_steam:
+            steam = m_steam.group(1)
+        for line in reversed(txt.splitlines()):      # 同一文件里也可能换过号，倒着更省
+            m = _LOGIN_RE.search(line)
+            if not m:
+                continue
+            sid = m.group(1)
+            uid = m.group(2).rstrip(",;")
+            if not uid or uid in seen:
+                continue
+            ts = _TS_RE.match(line)
+            seen[uid] = {
+                "platform": "cn",
+                "sid": sid,
+                "uid": uid,
+                "steam": steam,
+                "at": ts.group(1) if ts else time.strftime(
+                    "%Y-%m-%d %H:%M:%S", time.localtime(os.path.getmtime(p))),
+                "src": p,
+            }
+            order.append(uid)
+    return [seen[u] for u in order]
 
 
 def client_ver(override: str = "") -> str:

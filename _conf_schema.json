@@ -26,7 +26,7 @@
   "alt_sid": {
     "type": "text",
     "description": "查号用的小号 sid",
-    "hint": "填一个不玩的小号登录票，查 /app <UID> 时就不会顶掉本机在玩的主号。\n取法：游戏里登录小号 → 打开 %USERPROFILE%\\AppData\\LocalLow\\feimo\\AstralParty_CN\\BnSdk\\110001933\\Log 下最新日志 → 找「login success, sid:」后面那串。\n留空＝退回用本机最近登录票（查别人时可能顶掉主号，不推荐）。",
+    "hint": "填一个不玩的小号登录票，查 /app <UID> 时就不会顶掉本机在玩的主号。\n取法①（最省事）：发 /appa sid，bot 会把本机所有登录票按账号逐条列出来，复制需要的那个粘到这里（别在群里发）。\n取法②：游戏里登录小号 → 打开 %USERPROFILE%\\AppData\\LocalLow\\feimo\\<客户端>\\BnSdk\\<AppID>\\Log 下最新日志（客户端是 AstralParty_CN 或 吉星派对，AppID 会跟着客户端变，例如 110001933 / 110001957）→ 找「login success, sid:」后面那串。\n留空＝默认用本机第一个登录态（accounts.json 第一条，没有则是最新的游戏日志票，和 /appa sid 列出的 ① 同一张）；查别人时可能顶掉主号，不推荐。",
     "default": ""
   },
   "deploy_src": {

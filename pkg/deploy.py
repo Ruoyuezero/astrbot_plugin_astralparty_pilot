@@ -6,6 +6,7 @@
 
     1. doorstop 三件套：winhttp.dll、doorstop_config.ini、.doorstop_version
     2. BepInEx 整棵树：core / interop / unity-libs / plugins / config
+       （interop 属于可缺席分组，插件包里默认不带，缺了由 BepInEx 首次启动现生成）
     3. dependence：游戏自己读的界面 bundle
 
 运行产物（cmd.txt / state.json / uitree.json / plugin.txt 等）不部署也不删：
@@ -38,6 +39,12 @@ ROOT_FILES = ("winhttp.dll", "doorstop_config.ini", ".doorstop_version")
 TREE_DIRS = ("BepInEx", "dependence")
 SKIP_DIRS = {"cache", "__pycache__"}
 SKIP_FILES = {"LogOutput.log", "ErrorLog.log", "chainloader_typeloader.dat"}
+
+# 可以缺席的清单分组：文件不在源里不算失败，跳过并在结果里单列。
+# bepinex-interop 是 Il2CppInterop 生成物（66 MB / 127 个 dll），BepInEx 首次启动会
+# 按游戏自带的 global-metadata 重新生成，塞在包里只会把插件包顶到 16 MB 以上，
+# 所以默认不随包分发；想要开箱即用的话，把文件放回 pkg/payload/BepInEx/interop/ 就行。
+OPTIONAL_GROUPS = {"bepinex-interop"}
 
 # 注入源：第一顺位是插件自带的 pkg/payload —— 编译好的文件跟插件一起走，
 # 插件装到哪都能 /appa 注入，不再依赖仓库目录。配置 deploy_src 可临时指向别处
@@ -113,9 +120,10 @@ def load_manifest() -> dict | None:
 
 
 def _items(src: str):
-    """逐个产出 (相对路径, 源绝对路径, 清单里的期望 SHA256)。
+    """逐个产出 (相对路径, 源绝对路径, 清单里的期望 SHA256, 是否可缺席)。
 
     以清单为准；清单缺失时退回扫目录，期望值为空（此时只比对源与目标）。
+    可缺席的条目在源里找不到时由调用方跳过，不算注入失败。
     """
     m = load_manifest()
     if m:
@@ -123,12 +131,13 @@ def _items(src: str):
             rel = str(it.get("rel") or "").replace("/", os.sep)
             if not rel:
                 continue
-            yield rel, os.path.join(src, rel), str(it.get("sha256") or "")
+            optional = bool(it.get("optional")) or str(it.get("group") or "") in OPTIONAL_GROUPS
+            yield rel, os.path.join(src, rel), str(it.get("sha256") or ""), optional
         return
     for name in ROOT_FILES:
         p = os.path.join(src, name)
         if os.path.isfile(p):
-            yield name, p, ""
+            yield name, p, "", False
     for top in TREE_DIRS:
         base = os.path.join(src, top)
         if not os.path.isdir(base):
@@ -139,7 +148,13 @@ def _items(src: str):
                 if f in SKIP_FILES:
                     continue
                 p = os.path.join(cur, f)
-                yield os.path.relpath(p, src), p, ""
+                rel = os.path.relpath(p, src)
+                yield rel, p, "", _is_optional(rel)
+
+
+def _is_optional(rel: str) -> bool:
+    """没有清单时按路径判断可缺席分组（与 gen_manifest.group_of 对齐）。"""
+    return rel.replace("\\", "/").startswith("BepInEx/interop/")
 
 
 def _need_copy(sf: str, df: str) -> bool:
@@ -180,6 +195,7 @@ def run(cfg: dict | None = None, dst: str | None = None) -> dict:
         # 清单与校核
         "manifest_total": 0, "manifest_at": "",
         "verify_ok": 0, "verify_bad": [], "src_bad": [], "missing": [],
+        "optional_skipped": [],
     }
     if not src:
         res["error"] = "找不到代打文件源（game_files）"
@@ -205,12 +221,16 @@ def run(cfg: dict | None = None, dst: str | None = None) -> dict:
     bdir = os.path.join(dst, BACKUP_DIR, ts)
     backed = False
 
-    for rel, sf, expect in _items(src):
-        res["total"] += 1
+    for rel, sf, expect, optional in _items(src):
         df = os.path.join(dst, rel)
         if not os.path.isfile(sf):
-            res["missing"].append(rel.replace(os.sep, "/"))
+            # 可缺席分组（interop）不随包时跳过；别的缺失仍算问题
+            if optional:
+                res["optional_skipped"].append(rel.replace(os.sep, "/"))
+            else:
+                res["missing"].append(rel.replace(os.sep, "/"))
             continue
+        res["total"] += 1
 
         if _need_copy(sf, df):
             try:

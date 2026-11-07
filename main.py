@@ -138,6 +138,7 @@ HELP_SECTIONS = [
         ("/app in force", "强制重新登录（换号，或本地判断已失效时）"),
         ("/app uid", "我的档案卡：用登录态查自己（uid 是指令名，不是游戏 UID）"),
         ("/app out", "退出登录，删掉本机保存的登录票"),
+        ("/appa sid", "列出本机所有登录票 sid（按账号区分，填 alt_sid 用；仅管理员）"),
     ]),
     ("🎮", "陪玩（仅管理员 · 🚧 开发中，未完全实装）", [
         ("🚧 开发中", "陪玩代打（/appa 系列）尚在开发，未完全实装，请静待更新"),
@@ -145,7 +146,7 @@ HELP_SECTIONS = [
         ("/appa on", "全自动代打：出牌、技能、移动、战斗全交给 bot"),
         ("/appa card", "半自动代打：把这一项交给 bot（一次一项，其余归你）"),
         ("/appa off", "玩家自主操控：bot 只推建议，鼠标不碰"),
-        ("/appa me", "看一眼局内卡：我的角色、血量、金币、所在格"),
+        ("/appa me", "查本机登录账号：在局返回进度卡，否则返回档案卡（全程不联网）"),
         ("/appa atk", "经过怪物时：攻击；站在突击格上则先选怪，再发一次就是攻击"),
         ("/appa skip", "经过怪物/商店/筹码时：跳过，出牌阶段点「取消」，战斗界面点「放过」"),
         ("/appa def", "怪物反击/怪物回合被攻击时：防御（站着硬扛）"),
@@ -183,36 +184,6 @@ PILOT_ACT_ALIAS = {
 PILOT_ACT_CN = {"card": "出牌", "skill": "开技能", "go": "移动/继续", "choose": "岔路选路",
                 "stop": "停下", "buy": "商店购买", "relic": "选筹码",
                 "atk": "攻击怪物", "def": "防御", "dodge": "闪避", "skip": "跳过"}
-
-APPA_HELP = (
-    "🚧 陪玩（/appa 系列）尚在开发中，未完全实装，行为可能随版本变化，请静待更新。\n"
-    "\n"
-    "🧩 注入（仅管理员）· 不带参数＝把代打必需的程序装进游戏根目录\n"
-    "/appa ········· 注入 dll：winhttp.dll + doorstop + BepInEx + 插件本体（游戏要关着）\n"
-    "\n"
-    "🎮 陪玩指令（仅管理员）\n"
-    "① 全自动代打 ··· /appa on —— 出牌 / 技能 / 移动 / 战斗都交给 bot\n"
-    "② 半自动代打 ··· /appa card（出牌）· skill（技能）· go（移动）等，一次交给 bot 一项\n"
-    "③ 你自己操控 ··· /appa off —— bot 只推建议，鼠标不碰\n"
-    "\n"
-    "其余单项（每个只管一件事，方便单独调）\n"
-    "/appa atk ····· 经过怪物时：攻击\n"
-    "　　　　　　　站在突击格上：先替你选一只怪传送过去，再发一次 /appa atk 才是打；\n"
-    "　　　　　　　改用 /appa skip 则传送过去但放过\n"
-    "/appa def ····· 怪物反击 / 怪物回合被攻击时：防御（站着硬扛）\n"
-    "/appa dodge ··· 怪物反击 / 怪物回合被攻击时：闪避\n"
-    "/appa skip ···· 经过怪物/商店/筹码时跳过；出牌阶段点「取消」；战斗界面点「放过」\n"
-    "/appa choose ·· 遇岔路自动选更优的一条\n"
-    "/appa stop ···· 停下来（不继续走）\n"
-    "/appa relic ··· 只选筹码（三选一挑品质最好的）\n"
-    "/appa buy ····· 经过商店时：购买\n"
-    "/appa me ······ 看一眼局内卡：角色 / 血量 / 金币 / 所在格"
-    "\n"
-    "⌨️ 动作类子命令（card / skill / go / choose / stop / buy / relic / atk / def / dodge / skip）"
-    "做成了静默不回话，做不成会回一条说明 + 理由（如 appa card 没牌可出）；"
-    "想确认授权结果发 /appa me 看局内卡就行"
-)
-
 
 def _clip(text: str, limit: int) -> str:
     text = text.strip()
@@ -1585,12 +1556,19 @@ class AstralPartyPilotPlugin(Star):
             return
         uid = int(m.group(0))
 
-        # 查别人：优先用小号登录票握手（配置 alt_sid），避免顶掉本机主号。
-        # 没配小号时退回「本机最近登录票」（会顶掉本机主号，故不推荐）。
+        # 查别人时的握手票：优先用小号登录票（配置 alt_sid），避免顶掉本机主号。
+        # 没配小号就默认用「本机第一个登录态」（accounts.json 第一条，和 /appa sid
+        # 列出的 ① 是同一张）；一条登录态都没有时交给 liveapi 退回游戏日志里的票。
         alt_sid = (self._conf_str("alt_sid", "") or "").strip()
         ticket_override = None
         if alt_sid:
             ticket_override = {"platform": "cn", "sid": alt_sid}
+        else:
+            try:
+                ticket_override = await asyncio.to_thread(ACC.first_ticket)
+            except Exception as exc:  # noqa: BLE001  取不到就让 liveapi 自己找票
+                logger.error(f"[星趴] 读取本机登录票失败：{exc}")
+                ticket_override = None
 
         state = LS.read()
         me = LS.find(state, uid)
@@ -1650,7 +1628,7 @@ class AstralPartyPilotPlugin(Star):
         if err is not None:
             why = getattr(err, "code", None)
             tip = {
-                10000: "查号用的登录票过期了 —— 打开游戏重新登录一次小号，再把新 sid 填进插件配置 alt_sid",
+                10000: "查号用的登录票过期了 —— 重新登录一次（游戏里 /app in 都行），发 /appa sid 把新票打出来，填进插件配置 alt_sid",
                 10020: "查号用的账号正在游戏里（同一账号不能双登）—— 小号如果开着游戏，先关掉；或换一个不玩的小号",
                 10012: "客户端版本变了 —— 在插件配置里把 live_client_ver 改成当前版本号",
             }.get(why)
@@ -1684,11 +1662,12 @@ class AstralPartyPilotPlugin(Star):
         sub = words[0].lower() if words else ""
         joined = " ".join(words[1:])
 
-        if sub in ("help", "h", "帮助", "?", "？", "菜单", "说明"):
-            yield event.plain_result(APPA_HELP)
-            return
         if sub in ("me", "我", "自己", "局内", "局内卡", "状态"):
             async for result in self._appa_me(event):
+                yield result
+            return
+        if sub in ("sid", "ticket", "tickets", "票", "登录票", "取票", "小号"):
+            async for result in self._appa_sid(event):
                 yield result
             return
         if sub in ("off", "no", "关", "关闭", "取消", "退出", "noc"):
@@ -1706,7 +1685,12 @@ class AstralPartyPilotPlugin(Star):
 
         act = PILOT_ACT_ALIAS.get(sub)
         if not act:
-            yield event.plain_result(f"「{sub}」不是代打子命令呢～\n{APPA_HELP}")
+            yield event.plain_result(
+                f"「{sub}」不是 /appa 的子命令呢～可用的有：\n"
+                "· 开关：on（全自动）· off（自主操控）· me（查本机）· sid（登录票）\n"
+                "· 单项：card / skill / go / choose / stop / relic / buy / atk / def / dodge / skip\n"
+                "· 不带参数：把代打组件注入游戏根目录（游戏要关着）\n"
+                "完整说明发 /app help 看「陪玩」那一节")
             return
         # 动作类子命令（card/skill/go/choose/stop/buy/relic/atk/def/skip）
         # 都是一次性的：做成了就一声不吭（连着发好几条时，回话会把
@@ -1799,6 +1783,9 @@ class AstralPartyPilotPlugin(Star):
         if res["missing"]:
             head = "、".join(res["missing"][:3])
             lines.append(f"⚠️ 清单里 {len(res['missing'])} 项源里没有（{head}）")
+        if res.get("optional_skipped"):
+            lines.append(f"ℹ️ 互操作层 interop 未随包（{len(res['optional_skipped'])} 个 dll）："
+                         "首次启动游戏时由 BepInEx 自动生成，这次启动会比平时久一点，之后就正常了")
         lines.append(f"源：{res['src']}\n目标：{res['dst']}")
         if res["backup"]:
             lines.append(f"旧文件备份在 {res['backup']}")
@@ -1813,38 +1800,113 @@ class AstralPartyPilotPlugin(Star):
         lines.append("启动游戏后 dll 会自动加载；要开代打发 /appa on")
         yield event.plain_result("\n".join(lines))
 
-    # 查询入口已按需求取消（/appa 改成注入）；这个函数暂时没有调用点，先留着，
-    # 哪天想把「看本机」挂回 /appa 的子命令，直接接上就行。
-    async def _appa_me(self, event: AstrMessageEvent):
-        """/appa me：只看局内卡（我的角色、血量、金币、所在格）。
+    async def _appa_sid(self, event: AstrMessageEvent):
+        """/appa sid：把本机所有登录票（sid）列出来，按账号区分。
 
-        /app <uid> 的路子是「本机在局就出局内卡、否则出名片」；这里语义更窄 ——
-        只回答「我现在这局什么状态」，所以不在对局就直接说清楚，不去翻档案。
+        两个来源合在一起看，因为本机的票可能来自两处：
+          · bot 登录态（/app in 扫码登录，存 accounts.json）—— 按 QQ 区分；
+          · 游戏客户端日志（BnSdk/…/Log）—— 按游戏账号 uid 区分，同一个号只留最新一张。
+        这台机器上登过几个号，日志里就有几个 uid，所以能分清哪张是主号、哪张是小号。
+
+        sid 等于一张游戏登录票，拿到就能上这个号，所以这条只给管理员看。
+        列表的 ① 就是查号时实际会用的那张：alt_sid 填了就标在填的那张上，
+        没填则取本机第一条（先 bot 登录态，其次最新的游戏日志票）。
         """
-        st = await asyncio.to_thread(LS.read)
-        me = LS.me(st) if st else None
-        if not me:
-            yield event.plain_result("🕹 现在不在对局里呢，进局后再发 /appa me～"
-                                     "（想看角色档案卡就发 /app）")
-            return
-        cur = await asyncio.to_thread(CO.current, self.config)
-        allow_cn = "、".join(PILOT_ACT_CN[a] for a in cur["allow"] if a in PILOT_ACT_CN)
-        fd, tmp = tempfile.mkstemp(suffix=".png", prefix="appa_me_")
-        os.close(fd)
+        rows = await asyncio.to_thread(ACC.all_records)      # bot 登录态，按 QQ
+        logs = await asyncio.to_thread(LV.log_tickets)       # 游戏日志，按 uid 归并
         try:
-            await asyncio.to_thread(LC.render_ingame, {}, st, me, tmp)
-            yield event.image_result(tmp)
-            yield event.plain_result(self._pilot_line(cur, allow_cn))
-        except Exception as exc:  # noqa: BLE001
-            logger.error(f"[星趴] 渲染局内卡失败：{exc}")
-            yield event.plain_result(f"局内卡没画出来：{exc}")
+            int_tk = await asyncio.to_thread(LV.int_ticket)  # 海外服那张（通常没有）
+        except Exception:  # noqa: BLE001
+            int_tk = None
 
-    async def _appa_view(self, event: AstrMessageEvent):
-        """/appa（不带参数）：局内出局内卡，不在局出档案卡。
+        alt_sid = (self._conf_str("alt_sid", "") or "").strip()
+        default_tk = None
+        if not alt_sid:
+            try:
+                default_tk = await asyncio.to_thread(ACC.first_ticket)
+            except Exception:  # noqa: BLE001
+                default_tk = None
+            if not default_tk and logs:
+                default_tk = {"platform": logs[0]["platform"], "sid": logs[0]["sid"]}
+            if not default_tk and int_tk:
+                default_tk = int_tk
+        default_sid = str((default_tk or {}).get("sid") or "")
 
-        在局内（state.json 20 秒内还在更新）→ 局内卡图片 + 一行代打状态；
-        不在局 → 用本地存的档案出档案卡（没有档案就用本机状态兜底）。
-        全程不连服务器 —— 联机会把大厅里正在玩的号顶下线。
+        # 先 bot 登录态，再游戏日志（同 sid 不重复列）
+        entries: list[dict] = []
+        for rec in rows:
+            at = float(rec.get("at") or 0)
+            if not at:
+                when = "登录时间未知"
+            elif time.time() - at >= 86400:
+                when = f"{int((time.time() - at) // 86400)} 天前登录"
+            else:
+                when = "今天登录"
+            state = "已失效，要重登" if rec.get("invalid") else "有效"
+            tel = f" · {rec['tel']}" if rec.get("tel") else ""
+            entries.append({
+                "sid": str(rec.get("sid") or ""),
+                "who": f"QQ {rec.get('qq')} · {rec.get('nick') or '未知昵称'}"
+                       f" · UID {rec.get('uid')}{tel}",
+                "meta": f"{when} · {state} · bot 登录态",
+            })
+        have = {e["sid"] for e in entries}
+        for t in logs:
+            if t["sid"] in have:
+                continue
+            uid = str(t.get("uid") or "")
+            short = (uid[:10] + "…") if len(uid) > 12 else uid
+            steam = f" · Steam {t['steam']}" if t.get("steam") else ""
+            entries.append({
+                "sid": t["sid"],
+                "who": f"账号 {short}{steam}",
+                "meta": f"{t.get('at') or '时间未知'} · 游戏日志",
+            })
+            have.add(t["sid"])
+        if int_tk and str(int_tk.get("sid") or "") not in have:
+            entries.append({
+                "sid": str(int_tk["sid"]),
+                "who": "海外服（Steam 登录票）",
+                "meta": "游戏未运行时也从 mmkv 里读得到",
+            })
+
+        if not entries:
+            yield event.plain_result(
+                "本机还没有任何登录票呢～\n"
+                "在 bot 里登录发 /app in（扫码），登录票会存在 bot 这边；\n"
+                "或者在游戏里登录一次，票会写进游戏客户端日志（BnSdk）。")
+            return
+
+        lines = [f"🔑 本机登录票 {len(entries)} 张（同一账号只留最新一张）"]
+        for i, ent in enumerate(entries, 1):
+            mark = "①②③④⑤⑥⑦⑧⑨⑩"[i - 1] if i <= 10 else f"{i}."
+            tail = ""
+            if alt_sid and ent["sid"] == alt_sid:
+                tail = "  ← alt_sid 就是这张"
+            elif ent["sid"] == default_sid:
+                tail = "  ← 查号默认用这张"
+            lines.append(f"{mark} {ent['who']}{tail}")
+            lines.append(f"   {ent['meta']}")
+            lines.append(f"   sid: {ent['sid']}")
+
+        if alt_sid:
+            hit = any(e["sid"] == alt_sid for e in entries)
+            lines.append(f"当前配置 alt_sid：已填（…{alt_sid[-6:]}）"
+                         + ("" if hit else "，但这张不在本机列表里 —— 可能是别处抄来的旧票，"
+                                           "查号报 10000 就说明它过期了"))
+        else:
+            lines.append("当前配置 alt_sid：没填 → 查别人默认用上面标「默认」的那张")
+        lines.append("要指定别的账号查号：把它的 sid 粘进「插件配置 → 查号用的小号 sid」。")
+        lines.append("⚠️ sid 是登录票，拿到就能上这个号：别发到群里、别截图外传。")
+        yield event.plain_result("\n".join(lines))
+
+    async def _appa_me(self, event: AstrMessageEvent):
+        """/appa me：查本机登录账号 —— 在局出局内卡，不在局出档案卡。
+
+        在局内（state.json 20 秒内还在更新）→ 局内卡图片（我的角色 / 血量 / 金币 /
+        所在格）+ 一行代打状态；不在局 → 用本地存的档案出档案卡（没存过就用本机
+        state.json / accounts.json 现拼一张，战绩那几格留「—」）。
+        全程不连服务器 —— 联机会把大厅里正在开着的号顶下线。
         """
         qq = str(event.get_sender_id() or "")
         st = await asyncio.to_thread(LS.read)          # 20 秒内还在写 = 在局内
