@@ -52,6 +52,20 @@ OPTIONAL_GROUPS = {"bepinex-interop"}
 # ——都是相对游戏目录推出来的，换盘符换机器都不用改。
 PAYLOAD = os.path.join(HERE, "payload")
 
+# 注入载荷不随插件仓库分发（插件市场有 16 MB 体积与审核口径限制），改成 Release 附件：
+# 只有想用 /appa 的人才需要下载一次，解压到插件目录得到 pkg/payload。
+# 注意 /appa rm 只依赖 pkg/inject_manifest.json，**不需要**这个载荷。
+PAYLOAD_RELEASE = "appa-v2.4.0-beta1.0"
+RELEASES_URL = "https://github.com/Ruoyuezero/astrbot_plugin_astralparty_pilot/releases"
+PAYLOAD_HINT = (
+    "辅助游玩（/appa）的注入文件是可选组件，不随插件包分发：\n"
+    f"  1. 打开 {RELEASES_URL}\n"
+    f"  2. 下载 {PAYLOAD_RELEASE}.zip\n"
+    "  3. 解压到插件目录（合并后应能看到 pkg/payload/winhttp.dll、pkg/payload/BepInEx/…）\n"
+    "  4. 关掉游戏，再发一次 /appa\n"
+    "只用图鉴 / 查号的话不用装这个，其余功能不受影响。"
+)
+
 
 def default_src() -> tuple[str, ...]:
     """默认注入源候选，按优先级排。不写死任何本机绝对路径。"""
@@ -198,7 +212,7 @@ def run(cfg: dict | None = None, dst: str | None = None) -> dict:
         "optional_skipped": [],
     }
     if not src:
-        res["error"] = "找不到代打文件源（game_files）"
+        res["error"] = "没找到注入文件（pkg/payload）。\n" + PAYLOAD_HINT
         return res
     if not dst or not os.path.isdir(dst):
         res["error"] = "游戏目录不存在，先确认 game_dir 配置"

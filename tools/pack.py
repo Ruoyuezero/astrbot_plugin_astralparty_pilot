@@ -9,7 +9,7 @@
 用法（在插件根目录）：
 
     python tools/pack.py                  # 生成 dist/astrbot_plugin_xxx-<版本>.zip
-    python tools/pack.py --with-interop   # 本机自用：把 interop 也塞进去（会超限，仅自用）
+    python tools/pack_payload.py          # 注入载荷（走 Release，不进市场包）
     python tools/pack.py --out D:\\tmp     # 换输出目录
 
 退出码：0 = 打好且不超限；1 = 打好但超限（CI 里可以直接拿来当闸门）。
@@ -30,11 +30,11 @@ LIMIT = 16 * 1024 * 1024                           # 插件市场硬限制：16 
 EXCLUDE_DIRS = {
     ".git", ".github", ".idea", ".vscode", "__pycache__", ".venv", "venv",
     "dist", "logs", "node_modules",
-    "pkg/payload/BepInEx/cache",
     "data/temp",
+    # 注入载荷整块走 Release 附件（tools/pack_payload.py 负责打），插件市场包里不含，
+    # 市场只审图鉴 / 查号这部分；没有它 /appa 会提示去 Release 下载。
+    "pkg/payload",
 }
-# 可缺席的载荷：interop 由 BepInEx 首次启动现生成（加 --with-interop 才带上）
-INTEROP_DIR = "pkg/payload/BepInEx/interop"
 # 一律不进包的文件名 / 后缀
 EXCLUDE_NAMES = {"LogOutput.log", "ErrorLog.log", "Thumbs.db", ".DS_Store"}
 EXCLUDE_SUFFIXES = (".pyc", ".pyo", ".log", ".tmp")
@@ -50,7 +50,7 @@ def version_of() -> str:
         return "0.0.0"
 
 
-def keep(rel: str, with_interop: bool) -> bool:
+def keep(rel: str) -> bool:
     """rel 用 / 分隔、相对插件根。"""
     parts = rel.split("/")
     if any(p in {"__pycache__", ".git"} for p in parts):
@@ -62,19 +62,17 @@ def keep(rel: str, with_interop: bool) -> bool:
     for d in EXCLUDE_DIRS:
         if rel.startswith(d + "/"):
             return False
-    if not with_interop and rel.startswith(INTEROP_DIR + "/"):
-        return False
     return True
 
 
-def collect(with_interop: bool):
+def collect():
     out = []
     for cur, dirs, files in os.walk(ROOT):
         dirs[:] = [d for d in dirs if d not in {"__pycache__", ".git", "dist"}]
         for fn in files:
             p = os.path.join(cur, fn)
             rel = os.path.relpath(p, ROOT).replace("\\", "/")
-            if keep(rel, with_interop):
+            if keep(rel):
                 out.append((rel, p))
     out.sort(key=lambda x: x[0].lower())
     return out
@@ -83,14 +81,11 @@ def collect(with_interop: bool):
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description="打插件市场分发包（≤16 MB）")
     ap.add_argument("--out", default=os.path.join(ROOT, "dist"), help="输出目录")
-    ap.add_argument("--with-interop", action="store_true",
-                    help="把 pkg/payload/BepInEx/interop 也打进去（仅本机自用，基本必超限）")
     args = ap.parse_args(argv)
 
-    files = collect(args.with_interop)
+    files = collect()
     os.makedirs(args.out, exist_ok=True)
-    tag = "full" if args.with_interop else "slim"
-    dst = os.path.join(args.out, f"{NAME}-{version_of()}-{tag}.zip")
+    dst = os.path.join(args.out, f"{NAME}-{version_of()}.zip")
 
     buckets: dict[str, int] = {}
     with zipfile.ZipFile(dst, "w", zipfile.ZIP_DEFLATED, compresslevel=9) as z:

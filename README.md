@@ -159,6 +159,28 @@
 1. 将本插件放入 AstrBot 的 `data/plugins/` 目录
 2. 在 AstrBot 插件管理页启用
 
+### 想用辅助游玩（`/appa`）？需另下注入包
+
+插件市场包里**不含**注入文件（doorstop + BepInEx + `AstralProbe.dll`），这是为了体积与审核口径：
+图鉴、查号这些不用注入，只有 `/appa` 才需要。要开辅助游玩，自己补一次即可：
+
+1. 到 [**Releases**](https://github.com/Ruoyuezero/astrbot_plugin_astralparty_pilot/releases) 下载
+   **`appa-v2.4.0-beta1.0.zip`**
+2. 解压到插件目录 `data/plugins/astrbot_plugin_astralparty_pilot/`，合并后应当看到
+   `pkg/payload/winhttp.dll`、`pkg/payload/doorstop_config.ini`、`pkg/payload/BepInEx/…`
+   （压缩包里就是 `pkg/payload/…`，别多套一层目录）
+3. **完全退出游戏**，然后发 `/appa`（仅管理员）完成注入
+
+| 情况 | 说明 |
+|---|---|
+| 只用图鉴 / 查号 | **不用下**，`/appa` 会提示缺注入文件，其余功能完全不受影响 |
+| 不想用 Release | 在配置 `deploy_src` 里指向你自己的 BepInEx 目录（`game_files`）也行 |
+| `/appa rm` 撤回注入 | **不需要**注入包，只按 `pkg/inject_manifest.json` 删 |
+| 注入包为什么不带 `interop` | 那 127 个程序集由 BepInEx 首次启动按游戏元数据现生成（约 1 分钟，只需一次） |
+
+> 注入包 SHA256：`appa-v2.4.0-beta1.0.zip` = `896dc836690a85a2b7381572b56a0f6c6b7ea3e9c9b4a3cfc9d8f5a373673fca`
+> （Release 页面上也应能看到同名的文件；对不上就别装）
+
 > **关于杀软 / 引擎误报**：`pkg/payload/` 里的 `winhttp.dll`（doorstop 注入器）、
 > `BepInEx/core/*.dll`、`AstralProbe.dll` 都是**未签名的游戏模组二进制**，部分引擎会按启发式报毒
 > （VirusTotal 上也常有 1~2 个引擎命中，猫鼠游戏式的误报）。它们只有在**管理员**执行 `/appa` 时
@@ -253,10 +275,13 @@
 astrbot_plugin_astralparty_pilot/
 ├── main.py               插件入口（/app 与 /appa 两个指令）
 ├── pkg/                  渲染、知识库读取、陪玩进程管理等模块
-│   ├── payload/          /appa 注入载荷（doorstop + BepInEx + AstralProbe.dll；interop 不随包）
+│   ├── payload/          /appa 注入载荷（**仓库与市场包都不含**，走 Release 下载；
+│   │                     只有 doorstop + BepInEx core + AstralProbe，interop 首启现生成）
+│   ├── inject_manifest.json  注入 / 撤回清单（/appa 与 /appa rm 的唯一依据）
 │   ├── gamepath.py       游戏目录自动探测（Steam 库扫描）
 │   └── ...
 ├── tools/pack.py         打插件市场分发包（≤16 MB）并核算体积
+├── tools/pack_payload.py 打注入包（Release 附件 appa-v…-beta1.0.zip）
 ├── pilot/                陪玩引擎（子进程拉起，插件核心，随插件分发不再外挂）
 ├── kb/                   知识库（手牌 / Buff / 怪物 / 角色 / 筹码 / 成就 / 别名 / 地图拓扑）
 │   ├── relics.json       筹码 89 条（名称 / 品质 / 流派 / 编号 / 图标 / 效果）

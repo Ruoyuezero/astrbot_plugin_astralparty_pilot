@@ -26,12 +26,11 @@ data/accounts.json
 data/profile_cache.json
 data/accounts_*.json
 
-# ---- 代打注入载荷里的「可现生成」部分（不进仓库）----
-# BepInEx/interop 是 Il2CppInterop 从游戏 global-metadata 生成的 127 个互操作程序集，
-# 66 MB；BepInEx 首次启动（config 里 UpdateInteropAssemblies = true）会自动重新生成，
-# 而且它是游戏侧派生文件，不适合塞进插件仓库 —— 插件市场要求 zip ≤ 16 MB，带上就超标。
-# 运行时要真想预置，把文件放回本地 pkg/payload/BepInEx/interop/ 即可，deploy 会照单注入。
-pkg/payload/BepInEx/interop/
+# ---- 代打注入载荷（不进仓库 / 不进插件市场包）----
+# 整块 pkg/payload 都改成 GitHub Release 附件（tools/pack_payload.py 打包），
+# 插件市场包只带图鉴 / 查号那部分。本地想用 /appa 就把它放在这里（或配 deploy_src），
+# 不影响运行，也不会被提交。
+pkg/payload/
 pkg/payload/BepInEx/cache/
 pkg/payload/BepInEx/LogOutput.log
 pkg/payload/BepInEx/ErrorLog.log

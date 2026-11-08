@@ -32,7 +32,7 @@
   "deploy_src": {
     "type": "text",
     "description": "代打文件源目录（/appa 注入用）",
-    "hint": "填 AstralPartyPilot 仓库里的 game_files 目录。/appa 会把里面的 winhttp.dll、doorstop_config.ini、.doorstop_version 和整棵 BepInEx 同步进游戏根目录，插件本体 AstralProbe.dll 在 BepInEx/plugins 里一起带走。\r\n留空＝优先用插件自带的 pkg/payload（跟着插件走，换机器不用配）；里面没有时才找游戏目录同级的 game_files。\r\n只覆盖比目标新的文件，旧文件备份到游戏目录的 _pilot_backup\\时间戳\\ 下；游戏开着时被占用的 dll 会跳过，关掉游戏再发一次即可。",
+    "hint": "填一个现成的 BepInEx 注入目录（含 winhttp.dll、doorstop_config.ini、BepInEx\\、dependence\\）。/appa 会把里面的文件同步进游戏根目录，插件本体 AstralProbe.dll 在 BepInEx/plugins 里一起带走。\r\n留空＝用插件目录下的 pkg/payload（它不随插件市场包分发，需从 Release 下载 appa-v2.4.0-beta1.0.zip 解压进来）；那里也没有时才找游戏目录同级的 game_files。\r\n只覆盖比目标新的文件，旧文件备份到游戏目录的 _pilot_backup\\时间戳\\ 下；游戏开着时被占用的 dll 会跳过，关掉游戏再发一次即可。",
     "default": ""
   },
   "pilot_prefer": {
