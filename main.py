@@ -1838,7 +1838,7 @@ class AstralPartyPilotPlugin(Star):
             yield event.plain_result(f"⚠️ {res['error']}")
             return
 
-        if not res["removed"] and not res["failed"] and not res["locked"]:
+        if not res["removed"] and not res["failed"] and not res["locked"] and not res["legacy"]:
             yield event.plain_result(
                 f"🧹 游戏目录本来就是干净的：清单 {res['manifest_total']} 项都不在，"
                 "没有可撤的文件。\n"
@@ -1868,6 +1868,10 @@ class AstralPartyPilotPlugin(Star):
             lines.append(f"⚠️ {len(res['failed'])} 个撤除失败（{head}）")
         if res["dirs_removed"]:
             lines.append(f"🗂 顺带清掉 {res['dirs_removed']} 个因此变空的目录（非空的不动）")
+        if res.get("legacy"):
+            lines.append(f"🧽 顺带清掉 {len(res['legacy'])} 个历史遗留副本"
+                         f"（{'、'.join(res['legacy'][:2])}）：那是游戏自带资源的多余拷贝，"
+                         "删掉不影响游戏（游戏读的是 Data 目录里自己那一份）")
         lines.append("✅ 清单外的文件一个没动，现在就是未注入状态，游戏可直接启动；"
                      "要再注入发 /appa")
         yield event.plain_result("\n".join(lines))

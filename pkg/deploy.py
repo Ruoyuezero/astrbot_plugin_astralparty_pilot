@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 """把代打必需的文件注入游戏根目录（`/appa` 的实现）。
 
 注入清单一律以插件内的 `pkg/inject_manifest.json` 为准（`python -m pkg.gen_manifest`
@@ -7,7 +7,9 @@
     1. doorstop 三件套：winhttp.dll、doorstop_config.ini、.doorstop_version
     2. BepInEx 整棵树：core / interop / unity-libs / plugins / config
        （interop 属于可缺席分组，插件包里默认不带，缺了由 BepInEx 首次启动现生成）
-    3. dependence：游戏自己读的界面 bundle
+    注：早期版本误把游戏自带的 `AstralParty_CN_Data/dependence/apx_modern_assist_ui.bundle`
+    拷进载荷、又注入到游戏根目录；那份副本没有任何代码读取（AstralProbe.dll 里既无
+    dependence 也无 AssetBundle 字样），现已从载荷移除，`/appa rm` 会把旧副本一并清掉。
 
 运行产物（cmd.txt / state.json / uitree.json / plugin.txt 等）不部署也不删：
 清单里没有它们，目标目录里已有的原样保留，别把对局里的状态抹掉。
@@ -36,7 +38,7 @@ MANIFEST = os.path.join(HERE, "inject_manifest.json")
 
 # 清单缺失时的兜底扫描规则（正常不会走到）
 ROOT_FILES = ("winhttp.dll", "doorstop_config.ini", ".doorstop_version")
-TREE_DIRS = ("BepInEx", "dependence")
+TREE_DIRS = ("BepInEx",)
 SKIP_DIRS = {"cache", "__pycache__"}
 SKIP_FILES = {"LogOutput.log", "ErrorLog.log", "chainloader_typeloader.dat"}
 
@@ -84,6 +86,11 @@ def default_src() -> tuple[str, ...]:
 MARKER = "_pilot_install.json"
 BACKUP_DIR = "_pilot_backup"
 EXES = ("AstralParty_CN.exe", "AstralParty_INT.exe")
+
+# 早期版本注入过、现在已从载荷里移除的文件：/appa rm 时顺手清掉。
+# 只删这几个写死的路径，不动任何清单外的东西。dependence 那份是游戏自带资源
+# （AstralParty_CN_Data/dependence/ 下才是游戏真正读的那一份）的副本，删掉不影响游戏。
+LEGACY_FILES = ("dependence/apx_modern_assist_ui.bundle",)
 
 
 def src_dir(cfg: dict | None = None) -> str:
@@ -342,6 +349,7 @@ def uninstall(cfg: dict | None = None, dst: str | None = None) -> dict:
         "modified": [], "locked": [], "failed": [], "dirs_removed": 0,
         "backup": "", "marker": False, "elapsed": 0.0, "game_on": False,
         "manifest_at": "", "manifest_total": 0, "error": "",
+        "legacy": [],
     }
     dst = (dst or _cfg_game_dir(cfg) or "").strip()
     res["dst"] = dst
@@ -396,6 +404,21 @@ def uninstall(cfg: dict | None = None, dst: str | None = None) -> dict:
             pass
         touched.add(os.path.dirname(df))
 
+    # 早期版本误注入的副本：现在已不在清单里，但老机器上可能还留着，顺手清掉
+    for rel in LEGACY_FILES:
+        relos = rel.replace("/", os.sep)
+        df = os.path.join(dst, relos)
+        if not os.path.isfile(df):
+            continue
+        try:
+            target = os.path.join(bdir, relos)
+            os.makedirs(os.path.dirname(target), exist_ok=True)
+            shutil.move(df, target)
+        except (OSError, PermissionError):
+            continue
+        res["legacy"].append(rel)
+        touched.add(os.path.dirname(df))
+
     # 只清「撤完自己空了」的目录，自底向上，非空一律不动
     for d in sorted(touched, key=lambda x: x.count(os.sep), reverse=True):
         cur = d
@@ -420,7 +443,7 @@ def uninstall(cfg: dict | None = None, dst: str | None = None) -> dict:
 
     res["elapsed"] = round(time.time() - t0, 2)
     res["ok"] = not res["failed"] and not res["locked"]
-    res["backup"] = os.path.relpath(bdir, dst) if res["removed"] else ""
+    res["backup"] = os.path.relpath(bdir, dst) if (res["removed"] or res["legacy"]) else ""
     return res
 
 

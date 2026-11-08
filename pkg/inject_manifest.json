@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-07 17:36:07",
+ "generated_at": "2026-11-08 13:26:30",
  "source": "pkg/payload",
- "total": 238,
- "bytes": 83709462,
+ "total": 237,
+ "bytes": 83677534,
  "groups": {
   "bepinex-core": {
    "count": 37,
@@ -23,11 +23,6 @@
    "count": 1,
    "bytes": 7611,
    "desc": "BepInEx 配置"
-  },
-  "dependence": {
-   "count": 1,
-   "bytes": 31928,
-   "desc": "游戏额外依赖的 AssetBundle（界面资源）"
   },
   "doorstop": {
    "count": 3,
@@ -1684,13 +1679,6 @@
    "size": 60416,
    "sha256": "05af745e03981bfd5804cc7b58dcda35fbcf33a01ef96603de20aff71ee35455",
    "group": "bepinex-unity",
-   "optional": false
-  },
-  {
-   "rel": "dependence/apx_modern_assist_ui.bundle",
-   "size": 31928,
-   "sha256": "0bf46c0fbfbfd5dacf360cd00059dd7de44aa68d68243a0054cc3ce8c973d2da",
-   "group": "dependence",
    "optional": false
   },
   {

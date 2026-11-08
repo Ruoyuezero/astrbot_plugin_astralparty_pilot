@@ -186,7 +186,7 @@
 | `/appa rm` 撤回注入 | **不需要**注入包，只按 `pkg/inject_manifest.json` 删 |
 | 注入包为什么不带 `interop` | 那 127 个程序集由 BepInEx 首次启动按游戏元数据现生成（约 1 分钟，只需一次） |
 
-> 注入包 SHA256：`appa-v2.4.0-beta1.0.zip` = `eca7d3965e05d0cdcd115104203ba94d60e9d03e75353702684187447eb5f429`
+> 注入包 SHA256：`appa-v2.4.0-beta1.0.zip` = `c10bbece64cdd7795279632da92b6cdd4ff33ffd575062d85ea6def274e05804`
 > （Release 页面上也应能看到同名的文件；对不上就别装）
 
 > **关于杀软 / 引擎误报**：`pkg/payload/` 里的 `winhttp.dll`（doorstop 注入器）、

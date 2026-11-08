@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 """生成 pkg/inject_manifest.json —— /appa 的注入清单。
 
 清单是「该往游戏根目录放哪些文件」的唯一权威来源：deploy 按清单复制，
@@ -23,7 +23,7 @@ MANIFEST = os.path.join(HERE, "inject_manifest.json")
 
 # 与 deploy.py 保持一致：根目录这几个文件 + 整棵树
 ROOT_FILES = ("winhttp.dll", "doorstop_config.ini", ".doorstop_version")
-TREE_DIRS = ("BepInEx", "dependence")
+TREE_DIRS = ("BepInEx",)
 
 # 运行时产物 / 缓存，永远不进清单
 SKIP_DIR_NAMES = {"cache", "LogOutput.log", "ErrorLog.log"}
@@ -37,7 +37,6 @@ GROUP_DESC = {
     "bepinex-unity": "Unity 引用库（插件编译/运行时的程序集引用）",
     "plugin": "代打插件本体 AstralProbe.dll",
     "config": "BepInEx 配置",
-    "dependence": "游戏额外依赖的 AssetBundle（界面资源）",
     "misc": "其他随包文件",
 }
 
@@ -58,8 +57,6 @@ def group_of(rel: str) -> str:
         return "plugin"
     if r.startswith("BepInEx/config/"):
         return "config"
-    if r.startswith("dependence/"):
-        return "dependence"
     if r in ROOT_FILES:
         return "doorstop"
     return "misc"
