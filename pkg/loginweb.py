@@ -13,9 +13,13 @@
 服务端 ``data/plugin_data/astrbot_plugin_astralparty_pilot/accounts.json``，
 页面与日志里都不出现。
 
-监听地址是 ``0.0.0.0``：手机扫码要能从局域网访问，绑定单块网卡在
-多网卡 / 容器 / NAT 环境下经常连不上。端口只在 /app in 后短时存在，
-用完可 /app out 关掉；**不要把这个端口映射到公网**。
+监听地址**默认只绑本机回环**（``127.0.0.1``）：这种模式下手机扫不到这张网页，
+适合用 ``/app in <手机号>`` 走短信验证码登录。要在手机上扫码，需在插件配置里把
+「允许局域网扫码」打开（``login_lan``），这时才绑 ``0.0.0.0``，让手机能从局域网访问
+（多网卡 / 容器 / NAT 环境下绑单块网卡经常连不上）。
+
+端口只在 /app in 后短时存在（10 分钟），用完可 /app out 关掉；
+**任何模式下都不要把这个端口映射到公网**。
 """
 from __future__ import annotations
 
@@ -38,6 +42,7 @@ _SESS: dict[str, dict] = {}
 _LOCK = threading.Lock()
 _HTTPD: ThreadingHTTPServer | None = None
 _BOUND_PORT = 0
+_BOUND_LAN = False
 _VER = ""
 
 
@@ -65,10 +70,10 @@ def lan_ip() -> str:
     return "127.0.0.1"
 
 
-def _free_port() -> int:
+def _free_port(lan: bool = False) -> int:
     s = socket.socket()
     try:
-        s.bind(("0.0.0.0", 0))
+        s.bind(("0.0.0.0" if lan else "127.0.0.1", 0))
         return int(s.getsockname()[1])
     finally:
         s.close()
@@ -88,19 +93,24 @@ def session(token: str) -> dict | None:
         return _SESS.get(str(token or ""))
 
 
-def new_session(qq, ver: str = "", port: int = 0, host: str = "") -> dict:
-    """开一个登录会话，返回 {token, url, port, ip}。"""
+def new_session(qq, ver: str = "", port: int = 0, host: str = "",
+                lan: bool = False) -> dict:
+    """开一个登录会话，返回 {token, url, port, ip, lan}。
+
+    lan=False（默认）只监听 127.0.0.1：更安全，但手机扫不到，链接得在 bot 本机打开；
+    lan=True 才监听 0.0.0.0，手机可扫码（仅限局域网，别映射公网）。
+    """
     global _VER
     _VER = ver or _VER
-    start(port)
+    start(port, lan)
     token = secrets.token_urlsafe(16)
     with _LOCK:
         _SESS[token] = {
             "qq": str(qq), "at": time.time(), "status": "pending",
             "msg": "", "tel": "", "sent_at": 0.0, "fails": 0,
         }
-    ip = (host or "").strip() or lan_ip()
-    return {"token": token, "ip": ip, "port": _BOUND_PORT,
+    ip = (host or "").strip() or (lan_ip() if lan else "127.0.0.1")
+    return {"token": token, "ip": ip, "port": _BOUND_PORT, "lan": bool(lan),
             "url": "http://%s:%d/astral/login?t=%s" % (ip, _BOUND_PORT, token)}
 
 
@@ -363,12 +373,19 @@ class _Handler(BaseHTTPRequestHandler):
         self._json({"ok": True, "who": "已登录 %s（第一条战绩会自动补上昵称和 UID）" % masked})
 
 
-def start(port: int = 0) -> int:
-    """启动（或复用）登录网页服务，返回实际端口。"""
-    global _HTTPD, _BOUND_PORT
-    if _HTTPD is not None:
+def start(port: int = 0, lan: bool = False) -> int:
+    """启动（或复用）登录网页服务，返回实际端口。
+
+    监听地址由 lan 决定：False → 127.0.0.1（默认，只本机可访问）；
+    True → 0.0.0.0（手机扫码要能从局域网访问）。模式变了会重启服务。
+    """
+    global _HTTPD, _BOUND_PORT, _BOUND_LAN
+    if _HTTPD is not None and _BOUND_LAN == bool(lan):
         return _BOUND_PORT
-    p = int(port or 0) or _free_port()
+    if _HTTPD is not None:                 # 绑定模式变了，先关掉旧的
+        stop()
+    bind = "0.0.0.0" if lan else "127.0.0.1"
+    p = int(port or 0) or _free_port(lan)
     httpd = None
     last = None
     # 指定的端口被占（插件重载后旧线程还占着）时依次退让，二维码里用实际端口
@@ -378,7 +395,7 @@ def start(port: int = 0) -> int:
             cands.append(cand)
     for cand in cands:
         try:
-            httpd = ThreadingHTTPServer(("0.0.0.0", cand), _Handler)
+            httpd = ThreadingHTTPServer((bind, cand), _Handler)
             break
         except OSError as exc:
             last = exc
@@ -387,6 +404,7 @@ def start(port: int = 0) -> int:
         raise OSError("登录网页端口起不来：%s" % (last or "未知原因"))
     httpd.daemon_threads = True
     _BOUND_PORT = int(httpd.server_address[1])
+    _BOUND_LAN = bool(lan)
     t = threading.Thread(target=httpd.serve_forever, name="astral-login-web", daemon=True)
     t.start()
     _HTTPD = httpd
@@ -394,7 +412,7 @@ def start(port: int = 0) -> int:
 
 
 def stop() -> None:
-    global _HTTPD, _BOUND_PORT
+    global _HTTPD, _BOUND_PORT, _BOUND_LAN
     if _HTTPD is not None:
         try:
             _HTTPD.shutdown()
@@ -402,6 +420,7 @@ def stop() -> None:
             pass
         _HTTPD = None
         _BOUND_PORT = 0
+        _BOUND_LAN = False
 
 
 def running() -> int:

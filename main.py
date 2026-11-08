@@ -1429,13 +1429,26 @@ class AstralPartyPilotPlugin(Star):
         except ValueError:
             port = 0
         host = (self._conf_str("login_host", "") or "").strip()
+        # 默认只监听 127.0.0.1（手机扫不到，但端口不暴露给局域网）；
+        # 想在手机上扫码，需要显式打开 login_lan，这时才绑 0.0.0.0。
+        lan = self._conf_bool("login_lan", False)
         try:
-            sess = await asyncio.to_thread(LW.new_session, qq, ver, port, host)
+            sess = await asyncio.to_thread(LW.new_session, qq, ver, port, host, lan)
         except Exception as exc:  # noqa: BLE001
             logger.error(f"[星趴] 登录网页启动失败：{exc}")
             yield event.plain_result(
                 f"登录网页起不来：{exc}\n"
                 "可以改用不扫码的方式：/app in <11 位手机号>")
+            return
+
+        if not lan:
+            # 只绑本机：二维码里是 127.0.0.1，手机扫了也打不开，索性不发图
+            yield event.plain_result(
+                "🔐 登录网页当前只监听本机（127.0.0.1），手机扫不到这张页面。\n"
+                f"要在这台机器上打开：{sess['url']}\n"
+                "· 想用手机扫码：到插件配置里打开「允许局域网扫码」（login_lan），再发一次 /app in\n"
+                "· 不想开：直接 /app in <11 位手机号> 收短信验证码登录，效果一样\n"
+                "登录票只保存在 bot 这台机器上，不会回显在聊天里。")
             return
 
         fd, tmp = tempfile.mkstemp(suffix=".png", prefix="app_login_")
@@ -1453,6 +1466,8 @@ class AstralPartyPilotPlugin(Star):
             "打开登录页 → 填手机号 → 收短信验证码 → 登录（10 分钟内有效）\n"
             f"链接：{sess['url']}\n"
             "登录票只保存在 bot 这台机器上，不会回显在聊天里。\n"
+            "⚠️ 这次登录期间端口对局域网开放（手机扫码所需，10 分钟后随会话失效），"
+            "别把它映射到公网；只想本机使用就把配置 login_lan 关掉。\n"
             "扫不开（手机和 bot 不在同一网络）就用：/app in <11 位手机号>")
 
     async def _app_login_profile(self, event: AstrMessageEvent):
@@ -2263,6 +2278,20 @@ class AstralPartyPilotPlugin(Star):
             return int(v) if v not in (None, "") else default
         except Exception:
             return default
+
+    def _conf_bool(self, key: str, default: bool = False) -> bool:
+        """布尔配置：认 True/1/yes/on/开，字符串 "false"/"0"/"关" 一律当 False。"""
+        try:
+            v = self.config.get(key)
+        except Exception:
+            return default
+        if v is None or v == "":
+            return default
+        if isinstance(v, bool):
+            return v
+        if isinstance(v, (int, float)):
+            return bool(v)
+        return str(v).strip().lower() in {"true", "1", "yes", "y", "on", "开", "开启"}
 
     def _is_admin(self, event: AstrMessageEvent) -> bool:
         """管理员判定：配置里的 admin_qqs 优先，其次认 AstrBot 全局管理员。
