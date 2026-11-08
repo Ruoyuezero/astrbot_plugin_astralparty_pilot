@@ -1,4 +1,4 @@
-<img src="logo.png" width="120" align="right" alt="星趴助手 logo">
+﻿<img src="logo.png" width="120" align="right" alt="星趴助手 logo">
 
 # 星趴助手（Astral Party Pilot）
 
@@ -161,8 +161,16 @@
 
 ### 想用辅助游玩（`/appa`）？需另下注入包
 
-插件市场包里**不含**注入文件（doorstop + BepInEx + `AstralProbe.dll`），这是为了体积与审核口径：
-图鉴、查号这些不用注入，只有 `/appa` 才需要。要开辅助游玩，自己补一次即可：
+插件市场包里**不含**注入文件（doorstop + BepInEx + `AstralProbe.dll`），把它单独放到 Release 有两个原因：
+
+1. **避免误检测**：注入文件是**未签名的游戏模组二进制**（`winhttp.dll` 是 doorstop 注入器、
+   `BepInEx/core/*.dll` 是运行时、`AstralProbe.dll` 是插件本体）。这类文件长期是杀软 / 引擎
+   启发式报毒的常客（VirusTotal 上也常有个别引擎命中），如果和 Python 源码混在同一个包体里，
+   自动安全检查会把**整个插件**标成可疑；拆出去后市场包只剩源码与图片资源，误报面最小，
+   用户也能一眼看出「被拦的是哪个文件、要不要用」。
+2. **体积与审核口径**：这些二进制只服务 `/appa`，图鉴 / 查号并不需要它们。
+
+要开辅助游玩，自己补一次即可：
 
 1. 到 [**Releases**](https://github.com/Ruoyuezero/astrbot_plugin_astralparty_pilot/releases) 下载
    **`appa-v2.4.0-beta1.0.zip`**
@@ -178,14 +186,14 @@
 | `/appa rm` 撤回注入 | **不需要**注入包，只按 `pkg/inject_manifest.json` 删 |
 | 注入包为什么不带 `interop` | 那 127 个程序集由 BepInEx 首次启动按游戏元数据现生成（约 1 分钟，只需一次） |
 
-> 注入包 SHA256：`appa-v2.4.0-beta1.0.zip` = `896dc836690a85a2b7381572b56a0f6c6b7ea3e9c9b4a3cfc9d8f5a373673fca`
+> 注入包 SHA256：`appa-v2.4.0-beta1.0.zip` = `eca7d3965e05d0cdcd115104203ba94d60e9d03e75353702684187447eb5f429`
 > （Release 页面上也应能看到同名的文件；对不上就别装）
 
 > **关于杀软 / 引擎误报**：`pkg/payload/` 里的 `winhttp.dll`（doorstop 注入器）、
 > `BepInEx/core/*.dll`、`AstralProbe.dll` 都是**未签名的游戏模组二进制**，部分引擎会按启发式报毒
-> （VirusTotal 上也常有 1~2 个引擎命中，猫鼠游戏式的误报）。它们只有在**管理员**执行 `/appa` 时
-> 才会被复制进游戏根目录；BepInEx 是开源项目（见「致谢」），可自行核对。
-> 不需要代打功能的话，把 `pkg/payload/` 整个删掉即可 —— `/appa` 会提示找不到注入源，
+> （VirusTotal 上也常有 1~2 个引擎命中）—— 这也正是把它们从市场包拆到 Release 的原因（见上一节）。
+> 它们只有在**管理员**执行 `/appa` 时才会被复制进游戏根目录；BepInEx 是开源项目（见「致谢」），
+> 可自行核对。不需要代玩功能的话，把 `pkg/payload/` 整个删掉即可 —— `/appa` 会提示找不到注入源，
 > 图鉴、查号等其余功能完全不受影响。
 
 ---

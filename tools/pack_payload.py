@@ -47,6 +47,10 @@ _INNER_README = """星趴助手 · 注入包（{name}）
 
 说明
 ----
+* **为什么放在 Release 而不是插件包里**：这里的 dll 都是未签名的游戏模组二进制
+  （doorstop 的 winhttp.dll、BepInEx core、AstralProbe.dll），杀软 / 引擎的启发式
+  误报很常见。混在插件包里会让自动安全检查把整个插件标成可疑；拆出来之后，
+  市场包只剩源码与图片资源，误报面最小，也能一眼看出是哪个文件被拦。
 * 只用图鉴 / 查号：不需要这个包，不装也没影响
 * 本包不带 BepInEx/interop：游戏首次启动时由 BepInEx 按游戏自带的 global-metadata
   自动生成（约 1 分钟，只需一次）；不放心可以下载带 interop 的版本
