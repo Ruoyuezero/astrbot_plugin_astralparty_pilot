@@ -143,6 +143,7 @@ HELP_SECTIONS = [
     ("🎮", "陪玩（仅管理员 · 🚧 开发中，未完全实装）", [
         ("🚧 开发中", "陪玩代打（/appa 系列）尚在开发，未完全实装，请静待更新"),
         ("/appa", "注入代打组件：dll / BepInEx 装进游戏根目录"),
+        ("/appa rm", "撤回注入：按清单把注入的文件移走（先备份，清单外的一个不动）"),
         ("/appa on", "全自动代打：出牌、技能、移动、战斗全交给 bot"),
         ("/appa card", "半自动代打：把这一项交给 bot（一次一项，其余归你）"),
         ("/appa off", "玩家自主操控：bot 只推建议，鼠标不碰"),
@@ -1697,6 +1698,10 @@ class AstralPartyPilotPlugin(Star):
             async for result in self._appa_deploy(event):
                 yield result
             return
+        if sub in ("rm", "remove", "uninstall", "delete", "卸", "卸载", "撤销", "移除", "拆"):
+            async for result in self._appa_rm(event):
+                yield result
+            return
 
         act = PILOT_ACT_ALIAS.get(sub)
         if not act:
@@ -1705,6 +1710,7 @@ class AstralPartyPilotPlugin(Star):
                 "· 开关：on（全自动）· off（自主操控）· me（查本机）· sid（登录票）\n"
                 "· 单项：card / skill / go / choose / stop / relic / buy / atk / def / dodge / skip\n"
                 "· 不带参数：把代打组件注入游戏根目录（游戏要关着）\n"
+                "· rm：按注入清单撤回注入的文件（先备份，清单外的不动）\n"
                 "完整说明发 /app help 看「陪玩」那一节")
             return
         # 动作类子命令（card/skill/go/choose/stop/buy/relic/atk/def/skip）
@@ -1813,6 +1819,57 @@ class AstralPartyPilotPlugin(Star):
             head = "、".join(rel for rel, _ in res["failed"][:3])
             lines.append(f"⚠️ {len(res['failed'])} 个文件写入失败（{head}）")
         lines.append("启动游戏后 dll 会自动加载；要开代打发 /appa on")
+        yield event.plain_result("\n".join(lines))
+
+    async def _appa_rm(self, event: AstrMessageEvent):
+        """/appa rm：按注入清单把注入的文件撤掉（只撤清单里的，先备份）。
+
+        只删 pkg/inject_manifest.json 里列过的路径 —— 游戏本体的 exe/dll、BepInEx
+        运行时生成的 cache/日志、以及你自己放进去的文件都不在清单里，一律不碰。
+        撤下来的文件先移到 _pilot_backup\\uninstall-时间戳\\ 下，想还原拷回去即可。
+        """
+        if await asyncio.to_thread(DEP.game_alive):
+            yield event.plain_result(
+                "⚠️ 游戏正在运行，先完全退出游戏再发 /appa rm。\n"
+                "注入的 dll 被进程占用时挪不动，也容易留下半个安装。")
+            return
+        res = await asyncio.to_thread(DEP.uninstall, self.config)
+        if res["error"]:
+            yield event.plain_result(f"⚠️ {res['error']}")
+            return
+
+        if not res["removed"] and not res["failed"] and not res["locked"]:
+            yield event.plain_result(
+                f"🧹 游戏目录本来就是干净的：清单 {res['manifest_total']} 项都不在，"
+                "没有可撤的文件。\n"
+                "（清单外的文件不会动；要注入发 /appa）")
+            return
+
+        lines = []
+        mb = res["bytes"] / 1048576
+        lines.append(f"🧹 已按注入清单撤掉 {res['removed']} 个文件（{mb:.1f} MB），"
+                     f"用时 {res['elapsed']} 秒")
+        if res["backup"]:
+            lines.append(f"📦 都备份在 {res['backup']}（想还原按原结构拷回游戏目录）")
+        lines.append(f"📋 清单 {res['manifest_total']} 项 · 撤掉 {res['removed']}"
+                     f" · 本来就没有 {res['skipped']}"
+                     f" · 失败 {len(res['failed'])}")
+        if res["modified"]:
+            head = "、".join(res["modified"][:3])
+            tail = "…" if len(res["modified"]) > 3 else ""
+            lines.append(f"ℹ️ 其中 {len(res['modified'])} 个内容与清单不符（被改写过，"
+                         f"例如 BepInEx 重写了配置），已一并撤下并备份（{head}{tail}）")
+        if res["locked"]:
+            head = "、".join(res["locked"][:3])
+            lines.append(f"⚠️ {len(res['locked'])} 个被占用没撤掉（{head}）——"
+                         "确认游戏已完全退出后再发一次")
+        if res["failed"]:
+            head = "、".join(rel for rel, _ in res["failed"][:3])
+            lines.append(f"⚠️ {len(res['failed'])} 个撤除失败（{head}）")
+        if res["dirs_removed"]:
+            lines.append(f"🗂 顺带清掉 {res['dirs_removed']} 个因此变空的目录（非空的不动）")
+        lines.append("✅ 清单外的文件一个没动，现在就是未注入状态，游戏可直接启动；"
+                     "要再注入发 /appa")
         yield event.plain_result("\n".join(lines))
 
     async def _appa_sid(self, event: AstrMessageEvent):
