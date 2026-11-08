@@ -1,4 +1,4 @@
-﻿<img src="logo.png" width="120" align="right" alt="星趴助手 logo">
+<img src="logo.png" width="120" align="right" alt="星趴助手 logo">
 
 # 星趴助手（Astral Party Pilot）
 
@@ -59,8 +59,8 @@
 | `/app in <手机号>`         | 扫码失败或网页访问失败，直接给该手机号发验证码（`/app in <6位验证码>` 完成登录）             |
 | `/app uid`              | 我的档案卡：用登录态查自己（`uid` 是指令名，不是游戏 UID）                          |
 | `/app out`              | 退出登录，删掉本机保存的登录票                                             |
-| `/appa`                 | 注入代打组件：`dll / BepInEx` 装进游戏根目录（请先关闭游戏关）                     |
-| `/appa rm`              | 撤回注入：按注入清单把注入过的文件移走（先备份到 `_pilot_backup\uninstall-时间戳\`，清单外的一个不动） |
+| `/appa`                 | 注入代打组件：`dll / BepInEx` 装进游戏根目录（请先关闭游戏）                      |
+| `/appa rm`              | 撤回注入：按注入清单移除所有注入的文件（备份文件到 `_pilot_backup\uninstall-时间戳\`）   |
 | `/appa sid`             | 列出本机所有登录票 `sid`（按账号区分：`bot` 登录态 + 游戏日志里登过的号；用于填写小号登录票，仅管理员） |
 | `/appa on`              | 全自动代打                                                       |
 | `/appa off`             | 玩家自主操控                                                      |
@@ -159,42 +159,21 @@
 1. 将本插件放入 AstrBot 的 `data/plugins/` 目录
 2. 在 AstrBot 插件管理页启用
 
-### 想用辅助游玩（`/appa`）？需另下注入包
+### 辅助游玩（`/appa`）需另下注入包
 
-插件市场包里**不含**注入文件（doorstop + BepInEx + `AstralProbe.dll`），把它单独放到 Release 有两个原因：
+插件市场包不含注入文件`doorstop + BepInEx + AstralProbe.dll`，主要考虑到以下因素：
 
 1. **避免误检测**：注入文件是**未签名的游戏模组二进制**（`winhttp.dll` 是 doorstop 注入器、
-   `BepInEx/core/*.dll` 是运行时、`AstralProbe.dll` 是插件本体）。这类文件长期是杀软 / 引擎
-   启发式报毒的常客（VirusTotal 上也常有个别引擎命中），如果和 Python 源码混在同一个包体里，
-   自动安全检查会把**整个插件**标成可疑；拆出去后市场包只剩源码与图片资源，误报面最小，
-   用户也能一眼看出「被拦的是哪个文件、要不要用」。
+   `BepInEx/core/*.dll` 是运行时、`AstralProbe.dll` 是插件本体）。这类文件长期是杀软 / 引擎启发式报毒的常客（VirusTotal 上也常有个别引擎命中），如果和 Python 源码混在同一个包体里，自动安全检查会把整个插件标成可疑；
 2. **体积与审核口径**：这些二进制只服务 `/appa`，图鉴 / 查号并不需要它们。
 
-要开辅助游玩，自己补一次即可：
+要开辅助游玩，需自行下载注入包 `appa-v2.4.0-beta1.0`：
 
 1. 到 [**Releases**](https://github.com/Ruoyuezero/astrbot_plugin_astralparty_pilot/releases) 下载
    **`appa-v2.4.0-beta1.0.zip`**
 2. 解压到插件目录 `data/plugins/astrbot_plugin_astralparty_pilot/`，合并后应当看到
-   `pkg/payload/winhttp.dll`、`pkg/payload/doorstop_config.ini`、`pkg/payload/BepInEx/…`
-   （压缩包里就是 `pkg/payload/…`，别多套一层目录）
-3. **完全退出游戏**，然后发 `/appa`（仅管理员）完成注入
-
-| 情况 | 说明 |
-|---|---|
-| 只用图鉴 / 查号 | **不用下**，`/appa` 会提示缺注入文件，其余功能完全不受影响 |
-| 不想用 Release | 在配置 `deploy_src` 里指向你自己的 BepInEx 目录（`game_files`）也行 |
-| `/appa rm` 撤回注入 | **不需要**注入包，只按 `pkg/inject_manifest.json` 删 |
-| 注入包为什么不带 `interop` | 那 127 个程序集由 BepInEx 首次启动按游戏元数据现生成（约 1 分钟，只需一次） |
-
-> 注入包 SHA256：`appa-v2.4.0-beta1.0.zip` = `c10bbece64cdd7795279632da92b6cdd4ff33ffd575062d85ea6def274e05804`
-> （Release 页面上也应能看到同名的文件；对不上就别装）
-
-> **关于杀软 / 引擎误报**：`pkg/payload/` 里的 `winhttp.dll`（doorstop 注入器）、
-> `BepInEx/core/*.dll`、`AstralProbe.dll` 都是**未签名的游戏模组二进制**，部分引擎会按启发式报毒
-> （VirusTotal 上也常有 1~2 个引擎命中）—— 这也正是把它们从市场包拆到 Release 的原因（见上一节）。
-> 它们只有在**管理员**执行 `/appa` 时才会被复制进游戏根目录；BepInEx 是开源项目（见「致谢」），
-> 可自行核对。不需要代玩功能的话，把 `pkg/payload/` 整个删掉即可 —— `/appa` 会提示找不到注入源，
-> 图鉴、查号等其余功能完全不受影响。
+   `pkg/payload/winhttp.dll`等文件（压缩包 `pkg/payload/…`，勿多套一层目录）
+3. 完全退出游戏后发 `/appa`（仅管理员）完成注入
 
 ---
 ## 配置
