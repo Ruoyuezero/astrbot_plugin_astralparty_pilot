@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """AstralPartyPilot · 陪玩引擎（auto / pilot）
 
@@ -43,6 +43,7 @@ import argparse
 import json
 import os
 import sys
+import threading
 import time
 import traceback
 
@@ -262,6 +263,49 @@ class Coach:
         return self.skill_btn
 
     # ---------------- 执行 ----------------
+    # 「忙」标记：出牌 / 技能 / 移动这些动作链会阻塞好几秒（导 UI 树一次最多 6 秒），
+    # 插件那边的一次性等待没法靠猜时间。这里在动作期间挂一个文件并每 2 秒刷 mtime，
+    # 插件只要看到它还在更新就继续等，动作结束立刻删掉。
+    def busy_path(self):
+        return os.path.join(os.path.dirname(self.out), "coach_busy.json")
+
+    def busy_begin(self, act):
+        """开始一条动作链，返回收尾函数（放进 finally 调用）。"""
+        path = self.busy_path()
+        stop = threading.Event()
+        try:
+            with open(path, "w", encoding="utf-8") as f:
+                json.dump({"act": act, "pid": os.getpid(),
+                           "at": time.strftime("%H:%M:%S")}, f)
+        except OSError:
+            pass
+
+        def beat():
+            while not stop.wait(2.0):
+                try:
+                    os.utime(path, None)
+                except OSError:
+                    return
+
+        threading.Thread(target=beat, name="coach-busy", daemon=True).start()
+
+        def done():
+            stop.set()
+            try:
+                os.remove(path)
+            except OSError:
+                pass
+
+        return done
+
+    def _busy_call(self, act, fn, *a, **kw):
+        """把一条动作链包起来：期间挂忙标记，结束（含异常）都清掉。"""
+        done = self.busy_begin(act)
+        try:
+            return fn(*a, **kw)
+        finally:
+            done()
+
     def act_play(self, card_id):
         step, why = PC.followup_of(card_id)
         if step == "done":
@@ -288,7 +332,10 @@ class Coach:
         except Exception as e:              # noqa: BLE001
             self.say(f"[auto] 出牌异常 {card_id}：{e}")
             return False, f"出牌异常：{e}"
-        return ok, (f"出牌完成（目标 {plan.get('kind')}）" if ok else "出牌失败")
+        note = (f"出牌完成（目标 {plan.get('kind')}）" if ok
+                else "出牌没完成：牌已拖到中心，但目标/确认没点上")
+        self.say(f"[auto] {note}")
+        return ok, note
 
     def act_move(self):
         self.say("[auto] 点移动键推进")
@@ -1334,7 +1381,7 @@ class Coach:
 
                 # ① 增益牌先出：后开的技能才吃得到加成（唯一「牌先于技能」的情况）
                 if want_play and buff_first:
-                    ok, note = self.act_play(action["id"])
+                    ok, note = self._busy_call("card", self.act_play, action["id"])
                     if ok:
                         self.acted = {"what": f"出牌 {action.get('name') or action['id']}",
                                       "note": note}
@@ -1345,7 +1392,7 @@ class Coach:
                 #    但 UI 上按钮在就说明能开 —— 只认 state 会整局漏开技能。
                 if (not did and "skill" in self.allow and self.skill_turn != sn
                         and int(me.get("skillCD") or 0) == 0):
-                    ok, note = self.act_skill()
+                    ok, note = self._busy_call("skill", self.act_skill)
                     self.skill_turn = sn
                     if ok:
                         self.acted = {"what": "开技能", "note": note}
@@ -1356,7 +1403,7 @@ class Coach:
 
                 # ③ 其余牌
                 if not did and want_play:
-                    ok, note = self.act_play(action["id"])
+                    ok, note = self._busy_call("card", self.act_play, action["id"])
                     if ok:
                         self.acted = {"what": f"出牌 {action.get('name') or action['id']}",
                                       "note": note}
@@ -1386,7 +1433,7 @@ class Coach:
             self.push_event("move", "轮到我：移动", lines)
 
             if "go" in self.allow:
-                ok, note = self.act_move()
+                ok, note = self._busy_call("go", self.act_move)
                 self.acted = {"what": "移动", "note": note}
                 self.last_act_t = time.time()
             return payload

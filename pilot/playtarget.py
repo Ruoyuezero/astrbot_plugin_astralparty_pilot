@@ -445,13 +445,23 @@ def resolve_target(pick, tree=None):
         # 正解：牌拖到中心后会弹「选择怪物」窗口（BattleSelectMonsterWindow），
         # 列表项是 UIButton_MonsterItem，点一张再按 btn_Sure。
         # 旧逻辑在中央区域挑最大的可点控件，会被 UIBattleInfo_Com_Player 骗过去。
-        try:
-            cs, _ = PC._cands()
-        except Exception:                   # noqa: BLE001
-            cs = None
-        items = [c for c in (cs or [])
-                 if (c.get("path") or "").endswith("list_Monster/UIButton_MonsterItem")
-                 and c.get("clickable")]
+        #
+        # 2026-11-09 实测：窗口偶尔比 POPUP_WAIT 晚半拍才出来，只导一次树会拿到空表，
+        # 然后就「牌已拖到中心但目标没点」—— 所以这里最多试 3 次，每次间隔 0.6 秒。
+        items = []
+        for attempt in range(3):
+            try:
+                cs, _ = PC._cands()
+            except Exception:               # noqa: BLE001
+                cs = None
+            items = [c for c in (cs or [])
+                     if (c.get("path") or "").endswith("list_Monster/UIButton_MonsterItem")
+                     and c.get("clickable")]
+            if items:
+                break
+            if attempt < 2:
+                print(f"  … 选怪窗口还没出来，第 {attempt + 2} 次导树")
+                time.sleep(0.6)
         if items:
             it = max(items, key=lambda c: c["w"] * c["h"])
             return it["cx"], it["cy"], f"选怪窗口列表项（共 {len(items)} 个）"

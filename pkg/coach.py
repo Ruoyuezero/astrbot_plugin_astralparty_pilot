@@ -153,6 +153,38 @@ def pid_file(cfg: dict | None = None) -> str:
     return datapaths.log_path("coach.pid")
 
 
+def busy_file(cfg: dict | None = None) -> str:
+    """引擎写的「正在做这条动作链」标记（出牌/技能/移动那种会阻塞好几秒的）。"""
+    g = game_dir(cfg)
+    return os.path.join(g, "coach_busy.json") if g else ""
+
+
+def busy_age(cfg: dict | None = None) -> float:
+    """忙标记有多少秒没刷新了；没有标记返回 -1。
+
+    引擎在长动作链里会起个心跳线程每 2 秒刷一次 mtime，所以「age < 5 秒」
+    就等于「它现在还卡在那条链里，别催」。动作做完会把文件删掉。
+    """
+    p = busy_file(cfg)
+    if not p:
+        return -1.0
+    try:
+        return time.time() - os.path.getmtime(p)
+    except OSError:
+        return -1.0
+
+
+def state_age(cfg: dict | None = None) -> float:
+    """引擎最近一帧状态（coach.json）有多少秒没更新；文件不在返回 -1。"""
+    p = state_file(cfg)
+    if not p:
+        return -1.0
+    try:
+        return time.time() - os.path.getmtime(p)
+    except OSError:
+        return -1.0
+
+
 def read(cfg: dict | None = None) -> dict:
     for _ in range(3):
         try:

@@ -186,6 +186,16 @@ PILOT_ACT_CN = {"card": "出牌", "skill": "开技能", "go": "移动/继续", "
                 "stop": "停下", "buy": "商店购买", "relic": "选筹码",
                 "atk": "攻击怪物", "def": "防御", "dodge": "闪避", "skip": "跳过"}
 
+# 一次性动作等多久（秒）。出牌最久：拖牌 → 等弹窗 1.1s → 导 UI 树选目标（最多 6s）
+# → 点目标 → 确认 → 校验手牌，实测 9~13 秒。其余动作按经验给余量。
+# 注意这只是「基准」，引擎挂着 coach_busy.json 时会自动续期（见 _appa_wait_once）。
+_ACT_WAIT = {
+    "card": 25.0,
+    "skill": 18.0,
+    "atk": 18.0, "def": 18.0, "dodge": 18.0, "skip": 18.0,
+    "go": 15.0, "choose": 15.0, "stop": 15.0, "buy": 15.0, "relic": 15.0,
+}
+
 def _clip(text: str, limit: int) -> str:
     text = text.strip()
     return text if len(text) <= limit else text[: limit - 1] + "…"
@@ -2118,14 +2128,20 @@ class AstralPartyPilotPlugin(Star):
         if not ok:
             yield event.plain_result(why)
 
-    async def _appa_wait_once(self, act: str, timeout: float = 8.0):
+    async def _appa_wait_once(self, act: str, timeout: float = 0.0):
         """等引擎把这一项做完。
 
         判据是控制文件：引擎做完就自己把这一项从 allow/once 里撤掉。
-        等不到就撤回授权（免得它在后面某一帧突然替主人动手）并给出理由。
+        等多久按动作定：出牌要拖牌 → 等弹窗 → 导 UI 树选目标 → 确认 → 校验手牌，
+        实测 9~13 秒，8 秒根本不够（2026-11-09 的卡牌半截就是这么来的）。
+
+        另外引擎在长动作链里会挂 coach_busy.json 并每 2 秒刷新，看到它还在刷就
+        继续等（最多再加 45 秒），免得「引擎正干到一半、插件先撤授权」。
         """
+        base = float(timeout) or float(_ACT_WAIT.get(act, 15.0))
+        hard = base + 45.0
         t0 = time.time()
-        while time.time() - t0 < timeout:
+        while True:
             await asyncio.sleep(0.4)
             try:
                 allow = await asyncio.to_thread(CO.ctl_allow, self.config)
@@ -2134,27 +2150,42 @@ class AstralPartyPilotPlugin(Star):
                 continue
             if act not in allow and act not in once:
                 return True, ""
+            spent = time.time() - t0
+            if spent < base:
+                continue
+            busy = -1.0
+            try:
+                busy = await asyncio.to_thread(CO.busy_age, self.config)
+            except Exception:  # noqa: BLE001
+                busy = -1.0
+            if 0 <= busy <= 5.0 and spent < hard:      # 引擎还在动，接着等
+                continue
+            break
         try:
             allow = [a for a in await asyncio.to_thread(CO.ctl_allow, self.config) if a != act]
             once = [a for a in await asyncio.to_thread(CO.ctl_once, self.config) if a != act]
             await asyncio.to_thread(CO.set_allow, self.config, allow, None, once)
         except Exception:  # noqa: BLE001
             pass
-        return False, await asyncio.to_thread(self._appa_why, act)
+        return False, await asyncio.to_thread(self._appa_why, act, time.time() - t0)
 
-    def _appa_why(self, act: str) -> str:
+    def _appa_why(self, act: str, spent: float = 0.0) -> str:
         """「这一下为什么没做成」——读引擎最近一帧，能说到点子上。"""
         cn = PILOT_ACT_CN.get(act, act)
         head = f"⚠️ /appa {act}（{cn}）这一下没做成，授权已收回。\n"
         try:
             d = CO.read(self.config) or {}
+            age = CO.state_age(self.config)
         except Exception:  # noqa: BLE001
-            d = {}
+            d, age = {}, -1.0
         if not d:
             return head + "引擎还没写过状态 —— 游戏没开，或者还没进对局。"
         pid = d.get("pid")
+        # 只有「状态帧也停更了」才怪进程：引擎做完动作会自己退出，光看 pid 会把
+        # 「刚干完活/正在收尾」误报成「引擎没起来」（2026-11-09 就是这么误导的）。
         try:
-            if pid and not CO.alive(int(pid)):
+            stale = age < 0 or age > 30.0
+            if pid and stale and not CO.alive(int(pid)):
                 return head + "引擎进程已经不在（游戏没开 / 代打没启动）。"
         except Exception:  # noqa: BLE001
             pass
@@ -2179,7 +2210,12 @@ class AstralPartyPilotPlugin(Star):
                 return head + "手牌里没有现在能出的牌。"
             if any("都出不了" in l for l in lines):
                 return head + "手上的牌这会儿都出不了（战斗牌 / 地块牌 / 认不出目标）。"
-            return head + f"有牌但这下没点成{tail}。"
+            spent_cn = f"{spent:.0f} 秒" if spent else "好一会儿"
+            return head + (
+                f"出牌链路等了 {spent_cn} 还没走完"
+                "（拖牌 → 等弹窗 → 导 UI 树选目标 → 确认，正常 10~13 秒）。\n"
+                "如果游戏界面停在「选目标」：牌可能已经拖到中心、但目标没选中 —— "
+                "手动点一下目标/确认把它收尾，或按取消把这张牌退回来。")
         if act == "skill":
             if stage != "card":
                 return head + f"现在不是出牌 / 技能阶段 —— 当前是「{stage_cn}」。"
