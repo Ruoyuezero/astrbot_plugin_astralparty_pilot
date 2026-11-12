@@ -6,6 +6,8 @@
 
 **游戏版本：3.3.0（2026-11-12 更新）** · 知识库与素材基线已同步该版本（卡牌 73 / 怪物 70 / 筹码 92 / 角色 36 / 地块 28）
 
+> 更新日志：见 [CHANGELOG.md](CHANGELOG.md)；装好后 AstrBot 面板 → 插件 → 本插件详情 → **更新日志** 也会直接渲染同一份。
+
 [![AstrBot](https://img.shields.io/badge/AstrBot-plugin-2B579A.svg?style=flat-square)](#)[         ![Python](https://img.shields.io/badge/python-3.10%2B-3776AB.svg?style=flat-square&logo=python&logoColor=white)](#环境要求)[        ![Platform](https://img.shields.io/badge/platform-Windows-0078D4.svg?style=flat-square&logo=windows&logoColor=white)](#环境要求)
 
 游戏对局数据解析与自动化操作助手，围绕「读局 → 判断 → 执行」三段闭环构建：从游戏资源与运行时状态中取回地图、手牌与对局进度，用确定性规则算出当前最优动作，再以模拟鼠标输入交给游戏执行。
