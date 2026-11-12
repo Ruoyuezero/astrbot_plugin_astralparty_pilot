@@ -391,11 +391,15 @@ def _wiki_no_of(no: str) -> str:
 def _card_category_of(no: str) -> str:
     """按序号把卡牌归入图鉴分类。
 
-    分类规则：
-    - 战斗牌：攻击 / 防御（不按 mode 细分）
-    - 效果牌·PVP：效果类且 mode 仅含 PVP
-    - 效果牌·PVE：效果类且 mode 仅含 PVE
-    - 效果牌·通用：效果类 mode 为「通用」或 PVP/PVE 双模式，以及「建筑」「反击」两类
+    规则（2026-11-09 按主人的指正改成「一律以 kb 里的 mode 为准」）：
+    - 攻击 / 防御                     → 战斗牌
+    - 其余（效果 / 反击 / 建筑 / 诅咒…）→ 看 mode：
+        · 含「通用」，或 PVP+PVE 双模式 → 效果牌·通用
+        · 只有 PVP                     → 效果牌·PVP
+        · 只有 PVE                     → 效果牌·PVE
+
+    以前把「建筑 / 反击」整类塞进通用，结果 PVP 的反击牌（保护屏障 20003、
+    以牙还牙 20015、错误的目标 20017）被列到了通用里 —— 主人指出这个分类错误。
     """
     from . import kb
     for c in kb.cards():
@@ -404,18 +408,12 @@ def _card_category_of(no: str) -> str:
             m = c.get("mode") or ""
             if t in ("攻击", "防御"):
                 return "战斗牌"
-            if t in ("建筑", "反击"):
+            if "通用" in m or ("PVE" in m and "PVP" in m):
                 return "效果牌·通用"
-            # 效果类
-            if t == "效果":
-                if "通用" in m:
-                    return "效果牌·通用"
-                if "PVE" in m and "PVP" in m:
-                    return "效果牌·通用"   # 双模式归入通用
-                if "PVP" in m:
-                    return "效果牌·PVP"
-                if "PVE" in m:
-                    return "效果牌·PVE"
+            if "PVP" in m:
+                return "效果牌·PVP"
+            if "PVE" in m:
+                return "效果牌·PVE"
             return "效果牌·通用"
     return "其他"
 

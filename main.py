@@ -142,21 +142,28 @@ HELP_SECTIONS = [
     ]),
     ("🎮", "陪玩（仅管理员 · 🚧 开发中，未完全实装）", [
         ("🚧 开发中", "陪玩代打（/appa 系列）尚在开发，未完全实装，请静待更新"),
-        ("/appa", "注入代打组件：dll / BepInEx 装进游戏根目录"),
+        ("/appa", "注入代打组件：dll / BepInEx 装进游戏根目录（游戏要关着）"),
         ("/appa rm", "撤回注入：按清单把注入的文件移走（先备份，清单外的一个不动）"),
         ("/appa on", "全自动代打：出牌、技能、移动、战斗全交给 bot"),
-        ("/appa card", "半自动代打：把这一项交给 bot（一次一项，其余归你）"),
         ("/appa off", "玩家自主操控：bot 只推建议，鼠标不碰"),
         ("/appa me", "查本机登录账号：在局返回进度卡，否则返回档案卡（全程不联网）"),
-        ("/appa atk", "经过怪物时：攻击；站在突击格上则先选怪，再发一次就是攻击"),
-        ("/appa skip", "经过怪物/商店/筹码时：跳过，出牌阶段点「取消」，战斗界面点「放过」"),
-        ("/appa def", "怪物反击/怪物回合被攻击时：防御（站着硬扛）"),
-        ("/appa dodge", "怪物反击/怪物回合被攻击时：闪避"),
-        ("/appa buy", "经过商店时：购买"),
-        ("/appa go", "只移动 / 选「继续移动」"),
+        ("/appa sid", "列出本机所有登录票 sid（按账号区分，填 alt_sid 用）"),
+        ("单项：一次只交一项", "下面每条都只做一件事，其余仍归你"),
+        ("/appa card", "出牌（需要选目标的牌会自动挑人/挑怪）"),
+        ("/appa skill", "开技能"),
+        ("/appa go", "移动 / 选「继续移动」"),
         ("/appa choose", "遇岔路自动选更优的一条"),
         ("/appa stop", "停下来（不继续走）"),
+        ("/appa buy", "经过商店时：买一张"),
+        ("/appa buyskip", "跳过购买：卡牌商店不买、直接离开"),
         ("/appa relic", "只选筹码（三选一挑品质最好的）"),
+        ("/appa relic renew", "刷新筹码：筹码商店点「刷新」换三张"),
+        ("/appa relicskip", "跳过购买筹码：问买不买时选不买"),
+        ("/appa atk", "攻击：开战弹窗选打 / 战斗界面点攻击"),
+        ("/appa def", "防御：被打时站着硬扛，不闪避"),
+        ("/appa dodge", "闪避：被打时躲开这次攻击"),
+        ("/appa skip", "跳过：开战选不打、出牌阶段点「取消」、战斗界面点「放过」"),
+        ("/appa ok", "确定：出牌页出完牌后点「确定」提交本轮"),
     ]),
 ]
 
@@ -180,11 +187,23 @@ PILOT_ACT_ALIAS = {
     "def": "def", "defend": "def", "防御": "def", "防守": "def", "防": "def", "苟": "def",
     "skip": "skip", "跳过": "skip", "跳": "skip", "略过": "skip", "不管": "skip",
     "无视": "skip",
+    # 跳过购买（2026-11-09 从 skip 里剥出来：只管商店 / 筹码「买不买」）
+    "buyskip": "buyskip", "跳过购买": "buyskip", "不买": "buyskip",
+    "不购买": "buyskip", "跳购买": "buyskip", "skipbuy": "buyskip",
+    # 跳过购买筹码（5249 询问买不买时选不买）
+    "relicskip": "relicskip", "跳过购买筹码": "relicskip", "不买筹码": "relicskip",
+    "跳过筹码": "relicskip", "筹码不买": "relicskip", "relicbuy_skip": "relicskip",
+    # 刷新筹码（/appa relic renew）
+    "relicrenew": "relicrenew", "刷新筹码": "relicrenew", "换一批筹码": "relicrenew",
+    # 出牌后提交（战斗出牌页右下角那颗「确定」）
+    "ok": "ok", "确定": "ok", "确认": "ok", "提交": "ok", "出牌确定": "ok", "confirm": "ok",
     "dodge": "dodge", "闪避": "dodge", "躲": "dodge", "闪": "dodge",
 }
 PILOT_ACT_CN = {"card": "出牌", "skill": "开技能", "go": "移动/继续", "choose": "岔路选路",
                 "stop": "停下", "buy": "商店购买", "relic": "选筹码",
-                "atk": "攻击怪物", "def": "防御", "dodge": "闪避", "skip": "跳过"}
+                "atk": "攻击怪物", "def": "防御", "dodge": "闪避", "skip": "跳过",
+                "buyskip": "跳过购买", "relicskip": "跳过购买筹码", "ok": "确定（出牌后提交）",
+                "relicrenew": "刷新筹码"}
 
 # 一次性动作等多久（秒）。出牌最久：拖牌 → 等弹窗 1.1s → 导 UI 树选目标（最多 6s）
 # → 点目标 → 确认 → 校验手牌，实测 9~13 秒。其余动作按经验给余量。
@@ -194,6 +213,7 @@ _ACT_WAIT = {
     "skill": 18.0,
     "atk": 18.0, "def": 18.0, "dodge": 18.0, "skip": 18.0,
     "go": 15.0, "choose": 15.0, "stop": 15.0, "buy": 15.0, "relic": 15.0,
+    "buyskip": 15.0, "relicskip": 15.0, "ok": 15.0, "relicrenew": 15.0,
 }
 
 def _clip(text: str, limit: int) -> str:
@@ -1688,6 +1708,11 @@ class AstralPartyPilotPlugin(Star):
         sub = words[0].lower() if words else ""
         joined = " ".join(words[1:])
 
+        # 两段式子命令：/appa relic renew（relic 本体是"选筹码"，renew 是"刷新筹码"）
+        if sub in ("relic", "relics", "筹码", "遗物") and \
+                joined.strip().lower() in ("renew", "refresh", "reroll", "刷新", "换一批"):
+            sub = "relicrenew"
+
         if sub in ("me", "我", "自己", "局内", "局内卡", "状态"):
             async for result in self._appa_me(event):
                 yield result
@@ -1718,7 +1743,7 @@ class AstralPartyPilotPlugin(Star):
             yield event.plain_result(
                 f"「{sub}」不是 /appa 的子命令呢～可用的有：\n"
                 "· 开关：on（全自动）· off（自主操控）· me（查本机）· sid（登录票）\n"
-                "· 单项：card / skill / go / choose / stop / relic / buy / atk / def / dodge / skip\n"
+                "· 单项：card / skill / go / choose / stop / relic / buy / buyskip / relicskip / atk / def / dodge / skip / ok\n"
                 "· 不带参数：把代打组件注入游戏根目录（游戏要关着）\n"
                 "· rm：按注入清单撤回注入的文件（先备份，清单外的不动）\n"
                 "完整说明发 /app help 看「陪玩」那一节")
@@ -2234,10 +2259,27 @@ class AstralPartyPilotPlugin(Star):
             if aid not in (5047, 5039) and stage not in ("battle", "fight"):
                 return head + f"现在没有战斗弹窗 / 战斗界面 —— 当前是「{stage_cn}」。"
             return head + f"这一下没点成{tail}。"
+        if act == "ok":
+            if not d.get("fight"):
+                return head + ("现在没有战斗出牌页 / 战斗界面 —— "
+                               "这条只管「攻击/防御出牌页出完牌后点确定提交」。")
+            return head + f"确定键没点成{tail}。"
         if act == "buy":
             if not (actd.get("shop")):
                 return head + "现在不在商店界面。"
             return head + f"买了但没成功（钱不够 / 卡买不了）{tail}。"
+        if act == "buyskip":
+            if not (actd.get("shop")):
+                return head + "现在不在卡牌商店 —— 这条只管「到了商店不买、直接走」。"
+            return head + f"商店没走出去{tail}。"
+        if act == "relicskip":
+            # 5249 = 询问是否购买筹码
+            if int(actd.get("id") or 0) != 5249:
+                return head + "现在没有「要不要买这个筹码」的询问 —— 这条只管这种询问。"
+            return head + f"筹码购买没取消掉{tail}。"
+        if act == "relicrenew":
+            return head + ("没点成「刷新」—— 这条要在筹码商店页面（右下角有刷新键）发；"
+                           "刷新要花金币，金币不够时游戏不会换牌。")
         if act == "relic":
             if not (actd.get("relic")):
                 return head + "现在不在选筹码的三选一界面。"

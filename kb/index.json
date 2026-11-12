@@ -1,21 +1,22 @@
 {
- "generated": "2026-10-29",
- "source": "https://wiki.biligame.com/starengine/ + 本地 STRBuff.bytes + Addressables 场景提取",
+ "generated": "2026-11-12",
+ "source": "游戏客户端配置表（Addressables TextAsset，2026-11-12 3.3.0） + https://wiki.biligame.com/starengine/ + 本地 STRBuff.bytes + Addressables 场景提取",
  "counts": {
-  "cards": 71,
-  "monsters": 69,
+  "cards": 73,
+  "monsters": 70,
   "events": 32,
   "map_events": 43,
   "buffs": 311,
   "states": 27,
-  "lands": 27,
+  "lands": 28,
   "maps": 21,
   "skills": 295,
-  "relics": 89,
+  "relics": 92,
   "achievements": 139,
   "hero_aliases": 54,
   "monster_aliases": 81,
-  "relic_aliases": 69
+  "relic_aliases": 69,
+  "heroes": 36
  },
  "files": {
   "cards": "kb/cards.json",
@@ -592,7 +593,7 @@
     18,
     28
    ],
-   "note": "S9「幻境骑士」新图；植物建筑卡牌改造地块"
+   "note": "S9「幻境骑士」新图；植物建筑卡牌改造地块；下半期新增石中剑（按场上植物建筑数量强化）"
   }
  ],
  "fixed_maps": [
@@ -1103,5 +1104,6 @@
     "闹钟猫头鹰"
    ]
   }
- }
+ },
+ "game_version": "3.3.0"
 }

@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """需要选目标的出牌链路 —— 拖牌到中心 → 点目标 → 点确认 → 把鼠标挪开。
 
@@ -16,11 +16,11 @@
 
 界面坐标（实测值，随镜头/窗口变化，动手前先重取几何）：
 
-    自己头像    左列第 4 个      舞台 (139, 596)
-    队友头像    左列 1/2/3 个    舞台 (180, 205 / 330 / 455)
+    自己头像    左列第 4 格      P(6.61, 54.07)   ≈ 舞台 (127, 584)
+    队友头像    左列 1/2/3 格    P(6.61, 15.19 / 27.96 / 41.48)
     怪物卡片    弹窗中央         每次都不一样，先查 UI 树，查不到再用兜底点
-    确认按钮    (1350, 700)      第一次点常常只 hover，要连点两次
-    挪开鼠标    (960, 200)       点完确认必须挪，否则会穿透到手牌
+    确认按钮    P(49.95, 86.11)  第一次点常常只 hover，要连点两次
+    挪开鼠标    P(50.00, 18.52)  点完确认必须挪，否则会穿透到手牌
 
 两个已知坑（都是实测出来的）：
     1. 确认按钮第一次点只变绿不生效 —— 每处确认都点两次。
@@ -46,17 +46,27 @@ sys.path.insert(0, HERE)
 import playcard as PC          # noqa: E402  复用 setup / do_click / do_drag / kb_card
 import uitree as UT            # noqa: E402
 import click as CL             # noqa: E402
+from click import P            # noqa: E402  百分比 → 舞台坐标
 
 GAME = CL.GAME
 STATE = os.path.join(GAME, "state.json")
 
-# ---------------- 实测坐标 ----------------
-SELF_HEAD = (139.0, 596.0)                    # 左列第 4 个（粉色框那个 = 自己）
-MATE_HEADS = [(180.0, 205.0),                 # 队友头像从上往下
-              (180.0, 330.0),
-              (180.0, 455.0)]
-CONFIRM = (1350.0, 700.0)                     # 确认按钮
-PARK = (960.0, 200.0)                         # 点完确认的停车位，防穿透
+# ---------------- 实测坐标（一律按百分比记）----------------
+# 2026-11-09 主人逐个悬停实测。下面的百分数是「离游戏渲染区左上角百分之几」，
+# 由 click.P 换算成 1920x1080 舞台坐标；窗口大小/分辨率变了会跟着缩放，
+# 非 16:9 还会按黑边居中（见 click.geom）。括号里是等效舞台像素，便于对照截图。
+HEAD_X_PCT = 6.61                              # 左列四个头像共用的 x（等效 127）
+MATE_HEADS = [P(HEAD_X_PCT, 15.19),             # 1 号位队友（等效 129,164）
+              P(HEAD_X_PCT, 27.96),             # 2 号位队友（等效 129,302）
+              P(HEAD_X_PCT, 41.48)]             # 3 号位队友（等效 121,448）
+SELF_HEAD = P(HEAD_X_PCT, 54.07)                # 4 号位 = 自己（等效 128,584）
+CONFIRM = P(49.95, 86.11)                     # 弹窗「确定」按钮（等效 959,930）
+# 2026-11-09 实测：筹码购买 / 选择筹码那个确定键的舞台坐标是 (959,930)；
+# 旧值 (1350,700) 换算到屏幕是 (4360,933)，比真实位置右偏约 390 舞台像素。
+# 备注：`resolve_confirm()` 会先在 UI 树里按 confirm/ok/sure 找，找不到才用这个常量；
+# 树里的坐标已被证实不可信（要么找不到、要么是设计空间值），所以常量这条兜底要准。
+# 选怪 / 选地块弹窗的确定键位置还没单独实测过，若发现点不中再给一组。
+PARK = P(50.00, 18.52)                        # 点完确认的停车位（等效 960,200）
 
 # 每种目标点完之后要不要按「确认」（主人 2026-11-04 口述的实际流程）：
 #   选择玩家 → 点左侧头像就完成
@@ -65,10 +75,10 @@ PARK = (960.0, 200.0)                         # 点完确认的停车位，防�
 # 实测里也出现过点头像后仍要按确认的情况（绿框→确认），所以玩家这一类先不按确认，
 # 点完查一次手牌数：没出成才补按一次确认，两头都能覆盖。
 NEED_CONFIRM = {"self": False, "mate": False, "monster": True, "land": True}
-DROP = (PC.DROP_CX, PC.DROP_CY)               # 拖牌投放点 = 舞台中心
+DROP = (PC.DROP_CX, PC.DROP_CY)               # 拖牌投放点 = 舞台中心（playcard 里也是 50%,50%）
 
 # 选目标弹窗里，怪物卡片大概落在这个舞台上区域里（弹窗中央）
-MONSTER_BOX = (600, 250, 1320, 760)
+MONSTER_BOX = (*P(31.25, 23.15), *P(68.75, 70.37))   # 选怪区围框：百分比换算成舞台 x0,y0,x1,y1（等效 600,250,1320,760）
 MONSTER_FALLBACK = (972.0, 371.0)             # 实测过的一次位置，只在查不到 UI 时用
 
 # 点完牌到弹窗出现要等的时间（实测 0.6~1.2 秒）
@@ -156,83 +166,72 @@ def _text(c):
 # ---------------- 需要选目标的牌：一张一张写死 ----------------
 # 2026-11-05 主人要求：需要选目标的牌不能靠名字里有没有「对怪」去猜，
 # 必须按卡号逐张写清楚「点谁」。kind 与下面的 target_kind 返回值一致：
-#   none / self / mate / monster / land / dice
+#   具体怎么点看 kb 的 play 字段；这里只决定「点谁」。
 # rng = 牌面射程（格），怪物超出就打不到；dmg = 组基础伤害，用来挑能一击打死的。
+# 历史表：只保留「选哪个目标」需要的参数（rng / dmg / mate / allow_self）。
+# 「这张牌该怎么点」已改由 kb 的 play 字段决定（2026-11-09），这里的 kind 字段已删除。
 CARD_TARGET = {
-    # —— 对怪伤害牌：点屏幕中央的怪物卡片
-    "21001": {"kind": "monster", "rng": 5,  "dmg": 6, "why": "轨道炮 5 格内单怪 6 伤害"},
-    "21009": {"kind": "monster", "rng": 10, "dmg": 3, "why": "高升炮 10 格内单怪 3 伤害并移出场"},
-    "21007": {"kind": "monster", "rng": 6,  "dmg": 4, "why": "定向爆破 6 格内目标及附近 2 格 4 伤害"},
-    "21012": {"kind": "monster", "rng": 6,  "dmg": 3, "why": "对怪激光 6 格内单怪 3 伤害"},
-    "21013": {"kind": "monster", "rng": 3,  "dmg": 5, "why": "对怪板砖 3 格内单怪 5 伤害"},
-    # —— 自身向的牌：拖到中心就生效，不用点自己头像（2026-11-05 主人纠正）
-    "20002": {"kind": "none", "rng": 0, "dmg": 0, "why": "巧克力蛋糕 自己回 2，拖中心即生效"},
-    "20014": {"kind": "none", "rng": 0, "dmg": 0, "why": "汉堡 自己回 4，拖中心即生效"},
-    "20006": {"kind": "none", "rng": 0, "dmg": 0, "why": "以毒攻毒 自身失 2 回 3，拖中心即生效"},
-    "21004": {"kind": "none", "rng": 0, "dmg": 0, "why": "王之力 自伤 4 换攻 +5，拖中心即生效"},
-    "20008": {"kind": "mate", "rng": 10, "dmg": 0, "mate": "atk", "allow_self": True,
-              "why": "狂暴 指定 10 格内角色攻 +3，点队友头像，给攻最高的"},
-    # —— 要指定友方的牌：点左列队友头像
-    "21006": {"kind": "mate", "rng": 0, "dmg": 0, "mate": "hp", "allow_self": True,
-              "why": "奢华大餐 友方范围回 3，点队友头像，给血最残的"},
-    "21002": {"kind": "mate", "rng": 10, "dmg": 0, "mate": "atk", "allow_self": False,
-              "why": "你有我有 指定 10 格内友方，双方各得 1 张牌，给攻击最高的队友"},
-    # —— 地块类：3D 目标，还没打通，先不出
-    "21020": {"kind": "land", "rng": 5, "dmg": 0, "why": "彩羽 传送 5 格内地块并回 3（地块未打通）"},
-    # —— 骰子：拖完后在屏幕中间选 1-6
-    "20005": {"kind": "dice", "rng": 0, "dmg": 0, "why": "遥控骰子 选 1-6 作为下次移动点数"},
+    # 只放「选哪个目标」要用的参数：rng（射程）/ dmg（基础伤害）/ mate（给谁）/
+    # allow_self（能不能指自己）。「这张牌该怎么点」由 kb 的 play 字段决定。
+    # —— 对怪伤害牌
+    "21001": {"rng": 5,  "dmg": 6},
+    "21009": {"rng": 10, "dmg": 3},
+    "21007": {"rng": 6,  "dmg": 4},
+    "21012": {"rng": 6,  "dmg": 3},
+    "21013": {"rng": 3,  "dmg": 5},
+    # —— 自身向的牌：拖到中心就生效（rng/dmg 恒 0，留着只为表结构统一）
+    "20002": {"rng": 0, "dmg": 0},
+    "20014": {"rng": 0, "dmg": 0},
+    "20006": {"rng": 0, "dmg": 0},
+    "21004": {"rng": 0, "dmg": 0},
+    # —— 选目标偏向
+    "20008": {"rng": 10, "dmg": 0, "mate": "atk", "allow_self": True},
+    "21006": {"rng": 0,  "dmg": 0, "mate": "hp",  "allow_self": True},
+    "21002": {"rng": 10, "dmg": 0, "mate": "atk", "allow_self": False},
+    # —— 地块 / 骰子（暂不出，参数留档）
+    "21020": {"rng": 5, "dmg": 0},
+    "20005": {"rng": 0, "dmg": 0},
 }
 
 
-def card_target_rule(card):
-    """查显式表。查不到返回 None。"""
-    return CARD_TARGET.get(str((card or {}).get("no") or ""))
-
-
-# 这几类目前不自动出：
+# 这几类目前不自动出（以 kb 的 play 字段为准，2026-11-09 主人定）：
 #   battle  战斗牌，在战斗界面出
 #   land    地块牌，3D 目标还没打通
-#   dice    骰子牌，拖完还要在屏幕中间选 1-6，选点面板还没打通
-#   unknown 知识库认不出目标
-NO_PLAY_KINDS = ("battle", "land", "dice", "unknown")
+#   all     全员牌，点法还没实测
+#   special 特殊牌（骰子 / 双目标 / PVP 反击 / 限时 / 打不出）
+#   unknown 知识库没有 play 字段或有误
+NO_PLAY_KINDS = ("battle", "land", "all", "special", "unknown")
 
 
 def target_kind(card):
-    """这张牌的目标该怎么点。返回 (kind, why)
+    """这张牌的目标该怎么点。返回 (kind, why)。
 
-    kind:
-        none    → 拖到中心就完事，不点目标
-        self    → 点左列自己的头像
-        mate    → 点左列队友头像
-        monster → 点中央怪物卡片
-        land    → 点地块（3D 物体，还没打通，先别碰）
-        battle  → 战斗界面里的牌，不走这条
+    一律取 kb/cards.json 的 `play` 字段（2026-11-09 主人定：旧的 target 启发式扔掉）：
+
+        none    拖到中心就完事，不点目标
+        mate    点左列队友头像（不含自己）
+        monster 点选怪窗里的怪；PVP 局里也可能是玩家
+        all     全员牌，点法待实测
+        land    点地块（3D 物体，还没打通）
+        special 特殊牌（骰子/双目标/PVP 反击/限时/打不出）
+        battle  战斗界面里的牌，不走这条
     """
     if not card:
         return "unknown", "知识库查不到这张牌"
     name = card.get("name") or ""
-    t = str(card.get("target") or "")
-    txt = _text(card)
-
-    # 显式表优先：按卡号逐张写死的目标规则
-    rule = card_target_rule(card)
-    if rule:
-        return rule["kind"], f"《{name}》{rule['why']}"
-
-    if not t:
-        return "battle", f"《{name}》是战斗牌，战斗界面里出"
-    if t == "none":
-        return "none", f"《{name}》不需要目标，拖到中心即生效"
-    if t == "Land":
-        return "land", f"《{name}》要点头地图地块（3D，还没打通）"
-    if t == "Entity":
-        if name.startswith("对怪") or "怪物" in txt:
-            return "monster", f"《{name}》点中央的怪物卡片"
-        # 「友方/队友/其它角色」——只有这种才是给别人
-        if ("友方" in txt) or ("队友" in txt) or ("其他角色" in txt):
-            return "mate", f"《{name}》点左列队友头像"
-        return "self", f"《{name}》点左列自己的头像"
-    return "unknown", f"《{name}》目标类型 {t} 不认识，保守跳过"
+    play = str(card.get("play") or "").strip().lower()
+    table = {
+        "none": "不需要目标，拖到中心即生效",
+        "mate": "点左列队友头像（不含自己）",
+        "monster": "点中央选怪窗里的目标（PVP 里也可能是玩家）",
+        "all": "全员牌，点法还没实测，先不出",
+        "land": "要点头 3D 地块（还没打通，先别碰）",
+        "special": "特殊牌（骰子/双目标/PVP 反击/限时），暂不自动出",
+        "battle": "战斗牌，战斗界面里出",
+    }
+    if play in table:
+        return play, f"《{name}》{table[play]}"
+    return "unknown", f"《{name}》没有 play 字段，保守跳过"
 
 
 def _gain(card, prefer="eco"):
@@ -297,7 +296,7 @@ def plan(card_id=None, prefer="eco"):
     if not me:
         return None
     if not st.get("my") or st.get("stage") != "card":
-        return {"skip": True, "why": "现在不是我的出牌阶段", "stage": st.get("stage")}
+        return {"skip": True, "stage": st.get("stage")}
 
     usable = [str(x) for x in (st.get("usable") or [])]
     if card_id is not None:
@@ -325,7 +324,7 @@ def plan(card_id=None, prefer="eco"):
         cands.append({"card": cid, "name": c.get("name"), "kind": kind,
                       "why": why, "score": sc})
     if not cands:
-        return {"skip": True, "why": "可出的牌里没有这一版能安全处理的"}
+        return {"skip": True}
 
     cands.sort(key=lambda x: x["score"], reverse=True)
     best = cands[0]
@@ -338,11 +337,12 @@ def plan(card_id=None, prefer="eco"):
         rule = CARD_TARGET.get(str(best["card"])) or {}
         mode = rule.get("mate") or "hp"
         cands_p = list(mates)
-        if rule.get("allow_self", True):
+        # ③ 类定义就是「队友，不含自己」（2026-11-09 主人），所以默认不把自己放进来；
+        # 哪张牌确实允许指自己，就在 CARD_TARGET 里显式写 allow_self: True。
+        if rule.get("allow_self", False):
             cands_p.append(me)          # 友方面板里自己也占一个头像
         if not cands_p:
-            return {"skip": True,
-                    "why": "《%s》没有可指定的对象" % best["name"]}
+            return {"skip": True % best["name"]}
         if mode == "atk":
             # 加攻 / 发牌类：给队里最能打的那个（自己攻最高就给自己）
             m = max(cands_p, key=lambda p: ((p.get("atk") or 0), (p.get("hp") or 0)))
@@ -358,7 +358,7 @@ def plan(card_id=None, prefer="eco"):
     elif best["kind"] == "monster":
         ms = monsters_of(st)
         if not ms:
-            return {"skip": True, "why": "场上没有活着的怪物"}
+            return {"skip": True}
         rule = CARD_TARGET.get(str(best["card"])) or {}
         rng, dmg = rule.get("rng") or 0, rule.get("dmg") or 0
         my_node = me.get("node")

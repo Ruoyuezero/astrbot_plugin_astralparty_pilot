@@ -82,6 +82,38 @@ def card(q):
     return None
 
 
+# 出牌时要做什么（kb/cards.json 的 play 字段，2026-11-09 按主人给的六类补的）
+PLAY_KINDS = ("none", "monster", "mate", "all", "land", "special", "battle")
+
+
+def play_kind(q) -> str:
+    """这张牌出牌时的操作类别。
+
+    none    拖到中心就生效，不点目标
+    monster 拖中心 → 选怪窗点怪 → 确定
+    mate    拖中心 → 点左列友方头像（不含自己）
+    all     拖中心 → 点全员类目标（点法待实测）
+    land    拖中心 → 点 3D 地块 → 确定
+    special 特殊牌（骰子选点数 / 双目标 / PVP 反击 / 限时 / 打不出）→ 暂不自动出
+    battle  战斗牌，走战斗界面，不走普通拖动
+    没有 play 字段的老数据按 target 退化：空→battle、none→none、Land→land、Entity→mate。
+    """
+    c = card(q) if not isinstance(q, dict) else q
+    if not c:
+        return "unknown"
+    k = str(c.get("play") or "").strip().lower()
+    if k in PLAY_KINDS:
+        return k
+    t = str(c.get("target") or "")
+    if not t:
+        return "battle"
+    if t == "none":
+        return "none"
+    if t == "Land":
+        return "land"
+    return "mate"
+
+
 def monster_alias():
     """社区别名表 {怪物编号: [别名...]}（小偷 / 茶壶 / 嘎呜 / 猿神 …）。"""
     return _load("monster_alias", "kb/monster_alias.json")

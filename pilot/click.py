@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """真点击注入 —— 不碰游戏内存、不发包，走操作系统输入路径。
 
@@ -272,19 +272,45 @@ def load_ui():
 
 
 def geom(ui, hwnd):
-    """返回 (客户区原点, 舞台宽高, 缩放)，缩放 = 客户区宽 / 舞台宽"""
+    """返回 (舞台左上角屏幕坐标, 舞台宽高, 缩放)。
+
+    缩放取**等比适配**（contain）：min(客户区宽/舞台宽, 客户区高/舞台高)，
+    再把舞台居中放进客户区。这样：
+      · 16:9 窗口（1920x1080 / 2560x1440）→ 与以前完全一致，没有偏移；
+      · 非 16:9（带鱼屏 / 拉成别的比例）→ 按黑边处理，不会横向拉歪坐标；
+      · 坐标本身存的是「百分比」，换算只依赖这块实际渲染区域，换分辨率不用重标。
+    """
     ox, oy = client_origin(hwnd)
     r = RECT()
     user32.GetClientRect(hwnd, ctypes.byref(r))
-    cw, ch = r.right, r.bottom
+    cw, ch = float(r.right), float(r.bottom)
     sw = float(ui.get("stageW") or 0) or STAGE_FALLBACK[0]
     sh = float(ui.get("stageH") or 0) or STAGE_FALLBACK[1]
-    return (ox, oy), (sw, sh), cw / sw
+    scale = min(cw / sw, ch / sh) if sw and sh else 1.0
+    ox += (cw - sw * scale) / 2.0            # 黑边补偿：把舞台居中
+    oy += (ch - sh * scale) / 2.0
+    return (ox, oy), (sw, sh), scale
+
+
+def P(px: float, py: float) -> tuple[float, float]:
+    """百分比 → 舞台坐标。所有点都按「离窗口左上角百分之几」记，别记像素。
+
+    例：P(6.6, 15.2) = 1920x1080 舞台上的 (126.7, 164.2)。
+    """
+    return (px / 100.0 * STAGE_FALLBACK[0], py / 100.0 * STAGE_FALLBACK[1])
 
 
 def to_screen(origin, scale, ax, ay):
     ox, oy = origin
     return int(round(ox + ax * scale)), int(round(oy + ay * scale))
+
+
+# ---------------- 共用按钮位置槽（同一套 UI 模板）----------------
+# 二选一弹窗的左键：停靠站的「继续移动」、卡牌商店的「跳过」实测只差 4 像素
+# （744,736 vs 742,740）—— 是同一颗按钮的不同文案。统一放这里，避免两处常量各自漂移。
+POPUP_LEFT = P(38.75, 68.13)      # 左键：继续移动 / 商店跳过（2026-11-09 实测）
+# 右键（停留 / 购买）暂时不合并：实测的商店「购买」在 61.84%，弹窗右键旧值 59.48%，
+# 相差 46 舞台像素，可能是两套宽度不同的弹窗 —— 等实测确认后再决定要不要合并。
 
 
 # ---------------- 命令 ----------------

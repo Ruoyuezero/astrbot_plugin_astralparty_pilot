@@ -25,7 +25,9 @@
             战斗界面里只点「攻击」，**不出牌** —— 打小偷（小浣熊 1001，0 攻 0 防
             不反击）就是直接点攻击搞定，垫攻击牌纯属浪费（2026-11-04 主人定）
     def     防御怪物：5047 选不打（避战）；5039 被反击/怪物回合被打时不闪避（防御）
-    skip    跳过一切：商店不买直接走、5249 不买筹码、5047 不打、
+    buyskip 跳过购买：卡牌商店不买、直接离开（只管商店）
+    relicskip 跳过购买筹码：5249 询问买不买时选不买（只管这一件事）
+    skip    跳过：5047 不打、
             出牌阶段点「取消」不出这轮、战斗界面点「放过」不打了（不再管闪避）
     dodge   5039 被反击 / 怪物回合被打时闪避（dodge=true），只管这一件事
     不给就是不授权 → 只看不动。
@@ -55,22 +57,25 @@ import autopilot as AP          # noqa: E402  回合判定 / 决策 / 地图识�
 import paths as PL              # noqa: E402  游戏目录 + 插件数据目录
 import decision as D            # noqa: E402
 import netact as NA             # noqa: E402  协议直发（移动选路 / 商店 / 筹码）
+import click as CL             # noqa: E402  坐标换算 / 共用位置槽
 import playcard as PC           # noqa: E402  鼠标出牌 / 点移动键
 import popup as POP             # noqa: E402  二选一弹窗（继续移动/停留、是否攻击）
 import playtarget as PT         # noqa: E402  出牌 + 选目标（玩家/怪物/地块）
+from click import P             # noqa: E402  百分比 → 舞台坐标（见 click.P）
 
 STAGE_CN = {"card": "出牌 / 技能", "move": "移动", "target_card": "选目标（牌）",
             "target_skill": "选目标（技能）", "none": "空闲"}
 
 # 被授权的动作类别 —— 和 /appa 的子命令一一对应，各自只管一件事
-# 注意：leave 已经取消，离开商店并入 buy（买完就走）和 skip（不买直接走）
-ACTIONS = ("card", "skill", "go", "choose", "stop", "buy", "relic", "atk", "def",
-           "dodge", "skip")
+# 注意：leave 已经取消，离开商店并入 buy（买完就走）和 buyskip（不买直接走）
+ACTIONS = ("card", "skill", "go", "choose", "stop", "buy", "buyskip", "relic",
+           "relicskip", "relicrenew", "atk", "def", "dodge", "skip", "ok")
 ACT_CN = {"card": "出牌", "skill": "开技能", "go": "移动/继续", "choose": "岔路选路",
-          "stop": "停下", "buy": "商店购买", "relic": "选筹码",
+          "stop": "停下", "buy": "商店购买", "buyskip": "跳过购买",
+          "relic": "选筹码", "relicskip": "跳过购买筹码", "relicrenew": "刷新筹码",
           "atk": "攻击怪物", "def": "防御怪物",
           "dodge": "闪避（被反击 / 怪物回合被打）",
-          "skip": "跳过（取消出牌 / 放过 / 商店 / 不打）"}
+          "skip": "跳过（取消出牌 / 放过 / 不打）", "ok": "确定（出牌后提交）"}
 # /appa on 全自动：不含 stop（要停手动发 /appa stop）、不含 skip（该打的照样打）
 FULL_ALLOW = ("card", "skill", "go", "choose", "buy", "relic", "atk", "def")
 
@@ -142,6 +147,9 @@ class Coach:
         self._stop_t = 0.0
         self._relic_key = None      # 5211 已处理过的 sn
         self._relic_t = 0.0
+        self._relic_mouse_t = 0.0       # 筹码三选一走鼠标兜底的时间（防连点）
+        self._renew_t = 0.0             # 筹码商店「刷新」的点击冷却
+        self._renew_log_t = 0.0
         self._station_t = 0.0       # 停靠站弹窗（继续移动/停留）点击冷却
         self._station_key = None    # 停靠站已按过的 (sn, 选择)，防连点
         self._station_dbg_t = 0.0   # 停靠站诊断日志冷却
@@ -208,17 +216,58 @@ class Coach:
             self.last_act_key = None
             self.say("[授权] " + ("、".join(ACT_CN[a] for a in ACTIONS if a in new) or "无（只看不动）"))
 
-    # 实测固定位置（2026-11-04 主人演示 + UI 树交叉验证）
-    # 技能键 UIHandCard_Button_Skill#btn_Skill 中心 = (1539, 897)
-    # 移动键 GButton#btn_Move 中心 = (1730, 944)
-    SKILL_POS = (1539, 897)
-    MOVE_POS = (1730, 944)
-    ATTACK_POS = (512, 761)       # 战斗中那颗「READY / 攻击」键（主人指认，鼠标实测 509,762）
-    #                             战斗界面开着时 /appa atk 就是点它 —— 2026-11-05 主人再确认过
-    ATTACK_POS_ALT = (960, 735)   # 控件树里的 GButton#btn_Attack 中心（点过没反应，只作备用）
-    LEAVE_POS = (794, 952)        # 战斗中「放过」btn_Leave 中心
-    DEFEND_POS = (820, 895)       # 战斗中「防御」btn_Defend 中心
-    DODGE_POS = (1099, 895)       # 战斗中「闪避」UIFight_Button_Dodge#btn_Dodge 中心
+    # 固定位置一律按「百分比」记：P(横%, 纵%) = 离游戏渲染区左上角百分之几。
+    # 换算见 click.P / click.geom —— 窗口放大缩小、换分辨率都自动跟着走，
+    # 非 16:9 的窗口还会按黑边居中，不再依赖某台机器的像素值。
+    # 括号里是 1920x1080 舞台上的等效像素，方便对着截图核对。
+    SKILL_POS = P(81.06, 82.49)        # 技能键 btn_Skill，2026-11-09 实测（等效 1556,891；旧值 1539,897 偏 17,6）
+    MOVE_POS = P(90.00, 87.57)         # 移动键 btn_Move，2026-11-09 实测（等效 1728,946；旧值 1730,944 仅差 2px）
+    ATTACK_POS = P(58.36, 88.40)       # 「攻击 / 放过」两按钮弹窗里的攻击（等效 1120,955）
+    # 2026-11-09 实测确认：和 LEAVE_POS(41.17,87.99) 同一行、关于屏幕中心对称（中点 49.8%）。
+    # 战斗界面（带防御/闪避那屏）里的 READY 键是不是同一个位置，还没验证过 —— 若点不中再拆常量。
+    ATTACK_POS_ALT = P(50.00, 68.06)   # 树里 btn_Attack 中心，等效 (960, 735)，只作备用
+    LEAVE_POS = P(41.17, 87.99)        # 战斗「放过」btn_Leave，2026-11-09 实测（等效 790,950；旧值 794,952 仅差 4px）
+    DEFEND_POS = P(42.46, 83.33)       # 战斗「防御」btn_Defend，2026-11-09 实测（等效 815,900；旧值 820,895 差 7px）
+    DODGE_POS = P(57.23, 82.92)        # 战斗「闪避」btn_Dodge，2026-11-09 实测（等效 1099,896；旧值 1099,895 差 1px）
+    # 筹码三选一（5211）三个选项。现在选筹码走协议（NA.pick_relic），这组留给
+    # 「协议拿不到 sn（回 11018）时改用鼠标点」的兜底。
+    # 2026-11-09 主人逐个悬停实测：等效 (490,508) / (972,503) / (1446,501)；
+    # 间距 482 / 474、y 有轻微上浮，不是严格等距，所以用显式表而不是公式。
+    RELIC_SLOTS = [P(25.52, 47.04),    # ① 实测
+                   P(50.63, 46.57),    # ② 实测
+                   P(75.31, 46.39)]    # ③ 实测
+    # 筹码商店右下角「刷新」键（2026-11-09 实测，等效 1832,479）。当前代码未使用，
+    # 留给「三张都看不上、金币够」的刷新策略；刷新后要重新读一次 relic.ids。
+    RELIC_REFRESH_POS = P(95.42, 44.35)
+    # 筹码商店页面的「离开」键（2026-11-09 实测，等效 462,691）。注意它和卡牌商店的
+    # 「跳过」(38.75%,68.13%) 差了 282 像素 —— 两个商店是两个界面，不能共用。
+    RELIC_SHOP_LEAVE_POS = P(24.06, 63.96)
+    # 筹码商店的「购买」键（2026-11-09 实测，等效 738,689）：和「离开」同一行，右边。
+    # x 虽然和弹窗左键 (38.75%) 很像，但 y 差 4.3%（≈46px），是两个界面的不同按钮，别合并。
+    RELIC_SHOP_BUY_POS = P(38.44, 63.82)
+    # 卡牌商店的「跳过 / 离开」按钮（2026-11-09 实测，等效 742,740）。
+    # 正常离开走协议 NA.leave(sn)；这组留给「sn 读不到、协议发不出去」时改鼠标点。
+    SHOP_SKIP_POS = CL.POPUP_LEFT      # 名字保留，数值与停靠站「继续移动」共用一个源
+    # 卡牌商店三张牌的卡面位置（2026-11-09 实测 ①，②③ 待实测）。
+    # 买卡正常走协议 NA.buy([i], sn)，这组是同一类鼠标兜底；用 dict 是为了
+    # 允许“只测了一部分”的状态存在，缺的键在代码里当“不知道怎么点”处理。
+    SHOP_CARD_POS = {0: P(31.68, 39.44),   # ① 实测（等效 608,426）
+                     1: P(50.51, 38.82),   # ② 实测（等效 970,419）
+                     2: P(69.30, 38.75)}   # ③ 实测（等效 1330,419）
+    # 商店「购买」：和左键槽同一行（y 都 ≈68.5%），但 x 靠右。
+    SHOP_BUY_POS = P(61.72, 68.51)     # 商店「购买」：两次实测 61.60%/61.84%（差 5px）取中
+    # 和「停留」那个右键槽 (59.14,67.78) 相差 47 舞台像素，是另一个按钮，不能合并。
+    # 商店里的「转账」按钮（2026-11-09 实测，等效 1574,878）。目前引擎没有转账逻辑，
+    # 纯记录备用。注意它离技能键 (81.06,82.49) 只有 ~1.2% ≈ 23 舞台像素，
+    # 用之前必须确认弹的是商店而不是出牌面板，别把转账点到技能上。
+    SHOP_TRANSFER_POS = P(81.95, 81.32)
+    # 右下角的「隐藏 UI」键（2026-11-09 实测，等效 1813,881）。当前引擎未使用；
+    # 留给「截图/看地图时先把 HUD 收起来」这类需求（比如人工核对地图拓扑）。
+    HIDE_UI_POS = P(94.41, 81.53)
+    # 攻击出牌页里那颗「出牌后确定」（2026-11-09 实测，等效 1726,947）。
+    # 注意它和 MOVE_POS 基本是同一个位置（右下角那颗多功能按键，出牌阶段显示"确定"、
+    # 平时显示"移动"），和卡片选目标用的 CONFIRM(49.95,86.11) 完全不是一个键（差 767px）。
+    ATTACK_PLAY_CONFIRM_POS = P(89.88, 87.64)
     ATK_GATE_T = 21               # 地块类型：怪物突击门（可选突击一只怪物）
     # 突击门界面里「攻击那只怪物」的键：还没被主人指认过，None = 只认 UI 树不点固定坐标
     GATE_ATK_POS = None
@@ -494,12 +543,13 @@ class Coach:
         return cand[0]
 
     def handle_shop(self, act):
-        """卡牌商店：买（buy）/ 跳过（skip）。
+        """卡牌商店：买（buy）/ 跳过购买（buyskip）。
 
-        leave 已经取消，离开的两种情形合并进上面两个授权：
-            buy   → 挑一张买；买完（或没货 / 买不起）下一帧自动离开
-            skip  → 不买，直接离开
-        两个都授权时 buy 优先（全自动该买就买）。
+        leave 已经取消，离开的三种情形合并进上面的授权：
+            buy       → 挑一张买；买完（或没货 / 买不起）下一帧自动离开
+            buyskip   → 不买，直接离开（2026-11-09 从 skip 里剥出来的独立动作）
+            skip      → **不再管商店**（跳过购买交给 buyskip），保留是为了兼容旧用法
+        都授权时 buy 优先（全自动该买就买）。
         """
         aid = int(act.get("id") or 0)
         shop = act.get("shop") or {}
@@ -521,7 +571,12 @@ class Coach:
         price = int(shop.get("price") or 0)
         has_buy = "buy" in self.allow
         has_skip = "skip" in self.allow
-        if not (has_buy or has_skip):
+        has_buyskip = "buyskip" in self.allow
+        if not (has_buy or has_buyskip):
+            if has_skip and now - self._shop_t > 8:
+                self._shop_t = now
+                self.say("[商店] 到商店了，但「跳过购买」没授权 —— 发 /appa buyskip"
+                         "（或 /appa buy 买一张）")
             return False
 
         # ① 还想买：挑一张
@@ -543,10 +598,10 @@ class Coach:
         elif has_buy and not cards:
             self.say("[商店] 这个商店没有可读的货架（PVP 商店），只能离开")
 
-        # ② 走人：skip 授权，或者 buy 已经买过 / 没得买
+        # ② 走人：buyskip 授权，或者 buy 已经买过 / 没得买
         self._shop_t = now
         self.acted = {"what": "离开商店", "note": f"sn {sn}"}
-        self.say(f"[商店] 离开（sn {sn}｜{'跳过' if not has_buy else '已买过'}）")
+        self.say(f"[商店] 离开（sn {sn}｜{'跳过购买' if not has_buy else '已买过'}）")
         if not self.dry:
             NA.leave(sn)
             time.sleep(0.25)
@@ -588,12 +643,70 @@ class Coach:
             return best, f"品质 {quals[best]} 最高（候选 {ids}）"
         return 0, f"暂无品质信息，取第一个（候选 {ids}）"
 
+    def handle_relic_renew(self):
+        """筹码商店：点一次「刷新」换三张（`/appa relic renew`）。
+
+        坐标 RELIC_REFRESH_POS（2026-11-09 实测，舞台 1832,479）。
+        为什么不看 state 判页面：那个页面在 state 里往往是 act.id=None、没有可靠标记。
+        所以先看 UI 树里有没有 refresh / renew 之类的键；即使没看到也照点一次
+        （这是主人手动下的一次性指令），但会在日志里记一笔便于核对。
+        """
+        if "relicrenew" not in self.allow:
+            return False
+        now = time.time()
+        if now - self._renew_t < 3.0:
+            return False
+        seen = False
+        try:
+            cs, _err = PC._cands()
+            pat = _re.compile(r"refresh|renew|reroll|刷新|更换", _re.I)
+            seen = any(pat.search(c["name"] or "") or pat.search(c["cls"] or "")
+                       for c in (cs or []))
+        except Exception:                   # noqa: BLE001
+            seen = False
+        r = PC.setup()
+        if not r:
+            return False
+        hwnd, origin, scale = r[0], r[1], r[2]
+        ax, ay = self.RELIC_REFRESH_POS
+        self._renew_t = now
+        self.acted = {"what": "刷新筹码", "note": f"舞台({ax:.0f},{ay:.0f})"}
+        if self.dry:
+            return True
+        PC.do_click(hwnd, origin, scale, ax, ay, label="刷新 ")
+        self.say(f"[筹码] 点「刷新」换三张（舞台 {ax:.0f},{ay:.0f}）"
+                 + ("" if seen else "｜注意：UI 树里没看到刷新键，按指令照点"))
+        return True
+
+    def _relic_pick_by_mouse(self, idx):
+        """协议拿不到 sn 时的兜底：点第 idx 个筹码，再点「确定」。
+
+        页面流程（主人 2026-11-09 确认）：筹码商店点「购买」→ 三选一 → 点「确定」。
+        坐标全部实测：RELIC_SLOTS[idx] 与 PT.CONFIRM。只在 state 明确报 5211
+        三选一的时候才会走到这里，不会盲点。
+        """
+        if idx < 0 or idx >= len(self.RELIC_SLOTS):
+            return False
+        r = PC.setup()
+        if not r:
+            return False
+        hwnd, origin, scale = r[0], r[1], r[2]
+        ax, ay = self.RELIC_SLOTS[idx]
+        PC.do_click(hwnd, origin, scale, ax, ay, dry=self.dry, label=f"筹码{idx + 1} ")
+        if self.dry:
+            return True
+        time.sleep(0.45)
+        cx, cy = PT.CONFIRM
+        PC.do_click(hwnd, origin, scale, cx, cy, dry=self.dry, label="确定 ")
+        return True
+
     def handle_relic(self, act):
         """筹码：三选一（5211）/ 问要不要买（5249）。
 
-        relic 三选一挑品质最高的（只管「选筹码」这一件事）
-        buy   三选一挑品质最高的、5249 直接买
-        skip  三选一取第一个（必须选一个走人）、5249 拒绝购买
+        relic    三选一挑品质最高的（只管「选筹码」这一件事）
+        buy      三选一挑品质最高的、5249 直接买
+        relicskip 5249 拒绝购买（只管「买不买筹码」，2026-11-09 从 skip 里剥出来）
+        skip     三选一取第一个（必须选一个走人）；**不再管 5249**（交给 buyskip）
 
         三选一的 sn 只认 relic.sn：这个号读不到时传 0，服务端会回
         11018「动作不存在于预计表里」——实测踩过，所以 sn 缺失就等下一帧，宁可不发。
@@ -603,6 +716,7 @@ class Coach:
         has_buy = "buy" in self.allow
         has_relic = "relic" in self.allow
         has_skip = "skip" in self.allow
+        has_relicskip = "relicskip" in self.allow
         wants_pick = has_buy or has_relic
 
         if aid == RELIC_PICK_ID:
@@ -617,7 +731,19 @@ class Coach:
                              "（/appa relic 只负责选筹码）")
                 return False
             sn = int(rel.get("sn") or act.get("sn") or 0)
-            if sn <= 0:                     # 宁可等，也不能发 0 去骗服务端
+            if sn <= 0:
+                # 协议发不出去（发 0 会回 11018）：等 3 秒还读不到 sn，就改用鼠标点。
+                # 页面是「筹码商店购买 → 三选一 → 确定」，坐标已实测（RELIC_SLOTS + CONFIRM）。
+                if now - self._relic_t > 3.0 and now - self._relic_mouse_t > 6.0:
+                    if wants_pick:
+                        idx, why = self._relic_pick(ids, rel.get("q") or [])
+                    else:
+                        idx, why = 0, "跳过：只取第一个（候选 %s）" % (ids,)
+                    if self._relic_pick_by_mouse(idx):
+                        self._relic_mouse_t = now
+                        self.acted = {"what": f"选筹码 #{idx}（鼠标）", "note": why}
+                        self.say(f"[筹码] 协议读不到 sn，改用鼠标点第 {idx} 个 + 确定（{why}）")
+                        return True
                 if now - self._relic_t > 8:
                     self._relic_t = now
                     self.say(f"[筹码] 三选一到了（{ids}）但没读到 sn，等下一帧再发"
@@ -638,7 +764,10 @@ class Coach:
             return True
 
         if aid == RELIC_BUY_ID:
-            if not (wants_pick or has_skip):
+            if not (wants_pick or has_relicskip):
+                if has_skip and now - self._relic_t > 8:
+                    self._relic_t = now
+                    self.say("[筹码] 问要不要买，但「跳过购买筹码」没授权 —— 发 /appa relicskip")
                 return False
             sn = int(act.get("sn") or 0)
             if sn <= 0:
@@ -653,8 +782,8 @@ class Coach:
                     NA.buy_relic(sn)
                     time.sleep(0.25)
             else:
-                self.acted = {"what": "跳过买筹码", "note": f"sn {sn}"}
-                self.say(f"[筹码] 不买（sn {sn}）")
+                self.acted = {"what": "跳过购买筹码", "note": f"sn {sn}"}
+                self.say(f"[筹码] 跳过购买筹码（sn {sn}）")
                 if not self.dry:
                     NA.skip_relic(sn)
                     time.sleep(0.25)
@@ -958,7 +1087,10 @@ class Coach:
         return self._fight_open
 
     def handle_fight_ui(self):
-        """战斗界面已经开着时替主人点一下：攻击 / 防御 / 放过。
+        """战斗界面已经开着时替主人点一下：攻击 / 确定 / 防御 / 放过。
+
+        「确定」= 攻击或防御出牌页右下角那颗「出牌后确定」（ATTACK_PLAY_CONFIRM_POS，
+        和移动键基本同位置），出完牌点它提交本轮；`/appa ok` 只管这一件事。
 
         state 在这种时候是 stage=none、act id=-1、只有 battle=1，
         5047/5039 那种二选一弹窗根本看不到 —— 只靠 act 判断会一直「空闲」干等。
@@ -968,11 +1100,11 @@ class Coach:
         skip 实测没点放过也没点取消，一颗键都没按下去。
         闪避只走协议层（5039 的 dodge），界面上不替主人躲。
 
-        atk 在战斗界面 = 点那颗 READY（准备 / 攻击）键，ATTACK_POS = (512,761)。
+        atk 在战斗界面 = 点「攻击/放过」弹窗里的攻击键，ATTACK_POS（2026-11-09 实测 58.36%,88.40%）。
         主人的用法是「突击格选完怪 → 5047 打 → 战斗界面再发一次 /appa atk」，
         所以这里不需要看手牌，有 atk 授权就直接按，别去替他挑牌。
         """
-        want = [k for k in ("atk", "def", "skip") if k in self.allow]
+        want = [k for k in ("atk", "ok", "def", "skip") if k in self.allow]
         if not want:
             return False
         now = time.time()
@@ -980,12 +1112,16 @@ class Coach:
             return False
         if not self.fight_open():
             return False
-        # 坐标一律用常量：树里那三颗键只是「有没有这个界面」的信号，
-        # 位置以主人指认的为准（btn_Attack 中心点了没反应）。
+        # 坐标以主人指认的常量为准：树里那三颗键只是「有没有这个界面」的信号，
+        # 位置不可信（ax/ay 是设计空间/父相对坐标，实测与画面差 200 像素以上）。
+        # 攻击另带一个备用位：点完 1.1 秒若战斗界面还开着（没点中），再补一次。
         pos = {"atk": (self.ATTACK_POS, "攻击"),
+               "ok": (self.ATTACK_PLAY_CONFIRM_POS, "确定"),
                "def": (self.DEFEND_POS, "防御"),
                "skip": (self.LEAVE_POS, "放过")}
-        kind = "atk" if "atk" in want else ("def" if "def" in want else "skip")
+        kind = ("atk" if "atk" in want else
+                "ok" if "ok" in want else
+                "def" if "def" in want else "skip")
         (cx, cy), cn = pos[kind]
         self._fight_t = now
         self.acted = {"what": f"战斗：{cn}", "note": f"舞台({cx},{cy})"}
@@ -997,6 +1133,14 @@ class Coach:
         hwnd, origin, scale = r[0], r[1], r[2]
         PC.do_click(hwnd, origin, scale, cx, cy, label=f"{cn} ")
         self.say(f"[战斗] 战斗界面：点「{cn}」舞台({cx},{cy})")
+        if kind == "atk":
+            # 没点中时兜一下：界面还开着就说明这一下没生效
+            time.sleep(1.1)
+            self._fight_open = None            # 缓存作废，重新导树判断
+            if self.fight_open():
+                ax, ay = self.ATTACK_POS_ALT
+                PC.do_click(hwnd, origin, scale, ax, ay, label=f"{cn}(备用位) ")
+                self.say(f"[战斗] 攻击键第一下没生效，补点备用位 舞台({ax},{ay})")
         return True
 
     def handle_fight_card(self, act, st, me):
@@ -1301,6 +1445,11 @@ class Coach:
             payload["stage"] = "shop"
             return payload
         if self.handle_relic(act):
+            payload["event"] = self.last_event
+            payload["acted"] = self.acted
+            payload["stage"] = "relic"
+            return payload
+        if self.handle_relic_renew():
             payload["event"] = self.last_event
             payload["acted"] = self.acted
             payload["stage"] = "relic"

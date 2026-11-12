@@ -19,6 +19,7 @@ import time
 from ctypes import wintypes
 
 import click as CL
+from click import P
 
 user32 = ctypes.windll.user32
 gdi32 = ctypes.windll.gdi32
@@ -31,9 +32,10 @@ except Exception:  # noqa: BLE001
     except Exception:  # noqa: BLE001
         pass
 
-# 舞台坐标（1920x1080 基准）—— 实测所得，别凭感觉改
-LEFT_BTN = (746.0, 736.0)
-RIGHT_BTN = (1142.0, 736.0)
+# 按钮中心：按百分比记（见 click.P / click.geom），换窗口尺寸不用重标
+LEFT_BTN = CL.POPUP_LEFT       # 继续移动 / 攻击 —— 与商店「跳过」共用同一位置槽
+RIGHT_BTN = P(59.14, 67.78)    # 停留 / 不攻击（2026-11-09 实测 1136,732；旧值 1142,736 仅差 7px）
+# 注意：这个右键槽和卡牌商店的「购买」(61.84%, 68.47%) 相差 52 舞台像素，是两套位置，不能合并。
 # 单点取色窗口（舞台单位）。块小一点，配合多点采样，绕开中间那行白字
 PATCH_W, PATCH_H = 40.0, 18.0
 # 采样点相对按钮中心的偏移。

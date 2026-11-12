@@ -268,5 +268,15 @@
   "color": null,
   "img": "https://patchwiki.biligame.com/images/starengine/7/70/couyuatw9fxibkci6pe46wogvri9jgq.png",
   "variants": 1
+ },
+ {
+  "type": 28,
+  "name": "植物建筑商店",
+  "en": "PlantBuildingShop",
+  "desc": "经过或停留时，可以购买随机植物建筑卡牌",
+  "wiki_name": "植物建筑商店",
+  "color": null,
+  "img": "",
+  "variants": 1
  }
 ]

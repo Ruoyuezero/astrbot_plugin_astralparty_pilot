@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """出牌点击链 —— 点牌 → 选格 → 确认，全程走操作系统输入，不碰内存、不发包。
 
@@ -242,7 +242,7 @@ def cmd_btn(args):
 #   路障类            → 点地图上的地块
 # 这些后续步各不一样，所以本命令只负责「拖到中心」这一公共动作。
 
-DROP_CX, DROP_CY = 960.0, 540.0     # 舞台中心，所有牌的共同投放点
+DROP_CX, DROP_CY = 960.0, 540.0     # 舞台中心（= 50%,50%），所有牌的共同投放点
 
 
 def _pick_card(ui, card_id=None, index=None):
@@ -298,7 +298,6 @@ def cmd_dragto(args):
 # 另有骰子类（遥控骰子 20005，target 是 none）拖完后要在屏幕中间选 1-6 点数。
 
 KB_CARDS = os.path.join(os.path.dirname(HERE), "kb", "cards.json")
-DICE_CARDS = {"20005"}          # 遥控骰子：拖完后选点数
 
 
 def kb_card(card_id):
@@ -316,23 +315,25 @@ def kb_card(card_id):
 
 
 def followup_of(card_id):
-    """返回 (后续步骤代号, 人话说明)。"""
-    if str(card_id) in DICE_CARDS:
-        return "dice", "拖到中心后要在屏幕中间选 1-6 点数"
+    """返回 (后续步骤代号, 人话说明)。
+
+    一律以 kb/cards.json 的 `play` 字段为准（2026-11-09 主人定：旧的 target 启发式扔掉）。
+    """
     c = kb_card(card_id)
     if not c:
         return "unknown", "知识库查不到这张牌，保守处理：拖完先看画面再决定"
-    t = str(c.get("target") or "")
     name = c.get("name", "")
-    if t == "none":
-        return "done", f"《{name}》无需目标，拖到中心即生效"
-    if t == "Land":
-        return "land", f"《{name}》需要点地图地块"
-    if t == "Entity":
-        if name.startswith("对怪"):
-            return "monster", f"《{name}》需要屏幕中央选怪物"
-        return "entity", f"《{name}》需要指定角色（怪物→中央选；玩家→左侧点头像）"
-    return "battle", f"《{name}》是战斗牌，应在战斗界面出，不走拖拽"
+    play = str(c.get("play") or "").strip().lower()
+    table = {
+        "none":    ("done",    f"《{name}》无需目标，拖到中心即生效"),
+        "mate":    ("entity",  f"《{name}》要指定队友（左侧点头像，不含自己）"),
+        "monster": ("monster", f"《{name}》要选目标（中央选怪窗；PVP 里也可能是玩家）"),
+        "all":     ("all",     f"《{name}》是全员牌，点法还没实测，暂不出"),
+        "land":    ("land",    f"《{name}》要点头地块"),
+        "special": ("special", f"《{name}》是特殊牌（骰子/双目标/PVP 反击/限时），暂不出"),
+        "battle":  ("battle",  f"《{name}》是战斗牌，在战斗界面出，不走拖拽"),
+    }
+    return table.get(play, ("unknown", f"《{name}》没有 play 字段，保守跳过"))
 
 
 def cmd_play(args):
@@ -350,7 +351,7 @@ def cmd_play(args):
     cid = target.get("card")
     step, why = followup_of(cid)
     print(f"# 出牌 card={cid}  后续={step}  {why}")
-    if step == "battle" and not args.force:
+    if step in ("battle", "special", "all", "unknown") and not args.force:
         print("✗ 战斗牌不走拖拽，已中止（确要试可加 --force）")
         return 1
 
