@@ -118,6 +118,7 @@ HELP_SECTIONS = [
         ("/app hero", "列出全部角色（局内小人，数字为角色 ID）"),
         ("/app hero <名字|ID>", "角色卡（立绘 + 属性 + 技能，认别名）"),
         ("/app skin <名字|ID>", "皮肤总览（第一行各皮肤小人，后面立绘）"),
+        ("/app skin <名字|ID>-<序>", "只看第 N 套：局内小人 + 立绘，如 /app skin 124-3"),
         ("/app cg <名字|ID>", "角色全部战斗 CG（一行两张）"),
         ("/app cg <名字|ID>-<排>", "只看第 N 排的两张，如 /app cg 124-3"),
         ("/app emoji <名字|ID>", "角色表情包（8 个一行）"),
@@ -168,6 +169,7 @@ HELP_SECTIONS = [
         ("/appa ok", "确定：出牌页出完牌后点「确定」提交本轮"),
         ("/appa cg <名字|ID>[-排]", "看战斗 CG（只读，同 /app cg，不碰对局）"),
         ("/appa emoji <名字|ID>[-序]", "看表情包（只读，同 /app emoji，不碰对局）"),
+        ("/appa skin <名字|ID>[-序]", "看皮肤小人 + 立绘（只读，同 /app skin，不碰对局）"),
     ]),
 ]
 
@@ -1224,12 +1226,35 @@ class AstralPartyPilotPlugin(Star):
             yield event.plain_result("渲染简介卡出错了，先用文字版：\n" + fmt_hero(h))
 
     async def _app_hero_skins(self, event: AstrMessageEvent, joined: str):
+        """皮肤：/app skin 124 出总览；/app skin 124-3 出第 3 套的小人 + 立绘。"""
         if not joined:
             yield event.plain_result("要带上角色名字哦，例如：/app skin 照")
             return
+        idx = 0
+        m = _CG_ROW_RE.match(joined.strip())
+        if m:
+            joined, idx = m.group(1).strip(), int(m.group("row"))
         h, _via = _hero_resolve(joined)
         if not h:
             yield event.plain_result(f"知识库里没有「{joined}」这位角色呢")
+            return
+        if idx:
+            sets = AR.hero_skin_sets(h)
+            if not sets:
+                yield event.plain_result(f"素材库里没有「{h['name']}」的皮肤图呢")
+                return
+            if idx < 1 or idx > len(sets):
+                yield event.plain_result(
+                    f"「{h['name']}」一共 {len(sets)} 套皮肤，没有第 {idx} 套呢～")
+                return
+            _sfx, lab, chibi, port = sets[idx - 1]
+            if not chibi and not port:
+                yield event.plain_result(f"「{h['name']}」第 {idx} 套（{lab}）没有图呢")
+                return
+            if chibi:
+                yield event.image_result(chibi)
+            if port:
+                yield event.image_result(port)
             return
         try:
             fd, tmp = tempfile.mkstemp(suffix=".png", prefix="app_skins_")
@@ -1792,6 +1817,10 @@ class AstralPartyPilotPlugin(Star):
             return
         if sub in ("emoji", "emote", "表情", "表情包"):
             async for result in self._app_hero_emoji(event, joined):
+                yield result
+            return
+        if sub in ("skin", "skins", "皮肤"):
+            async for result in self._app_hero_skins(event, joined):
                 yield result
             return
 

@@ -54,6 +54,7 @@
 | `/app hero`             | 全角色图鉴                                                          |
 | `/app hero <名字\|ID>`    | 角色简介卡（立绘 + 属性 + 技能，支持别名与模糊匹配）                                  |
 | `/app skin <名字\|ID>`    | 角色皮肤一览                                                         |
+| `/app skin <名字\|ID>-<序>` | 只看第 N 套皮肤：局内小人 + 立绘，如 `/app skin 124-3`（`/appa skin` 同效）  |
 | `/app cg <名字\|ID>`      | 角色战斗 CG                                                        |
 | `/app cg <名字\|ID>-<排>`   | 只看第 N 排的两张 CG，如 `/app cg 124-3`（`/appa cg` 同效）                  |
 | `/app emoji <名字\|ID>`   | 角色表情包                                                          |

@@ -918,6 +918,28 @@ def _form_meta_lines(f: dict) -> list[str]:
 
 
 # ---------------------------------------------------------------- 立绘总览 ----
+def hero_skin_sets(hero: dict) -> list[tuple[str, str, str | None, str | None]]:
+    """[(皮肤后缀, 标签, 局内小人路径, 立绘路径)]：原始在最前，其次 01…，最后 Max。"""
+    chibi = dict(artlib.hero_chibi(hero["id"]))
+    ports = dict(artlib.hero_portraits(hero["id"]))
+
+    def key(s):
+        s = str(s or "")
+        if s == "":
+            return (0, 0)
+        if s.lower() == "max":
+            return (2, 0)
+        try:
+            return (1, int(s))
+        except ValueError:
+            return (3, s)
+
+    out = []
+    for sfx in sorted(set(chibi) | set(ports), key=key):
+        out.append((sfx, _skin_tags(hero, sfx)[0], chibi.get(sfx), ports.get(sfx)))
+    return out
+
+
 def render_hero_skins(hero: dict, out_path: str, cols: int = 3,
                       cell_w: int = 380, cell_h: int = 540) -> str:
     """皮肤总览：第一段是局内小人各皮肤（一行），第二段是立绘（一行三张）。"""
