@@ -167,9 +167,6 @@ HELP_SECTIONS = [
         ("/appa dodge", "闪避：被打时躲开这次攻击"),
         ("/appa skip", "跳过：开战选不打、出牌阶段点「取消」、战斗界面点「放过」"),
         ("/appa ok", "确定：出牌页出完牌后点「确定」提交本轮"),
-        ("/appa cg <名字|ID>[-排]", "看战斗 CG（只读，同 /app cg，不碰对局）"),
-        ("/appa emoji <名字|ID>[-序]", "看表情包（只读，同 /app emoji，不碰对局）"),
-        ("/appa skin <名字|ID>[-序]", "看皮肤小人 + 立绘（只读，同 /app skin，不碰对局）"),
     ]),
 ]
 
@@ -222,7 +219,7 @@ _ACT_WAIT = {
     "buyskip": 15.0, "relicskip": 15.0, "ok": 15.0, "relicrenew": 15.0,
 }
 
-# /app cg 124-3、/app emoji 124-3：角色 +「-序号」
+# /app cg / skin / emoji 的 124-3：角色 +「-序号」，只对 /app 生效
 _CG_ROW_RE = re.compile(r"^(?P<hero>.+?)[-—–](?P<row>\d{1,2})$")
 
 def _clip(text: str, limit: int) -> str:
@@ -1810,27 +1807,12 @@ class AstralPartyPilotPlugin(Star):
                 yield result
             return
 
-        # 图鉴类（只读）：/appa cg 124-3 和 /app cg 124-3 同一套，出图不碰游戏
-        if sub in ("cg", "bust", "战斗cg"):
-            async for result in self._app_hero_cg(event, joined):
-                yield result
-            return
-        if sub in ("emoji", "emote", "表情", "表情包"):
-            async for result in self._app_hero_emoji(event, joined):
-                yield result
-            return
-        if sub in ("skin", "skins", "皮肤"):
-            async for result in self._app_hero_skins(event, joined):
-                yield result
-            return
-
         act = PILOT_ACT_ALIAS.get(sub)
         if not act:
             yield event.plain_result(
                 f"「{sub}」不是 /appa 的子命令呢～可用的有：\n"
                 "· 开关：on（全自动）· off（自主操控）· me（查本机）· sid（登录票）\n"
                 "· 单项：card / skill / go / choose / stop / relic / buy / buyskip / relicskip / atk / def / dodge / skip / ok\n"
-                "· 图鉴：cg <名字|ID>[-排]（同 /app cg，只出图）\n"
                 "· 不带参数：把代打组件注入游戏根目录（游戏要关着）\n"
                 "· rm：按注入清单撤回注入的文件（先备份，清单外的不动）\n"
                 "完整说明发 /app help 看「陪玩」那一节")
