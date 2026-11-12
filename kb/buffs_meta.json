@@ -1333,5 +1333,89 @@
   "desc": "防御力-3，移动速度-9",
   "desc_src": "id",
   "srcs": []
+ },
+ {
+  "name": "金鲤化龙",
+  "aka": [],
+  "ids": [
+   "1301203"
+  ],
+  "icon": "buff/UT_Buff_130_Awake.png",
+  "icon_kind": "buff",
+  "desc": "每层【金鳞】额外使自身攻击力 +1，主动技能放置葫芦饮改为放置仙酿。",
+  "desc_src": "game",
+  "srcs": [
+   "角色 130 金鳞御使·不醉不归"
+  ]
+ },
+ {
+  "name": "葫芦饮",
+  "aka": [],
+  "ids": [
+   "1301205"
+  ],
+  "icon": "buff/UT_Buff_AttackUp.png",
+  "icon_kind": "buff",
+  "desc": "攻击力 +3，持续 2 回合（苍鲤主动技能放置的地块效果产物）。",
+  "desc_src": "game",
+  "srcs": [
+   "角色 130 金鳞御使·把酒言欢"
+  ]
+ },
+ {
+  "name": "仙酿",
+  "aka": [],
+  "ids": [
+   "1301207"
+  ],
+  "icon": "buff/UT_Buff_AttackUp.png",
+  "icon_kind": "buff",
+  "desc": "攻击力 +4，持续 2 回合（【金鲤化龙】后由葫芦饮升级而来）。",
+  "desc_src": "game",
+  "srcs": [
+   "角色 130 金鳞御使·不醉不归"
+  ]
+ },
+ {
+  "name": "救急援助",
+  "aka": [],
+  "ids": [
+   "10750101"
+  ],
+  "icon": "buff/UT_Buff_1075.png",
+  "icon_kind": "buff",
+  "desc": "攻击力 +2，防御力 +2，持续 2 回合。",
+  "desc_src": "game",
+  "srcs": [
+   "怪物 1075 急救兔兔·紧急救援"
+  ]
+ },
+ {
+  "name": "超强精力",
+  "aka": [],
+  "ids": [
+   "10711102"
+  ],
+  "icon": "buff/UT_Buff_1071_01.png",
+  "icon_kind": "buff",
+  "desc": "每层使自身攻击力 +2；被角色挑战后，层数 -1。",
+  "desc_src": "game",
+  "srcs": [
+   "怪物 1071 孩子王嘎呜·好奇心"
+  ]
+ },
+ {
+  "name": "嘎呜的关注",
+  "aka": [],
+  "ids": [
+   "10711103"
+  ],
+  "icon": "buff/UT_Buff_1071_02.png",
+  "icon_kind": "buff",
+  "desc": "防御力 -1，移动速度 -1。",
+  "desc_src": "game",
+  "srcs": [
+   "怪物 1071 孩子王嘎呜·我可不好惹"
+  ]
  }
 ]

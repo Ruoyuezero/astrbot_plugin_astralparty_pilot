@@ -6,7 +6,7 @@
   "monsters": 70,
   "events": 32,
   "map_events": 43,
-  "buffs": 311,
+  "buffs": 323,
   "states": 27,
   "lands": 28,
   "maps": 21,
@@ -16,7 +16,8 @@
   "hero_aliases": 54,
   "monster_aliases": 81,
   "relic_aliases": 69,
-  "heroes": 36
+  "heroes": 36,
+  "buffs_with_icon": 109
  },
  "files": {
   "cards": "kb/cards.json",
