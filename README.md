@@ -57,6 +57,7 @@
 | `/app cg <名字\|ID>`      | 角色战斗 CG                                                        |
 | `/app cg <名字\|ID>-<排>`   | 只看第 N 排的两张 CG，如 `/app cg 124-3`（`/appa cg` 同效）                  |
 | `/app emoji <名字\|ID>`   | 角色表情包                                                          |
+| `/app emoji <名字\|ID>-<序>` | 只看第 N 张表情，如 `/app emoji 124-3`（`/appa emoji` 同效）              |
 | `/app relic`            | 全筹码图鉴（按流派分组）                                                   |
 | `/app relic <名字\|ID>`   | 单筹码详情（品质 + 流派 + 效果说明，认别名）                                      |
 | `/app achieve`          | 全成就图鉴                                                          |

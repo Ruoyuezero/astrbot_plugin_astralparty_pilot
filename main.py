@@ -121,6 +121,7 @@ HELP_SECTIONS = [
         ("/app cg <名字|ID>", "角色全部战斗 CG（一行两张）"),
         ("/app cg <名字|ID>-<排>", "只看第 N 排的两张，如 /app cg 124-3"),
         ("/app emoji <名字|ID>", "角色表情包（8 个一行）"),
+        ("/app emoji <名字|ID>-<序>", "只看第 N 张表情，如 /app emoji 124-3"),
     ]),
     ("🎯", "筹码图鉴", [
         ("/app relic", "列出全部筹码（按流派分组，图标 + 编号 + 名称）"),
@@ -166,6 +167,7 @@ HELP_SECTIONS = [
         ("/appa skip", "跳过：开战选不打、出牌阶段点「取消」、战斗界面点「放过」"),
         ("/appa ok", "确定：出牌页出完牌后点「确定」提交本轮"),
         ("/appa cg <名字|ID>[-排]", "看战斗 CG（只读，同 /app cg，不碰对局）"),
+        ("/appa emoji <名字|ID>[-序]", "看表情包（只读，同 /app emoji，不碰对局）"),
     ]),
 ]
 
@@ -218,7 +220,7 @@ _ACT_WAIT = {
     "buyskip": 15.0, "relicskip": 15.0, "ok": 15.0, "relicrenew": 15.0,
 }
 
-# /app cg 124-3：角色 +「-排号」，只出该排的两张（/appa cg 同）
+# /app cg 124-3、/app emoji 124-3：角色 +「-序号」
 _CG_ROW_RE = re.compile(r"^(?P<hero>.+?)[-—–](?P<row>\d{1,2})$")
 
 def _clip(text: str, limit: int) -> str:
@@ -1280,12 +1282,28 @@ class AstralPartyPilotPlugin(Star):
             yield event.plain_result(f"渲染「{h['name']}」的战斗CG出错了：{exc}")
 
     async def _app_hero_emoji(self, event: AstrMessageEvent, joined: str):
+        """表情包：/app emoji 124 出总览；/app emoji 124-3 只出第 3 张。"""
         if not joined:
             yield event.plain_result("要带上角色名字或编号哦，例如：/app emoji 124")
             return
+        idx = 0
+        m = _CG_ROW_RE.match(joined.strip())
+        if m:
+            joined, idx = m.group(1).strip(), int(m.group("row"))
         h, _via = _hero_resolve(joined)
         if not h:
             yield event.plain_result(f"知识库里没有「{joined}」这位角色呢")
+            return
+        if idx:
+            items = AL.hero_emojis(h["id"])
+            if not items:
+                yield event.plain_result(f"素材库里没有「{h['name']}」的表情包呢")
+                return
+            if idx < 1 or idx > len(items):
+                yield event.plain_result(
+                    f"「{h['name']}」一共 {len(items)} 张表情，没有第 {idx} 张呢～")
+                return
+            yield event.image_result(items[idx - 1][1])
             return
         if not AL.hero_emojis(h["id"]):
             yield event.plain_result(f"素材库里没有「{h['name']}」的表情包呢")
@@ -1770,6 +1788,10 @@ class AstralPartyPilotPlugin(Star):
         # 图鉴类（只读）：/appa cg 124-3 和 /app cg 124-3 同一套，出图不碰游戏
         if sub in ("cg", "bust", "战斗cg"):
             async for result in self._app_hero_cg(event, joined):
+                yield result
+            return
+        if sub in ("emoji", "emote", "表情", "表情包"):
+            async for result in self._app_hero_emoji(event, joined):
                 yield result
             return
 
