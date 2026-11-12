@@ -1022,8 +1022,8 @@ def render_hero_skins(hero: dict, out_path: str, cols: int = 3,
 
 
 # ---------------------------------------------------------------- 战斗CG ----
-def render_hero_cg(hero: dict, out_path: str, cols: int = 2,
-                   cell_w: int = 600, cell_h: int = 346) -> str:
+def hero_cg_frames(hero: dict) -> list[tuple[str, str]]:
+    """按 /app cg 的展示顺序返回 [(标签, 图片路径)]：先皮肤（原始 → 01…→ Max），再帧序。"""
     frames: list[tuple[str, str]] = []
     for sfx, fr in artlib.hero_cgs(hero["id"]):
         for idx in sorted(fr):
@@ -1031,6 +1031,12 @@ def render_hero_cg(hero: dict, out_path: str, cols: int = 2,
             if len(fr) > 1:
                 lab += f" · {idx + 1}"
             frames.append((lab, fr[idx]))
+    return frames
+
+
+def render_hero_cg(hero: dict, out_path: str, cols: int = 2,
+                   cell_w: int = 600, cell_h: int = 346) -> str:
+    frames = hero_cg_frames(hero)
     if not frames:
         raise FileNotFoundError("没有找到该角色的战斗CG")
 

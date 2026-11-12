@@ -119,6 +119,7 @@ HELP_SECTIONS = [
         ("/app hero <名字|ID>", "角色卡（立绘 + 属性 + 技能，认别名）"),
         ("/app skin <名字|ID>", "皮肤总览（第一行各皮肤小人，后面立绘）"),
         ("/app cg <名字|ID>", "角色全部战斗 CG（一行两张）"),
+        ("/app cg <名字|ID>-<排>", "只看第 N 排的两张，如 /app cg 124-3"),
         ("/app emoji <名字|ID>", "角色表情包（8 个一行）"),
     ]),
     ("🎯", "筹码图鉴", [
@@ -215,6 +216,9 @@ _ACT_WAIT = {
     "go": 15.0, "choose": 15.0, "stop": 15.0, "buy": 15.0, "relic": 15.0,
     "buyskip": 15.0, "relicskip": 15.0, "ok": 15.0, "relicrenew": 15.0,
 }
+
+# /app cg 124-3：角色 +「-排号」，只出该排的两张（/appa cg 同）
+_CG_ROW_RE = re.compile(r"^(?P<hero>.+?)[-—–](?P<row>\d{1,2})$")
 
 def _clip(text: str, limit: int) -> str:
     text = text.strip()
@@ -1234,12 +1238,36 @@ class AstralPartyPilotPlugin(Star):
             yield event.plain_result(f"渲染「{h['name']}」的立绘出错了：{exc}")
 
     async def _app_hero_cg(self, event: AstrMessageEvent, joined: str):
+        """战斗 CG：/app cg 124 出总览；/app cg 124-3 只出第 3 排的两张。"""
         if not joined:
             yield event.plain_result("要带上角色名字哦，例如：/app cg 照")
             return
+        row = 0
+        m = _CG_ROW_RE.match(joined.strip())
+        if m:
+            joined, row = m.group(1).strip(), int(m.group(2))
         h, _via = _hero_resolve(joined)
         if not h:
             yield event.plain_result(f"知识库里没有「{joined}」这位角色呢")
+            return
+        if row:
+            try:
+                frames = AR.hero_cg_frames(h)
+            except Exception:  # noqa: BLE001
+                frames = []
+            if not frames:
+                yield event.plain_result(f"素材库里没有「{h['name']}」的战斗 CG 呢")
+                return
+            per = 2
+            start = (row - 1) * per
+            total_rows = (len(frames) + per - 1) // per
+            if row < 1 or start >= len(frames):
+                yield event.plain_result(
+                    f"「{h['name']}」一共 {len(frames)} 张战斗 CG（{total_rows} 排），"
+                    f"没有第 {row} 排呢～")
+                return
+            for _lab, path in frames[start:start + per]:
+                yield event.image_result(path)
             return
         try:
             fd, tmp = tempfile.mkstemp(suffix=".png", prefix="app_cg_")
@@ -1738,12 +1766,19 @@ class AstralPartyPilotPlugin(Star):
                 yield result
             return
 
+        # 图鉴类（只读）：/appa cg 124-3 和 /app cg 124-3 同一套，出图不碰游戏
+        if sub in ("cg", "bust", "战斗cg"):
+            async for result in self._app_hero_cg(event, joined):
+                yield result
+            return
+
         act = PILOT_ACT_ALIAS.get(sub)
         if not act:
             yield event.plain_result(
                 f"「{sub}」不是 /appa 的子命令呢～可用的有：\n"
                 "· 开关：on（全自动）· off（自主操控）· me（查本机）· sid（登录票）\n"
                 "· 单项：card / skill / go / choose / stop / relic / buy / buyskip / relicskip / atk / def / dodge / skip / ok\n"
+                "· 图鉴：cg <名字|ID>[-排]（同 /app cg，只出图）\n"
                 "· 不带参数：把代打组件注入游戏根目录（游戏要关着）\n"
                 "· rm：按注入清单撤回注入的文件（先备份，清单外的不动）\n"
                 "完整说明发 /app help 看「陪玩」那一节")
