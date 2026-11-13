@@ -212,11 +212,14 @@ PILOT_ACT_CN = {"card": "出牌", "skill": "开技能", "go": "移动/继续", "
 # → 点目标 → 确认 → 校验手牌，实测 9~13 秒。其余动作按经验给余量。
 # 注意这只是「基准」，引擎挂着 coach_busy.json 时会自动续期（见 _appa_wait_once）。
 _ACT_WAIT = {
-    "card": 25.0,
-    "skill": 18.0,
-    "atk": 18.0, "def": 18.0, "dodge": 18.0, "skip": 18.0,
-    "go": 15.0, "choose": 15.0, "stop": 15.0, "buy": 15.0, "relic": 15.0,
-    "buyskip": 15.0, "relicskip": 15.0, "ok": 15.0, "relicrenew": 15.0,
+    # 一次性动作都是「发出去 → 等引擎在合适的时机做」。等的过程里阶段可能还没到
+    # （最典型：/appa card 发在别人回合），所以窗口要覆盖到「轮到我」那一下，
+    # 不然会白等 25 秒就报错，而引擎其实还在等阶段。
+    "card": 60.0,
+    "skill": 40.0,
+    "atk": 30.0, "def": 30.0, "dodge": 30.0, "skip": 30.0,
+    "go": 25.0, "choose": 25.0, "stop": 25.0, "buy": 25.0, "relic": 25.0,
+    "buyskip": 25.0, "relicskip": 25.0, "ok": 30.0, "relicrenew": 25.0,
 }
 
 # /app cg / skin / emoji 的 124-3：角色 +「-序号」，只对 /app 生效
@@ -2369,7 +2372,11 @@ class AstralPartyPilotPlugin(Star):
                 note = str(d.get("fight_note") or "").strip()
                 return head + (note + "。" if note else "战斗界面里没出成这张战斗牌。")
             if stage != "card":
-                return head + f"现在不是出牌阶段 —— 当前是「{stage_cn}」。"
+                spent_cn = f"{spent:.0f} 秒" if spent else "一会儿"
+                return head + (
+                    f"等不到出牌阶段 —— 当前是「{stage_cn}」，等了 {spent_cn} 也没轮到出牌。\n"
+                    "出牌只在**轮到你、且出牌窗口打开**时才有效；发早了只能白等。\n"
+                    "要么等轮到你时再发，要么用 /appa on 让 bot 自己等（它会在合适的时机出）。")
             if any("没有可出的牌" in l for l in lines):
                 return head + "手牌里没有现在能出的牌。"
             if any("都出不了" in l for l in lines):
@@ -2400,8 +2407,10 @@ class AstralPartyPilotPlugin(Star):
             return head + f"这一下没点成{tail}。"
         if act == "ok":
             if not d.get("fight"):
-                return head + ("现在没有战斗出牌页 / 战斗界面 —— "
-                               "这条只管「攻击/防御出牌页出完牌后点确定提交」。")
+                spent_cn = f"{spent:.0f} 秒" if spent else "一会儿"
+                return head + (f"等了 {spent_cn} 也没有战斗出牌页 —— 当前是「{stage_cn}」。\n"
+                               "这条只管「攻击/防御出牌页出完牌后点确定提交」，不在战斗里发它没用。\n"
+                               "想让它自己在战斗里出牌+提交：/appa on。")
             return head + f"确定键没点成{tail}。"
         if act == "buy":
             if not (actd.get("shop")):
