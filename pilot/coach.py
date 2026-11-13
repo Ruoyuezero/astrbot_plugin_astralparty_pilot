@@ -167,6 +167,7 @@ class Coach:
         self._fight_card_note = ""  # 战斗里出不了战斗牌的原因，给插件说明用
         self._relic_note = ""      # 筹码界面为什么不动作，给插件说明用
         self._screen = {}          # 当前界面识别结果（screen.py）
+        self._cancel_t = 0.0       # 点「取消」的冷却
         # auto 全权；pilot 只吃命令行 / 控制文件给的授权
         given = {a for a in allow if a in ACTIONS}
         self.allow = set(ACTIONS) if mode == "auto" else given
@@ -842,6 +843,60 @@ class Coach:
             return None, ""
         return got, ""
 
+    # 突击页 / 卡牌商店 / 筹码购买页 上的「取消」按钮名（按命中顺序试）
+    CANCEL_NAMES = ("btn_Cancel", "btn_Close", "btn_Quit", "btn_Exit",
+                    "取消", "关闭", "Cancel", "Close")
+
+    def handle_cancel(self, act):
+        """`skip` 在这些页面上 = 点「取消」。
+
+        - `assault_pick`（突击选怪）：取消 = 这次不突击
+        - `shop_card`（卡牌商店）：取消 = 不买、离开（buy / buyskip 授权时优先它们）
+        - `relic_buy`（筹码购买询问）：取消 = 不买这个筹码
+        按钮坐标从 UI 树里取（各页布局不同，写死坐标不可靠），找不到就不点。
+        """
+        if "skip" not in self.allow:
+            return False
+        scr = (self._screen or {}).get("screen")
+        if scr not in ("assault_pick", "shop_card", "relic_buy"):
+            return False
+        if scr == "shop_card" and ("buy" in self.allow or "buyskip" in self.allow):
+            return False                     # 有更明确的授权，交给 handle_shop
+        now = time.time()
+        if now - self._cancel_t < 1.5:
+            return False
+        try:
+            cs, _err = PC._cands()
+        except Exception:                    # noqa: BLE001
+            return False
+        if not cs:
+            return False
+        pick = None
+        for want in self.CANCEL_NAMES:
+            for c in cs:
+                blob = f"{c.get('name') or ''} {c.get('path') or ''}"
+                if want in blob:
+                    pick = c
+                    break
+            if pick:
+                break
+        if not pick:
+            if now - self._cancel_t > 8:
+                self._cancel_t = now
+                self.say(f"[取消] {scr} 里没找到取消键")
+            return False
+        r = PC.setup()
+        if not r:
+            return False
+        hwnd, origin, scale = r[0], r[1], r[2]
+        self._cancel_t = now
+        self.acted = {"what": "取消", "note": f"{scr}·{pick.get('name')}", "kind": "skip"}
+        self.say(f"[取消] 点「{pick.get('name')}」舞台({pick['cx']:.0f},{pick['cy']:.0f})")
+        if not self.dry:
+            PC.do_click(hwnd, origin, scale, pick["cx"], pick["cy"], label="取消 ")
+            time.sleep(0.2)
+        return True
+
     def handle_station(self, act):
         """停靠站：左边「继续移动」、右边「停下」。
 
@@ -1044,8 +1099,10 @@ class Coach:
         sn = int(act.get("sn") or 0)
 
         if aid == BATTLE_ASK_ID:
-            if not (has_atk or has_def or has_skip):
-                return False          # 只授了 dodge：开不开战不替主人决定
+            # 2026-11-13 主人：atk 只负责「开战点攻击」，skip 只负责「点放过」；
+            # def / dodge 不参与开不开战。
+            if not (has_atk or has_skip):
+                return False
             fight_it = has_atk
             key = (aid, sn, fight_it)
             if key == self._battle_key and now - self._battle_t < 4.0:
@@ -1059,8 +1116,10 @@ class Coach:
                 time.sleep(0.25)
             return True
 
-        # 5039：只有 dodge 才闪避（dodge），atk / def / skip 都防御硬扛（no_dodge）
-        dodge = has_dodge and not has_atk and not has_def
+        # 5039：def 点防御、dodge 点闪避；两个都没有就不动（atk / skip 不参与）
+        if not (has_def or has_dodge):
+            return False
+        dodge = has_dodge and not has_def
         key = (aid, sn, dodge)
         if key == self._battle_key and now - self._battle_t < 4.0:
             return False
@@ -1190,7 +1249,9 @@ class Coach:
         主人的用法是「突击格选完怪 → 5047 打 → 战斗界面再发一次 /appa atk」，
         所以这里不需要看手牌，有 atk 授权就直接按，别去替他挑牌。
         """
-        want = [k for k in ("atk", "ok", "def", "skip") if k in self.allow]
+        # 2026-11-13 主人：战斗出牌页只归 /appa ok（点 ready）；
+        # atk / def / dodge / skip 都在各自的弹窗里，不在这里点。
+        want = ["ok"] if "ok" in self.allow else []
         if not want:
             return False
         now = time.time()
@@ -1564,6 +1625,11 @@ class Coach:
         # ③ 商店 / 筹码 / 继续停止：这三个都是「服务端在等我回一个协议」，
         #    跟 my_turn 的判定无关（商店里 pa 是 NONE，check_turn 常判 0），
         #    所以同样放在回合判定之前。
+        if self._screen_ok("skip") and self.handle_cancel(act):
+            payload["event"] = self.last_event
+            payload["acted"] = self.acted
+            payload["stage"] = "cancel"
+            return payload
         if self._screen_ok("buy", "buyskip") and self.handle_shop(act):
             payload["event"] = self.last_event
             payload["acted"] = self.acted

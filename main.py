@@ -214,11 +214,11 @@ _SCREEN_ALLOW = {
     "relic": {"relic_pick"},
     "relicskip": {"relic_buy"},
     "relicrenew": {"relic_pick"},
-    "atk": {"fight_ask", "fight_watch", "fight_play", "fight_play_atk"},
-    "def": {"fight_choice", "fight_play_def"},
+    "atk": {"fight_ask"},
+    "def": {"fight_choice"},
     "dodge": {"fight_choice"},
-    "ok": {"fight_play", "fight_play_atk", "fight_play_def"},
-    "skip": {"fight_ask", "fight_play", "fight_play_atk", "fight_play_def", "main_turn"},
+    "ok": {"fight_play_atk", "fight_play_def"},
+    "skip": {"fight_ask", "assault_pick", "shop_card", "relic_buy", "main_turn"},
 }
 _SCREEN_OK = {a: (lambda s, _ok=v: s in _ok) for a, v in _SCREEN_ALLOW.items()}
 

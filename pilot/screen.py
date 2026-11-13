@@ -60,6 +60,7 @@ SCREENS = {
 
 # 每个指令**只允许**在这些界面执行（其它界面一律不动）
 ACTION_SCREENS = {
+    # 出牌：正常出牌页，或战斗里对应阵营的出牌页
     "card": {"main_turn", "fight_play_atk", "fight_play_def"},
     "skill": {"main_turn"},
     "go": {"main_turn", "main_move"},
@@ -70,11 +71,14 @@ ACTION_SCREENS = {
     "relic": {"relic_pick"},
     "relicskip": {"relic_buy"},
     "relicrenew": {"relic_pick"},
-    "atk": {"fight_ask", "fight_watch", "fight_play", "fight_play_atk"},
-    "def": {"fight_choice", "fight_play_def"},
+    # 战斗：atk 只在「开战询问」点攻击；def/dodge 只在「被攻击选择」点防御/闪避
+    "atk": {"fight_ask"},
+    "def": {"fight_choice"},
     "dodge": {"fight_choice"},
-    "ok": {"fight_play", "fight_play_atk", "fight_play_def"},
-    "skip": {"fight_ask", "fight_play", "fight_play_atk", "fight_play_def", "main_turn"},
+    # ok 只在两个战斗出牌页点 ready
+    "ok": {"fight_play_atk", "fight_play_def"},
+    # skip：开战询问放过 / 突击页取消 / 卡牌商店取消 / 筹码购买取消 / 出牌阶段取消
+    "skip": {"fight_ask", "assault_pick", "shop_card", "relic_buy", "main_turn"},
 }
 
 # 协议动作号 → 界面（弹窗类最可靠）
