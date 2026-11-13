@@ -160,6 +160,7 @@ class Coach:
         self._battle_t = 0.0
         self._fight_t = 0.0         # 战斗界面点攻击/防御的冷却
         self._fight_open = None     # 战斗界面开着吗（缓存：导一次 UI 树不便宜）
+        self._fight_done = {}       # {(battleId, kind): 时间} 同一场战斗里已经按过的键
         self._fight_open_t = 0.0
         self._fight_card_t = 0.0    # 战斗界面出战斗牌的冷却（手牌刷新有延迟）
         self._fight_card_note = ""  # 战斗里出不了战斗牌的原因，给插件说明用
@@ -1127,6 +1128,24 @@ class Coach:
         pids = {(fi.get("attacker") or {}).get("pid"), (fi.get("defender") or {}).get("pid")}
         return bool(mine) and mine in pids
 
+    def _fight_bid(self) -> int:
+        """当前这场的 battleId（协议里带），用来区分「同一场」和「下一场」。"""
+        st = getattr(self, "_last_state", None) or {}
+        try:
+            return int((st.get("fight") or {}).get("battleId") or 0)
+        except (TypeError, ValueError):
+            return 0
+
+    def _fight_clicked(self, bid: int, kind: str) -> bool:
+        return bool(bid) and (bid, kind) in self._fight_done
+
+    def _mark_fight_clicked(self, bid: int, kind: str) -> None:
+        if not bid:
+            return
+        self._fight_done[(bid, kind)] = time.time()
+        if len(self._fight_done) > 32:                  # 只留本场的记录
+            self._fight_done = {k: v for k, v in self._fight_done.items() if k[0] == bid}
+
     def handle_fight_ui(self):
         """战斗界面已经开着时替主人点一下：攻击 / 确定 / 防御 / 放过。
 
@@ -1163,6 +1182,11 @@ class Coach:
         kind = ("atk" if "atk" in want else
                 "ok" if "ok" in want else
                 "def" if "def" in want else "skip")
+        # 同一场战斗里，同一颗键只按一次 —— 2026-11-13 主人：确定被连按了十几次。
+        # 原因：fight_open() 现在有协议兜底，整场战斗期间都是 True，于是每 1.5 秒就按一次。
+        # 一次性授权（/appa ok 这种）不设限：主人再发一次就再按一次。
+        if kind not in self.once and self._fight_clicked(self._fight_bid(), kind):
+            return False
         (cx, cy), cn = pos[kind]
         self._fight_t = now
         self.acted = {"what": f"战斗：{cn}", "note": f"舞台({cx},{cy})"}
@@ -1174,6 +1198,7 @@ class Coach:
         hwnd, origin, scale = r[0], r[1], r[2]
         PC.do_click(hwnd, origin, scale, cx, cy, label=f"{cn} ")
         self.say(f"[战斗] 战斗界面：点「{cn}」舞台({cx},{cy})")
+        self._mark_fight_clicked(self._fight_bid(), kind)
         if kind == "atk":
             # 没点中时兜一下：界面还开着就说明这一下没生效
             time.sleep(1.1)
