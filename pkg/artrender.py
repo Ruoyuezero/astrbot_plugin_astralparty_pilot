@@ -1177,8 +1177,14 @@ def emoji_anim_frames(sheet_path: str, cell: int = EMOJI_CELL) -> list:
 
 
 def render_emoji_gif(hero: dict, seq: str, out_path: str,
-                     fps: float = EMOJI_FPS) -> str:
-    """把一个动态表情的序列图渲染成 GIF。"""
+                     fps: float = EMOJI_FPS, transparent: bool = True) -> str:
+    """把一个动态表情的序列图渲染成 GIF。
+
+    transparent=True 时用 GIF 的**单色透明**（调色板留一个索引当透明）：
+    背景透掉，贴到深色聊天底上不再有白框；代价是半透明边缘会被二值化，
+    发丝级柔边会比原图硬一点（这些表情本身就是硬描边卡通，影响很小）。
+    transparent=False 时铺白底，边缘柔但会带一块白色方块。
+    """
     seq = str(seq).zfill(2)
     sheet = artlib.hero_emoji_anim(hero["id"]).get(seq)
     if not sheet:
@@ -1186,15 +1192,29 @@ def render_emoji_gif(hero: dict, seq: str, out_path: str,
     frames = emoji_anim_frames(sheet)
     if not frames:
         raise FileNotFoundError("动态表情序列图是空的")
-    # GIF 只有 256 色：用自适应调色板，透明底改成白底（QQ 里透明会变黑边）
+    dur = max(20, int(round(1000.0 / (fps or EMOJI_FPS))))
+
+    if not transparent:
+        # GIF 只有 256 色：用自适应调色板；透明底改成白底（否则会出黑边）
+        flat = []
+        for f in frames:
+            bg = Image.new("RGB", f.size, (255, 255, 255))
+            bg.paste(f, (0, 0), f)
+            flat.append(bg.convert("P", palette=Image.ADAPTIVE, colors=255))
+        flat[0].save(out_path, "GIF", save_all=True, append_images=flat[1:],
+                     duration=dur, loop=0, disposal=1, optimize=False)
+        return out_path
+
+    # 透明版：先按 RGB 量化到 255 色，再把「几乎全透明」的像素涂成保留索引 255
     flat = []
     for f in frames:
-        bg = Image.new("RGB", f.size, (255, 255, 255))
-        bg.paste(f, (0, 0), f)
-        flat.append(bg.convert("P", palette=Image.ADAPTIVE, colors=255))
-    dur = max(20, int(round(1000.0 / (fps or EMOJI_FPS))))
+        rgba = f.convert("RGBA")
+        alpha = rgba.getchannel("A")
+        p = Image.merge("RGB", rgba.split()[:3]).convert("P", palette=Image.ADAPTIVE, colors=255)
+        p.paste(255, mask=alpha.point(lambda a: 255 if a < 128 else 0))
+        flat.append(p)
     flat[0].save(out_path, "GIF", save_all=True, append_images=flat[1:],
-                 duration=dur, loop=0, disposal=1, optimize=False)
+                 duration=dur, loop=0, disposal=2, transparency=255, optimize=False)
     return out_path
 
 

@@ -70,5 +70,11 @@
     "description": "动态表情帧率（/app emoji 出 GIF 用，5~60，默认 30）",
     "default": 30,
     "hint": "游戏内动态表情是一张序列图，插件按这个帧率把它拼成 GIF。觉得快了就调小（如 20），慢了调大（如 40）。"
+  },
+  "emoji_transparent": {
+    "type": "bool",
+    "description": "动态表情 GIF 用透明背景（关掉＝铺白底）",
+    "default": true,
+    "hint": "开＝背景透掉，贴到深色聊天底上不会出现白方块；关＝铺白底，边缘更柔但会带一块白色方块。"
   }
 }

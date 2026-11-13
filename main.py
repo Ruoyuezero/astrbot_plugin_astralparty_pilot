@@ -1332,7 +1332,8 @@ class AstralPartyPilotPlugin(Star):
                     fd, tmp = tempfile.mkstemp(suffix=".gif", prefix="app_emoji_")
                     os.close(fd)
                     await asyncio.to_thread(
-                        AR.render_emoji_gif, h, seq, tmp, self._emoji_fps())
+                        AR.render_emoji_gif, h, seq, tmp, self._emoji_fps(),
+                        self._conf_bool("emoji_transparent", True))
                     yield event.image_result(tmp)
                     return
                 except Exception as exc:  # noqa: BLE001
