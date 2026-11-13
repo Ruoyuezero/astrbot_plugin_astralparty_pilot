@@ -1563,7 +1563,8 @@ class Coach:
             _ui, _win = {}, {}
         self._screen = SC.detect(act, st, _ui, win=_win)
         # uiwin 只读、但要占用 cmd.txt：只在「别的信号都认不出来」时催一次，别跟动作命令抢
-        if self._screen.get("screen") in ("idle", "") and time.time() - self._uiwin_t > 2.0:
+        _quiet = time.time() - max(self._fight_t, self._cancel_t, getattr(self, "_relic_t", 0.0)) > 1.5
+        if _quiet and time.time() - self._uiwin_t > 5.0:
             self._uiwin_t = time.time()
             try:
                 NA.uiwin()

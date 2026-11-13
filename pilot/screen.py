@@ -175,13 +175,15 @@ def detect(act: dict | None = None, st: dict | None = None,
     aid = int(act.get("id") or 0)
     rel = act.get("relic") or {}
 
-    # 第 0 层：探针读到的 UIManager 页面栈（最准）
-    if win and _age(win.get("ts"), 10):
-        for name in [win.get("panel") or ""] + list(win.get("windows") or []):
-            key = str(name).lower()
-            for kw, screen in PANEL_SCREEN.items():
-                if kw in key:
-                    return _mk(screen, "uiwin", 0.98, f"页面={name}")
+    # 第 0 层：探针读到的 UIManager 页面栈顶（最准）
+    # 注意：只认 panel —— `_cached*Window` 是懒加载缓存，窗口关掉了对象还在，
+    # 拿它当「现在开着」会把 LoadingWindow / TipsWindow 这种历史窗口当成真的。
+    if win and _age(win.get("ts"), 30):
+        name = str(win.get("panel") or "")
+        key = name.lower()
+        for kw, screen in PANEL_SCREEN.items():
+            if kw in key and kw != "handcardpanel":
+                return _mk(screen, "uiwin", 0.98, f"页面={name}")
     shop = act.get("shop") or {}
 
     # 第 1 层：协议动作号（弹窗）
@@ -221,7 +223,7 @@ def detect(act: dict | None = None, st: dict | None = None,
         if my and (stage == "card" or usable):
             return _mk("main_turn", "state", 0.85,
                        f"轮到我（stage={stage or '-'}，可出 {len(usable)} 张）")
-        if not my:
+        if ("my_turn" in st or "my" in st) and not my:
             return _mk("main_watch", "state", 0.8, "不是我方回合")
 
     # 第 4 层：UI 树

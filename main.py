@@ -2154,6 +2154,55 @@ class AstralPartyPilotPlugin(Star):
         yield event.plain_result(note)
         return
 
+    def _current_account(self, qq: str) -> dict:
+        """本机「正在登录」的账号到底是谁。
+
+        判据只有一条靠得住：**游戏客户端日志里最新的那张登录票**（BnSdk/…/Log），
+        再用 `sid` 去对 bot 自己的登录记录（accounts.json）。
+
+        以前这里拿 `state.json` 的局内 pid 当 uid 用 —— pid 是「对局里的玩家 id」，
+        跟账号 uid 不是一个东西；对不上就退回 QQ 绑定的那个号，于是会画出**别的账号**
+        的档案卡。现在拿不到就明说拿不到，不再乱出卡。
+
+        返回 {"uid", "nick", "sid", "at", "bound"}
+        """
+        try:
+            logs = LV.log_tickets() or []
+        except Exception:  # noqa: BLE001
+            logs = []
+        logs = sorted(logs, key=lambda t: str(t.get("at") or ""), reverse=True)
+        cur = logs[0] if logs else {}
+        sid = str(cur.get("sid") or "")
+        try:
+            recs = ACC.all_records() or []
+        except Exception:  # noqa: BLE001
+            recs = []
+        at = str(cur.get("at") or "")
+        for r in recs:                      # ① 同一张票 = 同一个号，最硬
+            if sid and str(r.get("sid") or "") == sid:
+                return {"uid": int(r.get("uid") or 0), "nick": r.get("nick") or "",
+                        "sid": sid, "at": at, "bound": True}
+        # ② 票可能刷新过（sid 变了）：登录时间差在 15 分钟内，当作同一个号
+        try:
+            import time as _t
+            t_cur = _t.mktime(_t.strptime(at[:19], "%Y-%m-%d %H:%M:%S")) if at else 0
+        except Exception:  # noqa: BLE001
+            t_cur = 0
+        if t_cur:
+            best, gap = None, 1e9
+            for r in recs:
+                t_r = float(r.get("at") or 0)
+                if not t_r:
+                    continue
+                g = abs(t_cur - t_r)
+                if g < gap:
+                    best, gap = r, g
+            if best and gap <= 900:
+                return {"uid": int(best.get("uid") or 0), "nick": best.get("nick") or "",
+                        "sid": str(best.get("sid") or ""), "at": at, "bound": True}
+        # ③ 认不出来就是认不出来 —— 绝不退回去画 QQ 绑定的那个号
+        return {"uid": 0, "nick": "", "sid": sid, "at": at, "bound": False}
+
     def _offline_card(self, qq: str, cur: dict, allow_cn: str) -> tuple[str, str]:
         """不在对局时出卡，返回 (图片路径, 附带的一句话)。
 
@@ -2163,10 +2212,16 @@ class AstralPartyPilotPlugin(Star):
         """
         raw = LS.read(None)
         game_on = LS.running()
-        my_uid = int(LS.self_pid(raw) or 0) if raw else 0
+        who = self._current_account(qq)
+        target = int(who.get("uid") or 0)
         rec = ACC.load(qq) or {}
-        rec_uid = int(rec.get("uid") or 0)
-        target = my_uid or rec_uid
+        if not target:
+            # 认不出当前登录号就别画别人的卡 —— 明说原因
+            tag = (who.get("sid") or "")[:6]
+            tip = (f"ℹ️ 本机游戏里登录的号不在 bot 的登录记录里"
+                   f"（票前缀 {tag or '无'}），出不了它的档案卡。\n"
+                   "想让 bot 认得这个号：/app in 用它扫码登录一次即可。")
+            return "", tip + "\n" + self._pilot_line(cur, allow_cn)
         pilot = self._pilot_line(cur, allow_cn)
 
         # 和 /app uid 走同一套渲染（LC.render_profile），只是数据换成本地的：
