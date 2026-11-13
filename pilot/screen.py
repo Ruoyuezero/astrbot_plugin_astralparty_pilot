@@ -78,7 +78,7 @@ ACTION_SCREENS = {
     # ok 只在两个战斗出牌页点 ready
     "ok": {"fight_play_atk", "fight_play_def"},
     # skip：开战询问放过 / 突击页取消 / 卡牌商店取消 / 筹码购买取消 / 出牌阶段取消
-    "skip": {"fight_ask", "assault_pick", "shop_card", "relic_buy", "main_turn"},
+    "skip": {"fight_ask", "assault_pick", "shop_card", "relic_buy"},
 }
 
 # 协议动作号 → 界面（弹窗类最可靠）

@@ -76,7 +76,7 @@ ACT_CN = {"card": "出牌", "skill": "开技能", "go": "移动/继续", "choose
           "relic": "选筹码", "relicskip": "跳过购买筹码", "relicrenew": "刷新筹码",
           "atk": "攻击怪物", "def": "防御怪物",
           "dodge": "闪避（被反击 / 怪物回合被打）",
-          "skip": "跳过（取消出牌 / 放过 / 不打）", "ok": "确定（出牌后提交）"}
+          "skip": "放过 / 取消", "ok": "确定（出牌后提交）"}
 # /appa on 全自动：不含 stop（要停手动发 /appa stop）、不含 skip（该打的照样打）
 FULL_ALLOW = ("card", "skill", "go", "choose", "buy", "relic", "atk", "def")
 
@@ -1081,7 +1081,7 @@ class Coach:
             atk   5047 打；5039 防御（dodge=false，站着接下这次攻击）
             def   5047 不打（避战）；5039 防御（dodge=false，不闪避）
             dodge 5039 闪避（dodge=true），只管闪避这一件事
-            skip  5047 不打（避战），另外还管商店 / 筹码 / 取消出牌 / 放过
+            skip  5047 放过；突击页 / 卡牌商店 / 筹码购买页点取消
         atk / def 都不闪（no_dodge），只有 dodge 明确闪避（dodge）。
         atk 与 dodge / def 同时给时以 atk 为准 —— 明确说了要打就别躲。
         """
@@ -1753,7 +1753,8 @@ class Coach:
                 if not did and "go" in self.allow:
                     ok, note = self.act_move()
                     self.acted = {"what": "结束出牌", "note": note}
-                elif not did and "skip" in self.allow and self.skip_turn != sn:
+                elif (not did and "skip" in self.allow and self.skip_turn != sn
+                      and self._screen_ok("skip")):
                     self.skip_turn = sn
                     ok, note = self.act_cancel()
                     self.acted = {"what": "取消出牌", "note": note}

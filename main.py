@@ -218,7 +218,7 @@ _SCREEN_ALLOW = {
     "def": {"fight_choice"},
     "dodge": {"fight_choice"},
     "ok": {"fight_play_atk", "fight_play_def"},
-    "skip": {"fight_ask", "assault_pick", "shop_card", "relic_buy", "main_turn"},
+    "skip": {"fight_ask", "assault_pick", "shop_card", "relic_buy"},
 }
 _SCREEN_OK = {a: (lambda s, _ok=v: s in _ok) for a, v in _SCREEN_ALLOW.items()}
 
