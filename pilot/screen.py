@@ -90,6 +90,19 @@ ACT_SCREEN = {
     5067: "dice_pick",
 }
 
+# 探针 uiwin 读到的页面/窗口类名 → 界面（最准的信号，第一优先级）
+PANEL_SCREEN = {
+    "landshopwindow": "shop_card",
+    "landbuildshopwindow": "shop_card",
+    "relicwindow": "relic_pick",
+    "landrelicwindow": "relic_pick",
+    "battleselectmonsterwindow": "assault_pick",
+    "landfillingstationwindow": "main_move",
+    "fightwindow": "fight_play",
+    "chooseroundcardwindow": "main_watch",     # 选轮次牌（不是我能操作的）
+    "handcardpanel": "main_turn",
+}
+
 # UI 树里的窗口类名/路径关键词 → 界面（小写包含匹配，先命中先用）
 TREE_RULES = (
     ("battleselectmonster", "assault_pick"),
@@ -150,7 +163,8 @@ def allows(action: str, screen: str) -> bool:
 
 
 def detect(act: dict | None = None, st: dict | None = None,
-           ui: dict | None = None, tree: dict | None = None) -> dict:
+           ui: dict | None = None, tree: dict | None = None,
+           win: dict | None = None) -> dict:
     """按信号分层识别当前界面。参数都可缺，缺的层自动跳过。"""
     act = act or {}
     st = st or {}
@@ -160,6 +174,14 @@ def detect(act: dict | None = None, st: dict | None = None,
     tree_ok = _age((tree or {}).get("ts"), 120)
     aid = int(act.get("id") or 0)
     rel = act.get("relic") or {}
+
+    # 第 0 层：探针读到的 UIManager 页面栈（最准）
+    if win and _age(win.get("ts"), 10):
+        for name in [win.get("panel") or ""] + list(win.get("windows") or []):
+            key = str(name).lower()
+            for kw, screen in PANEL_SCREEN.items():
+                if kw in key:
+                    return _mk(screen, "uiwin", 0.98, f"页面={name}")
     shop = act.get("shop") or {}
 
     # 第 1 层：协议动作号（弹窗）

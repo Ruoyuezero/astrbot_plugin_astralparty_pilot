@@ -168,6 +168,7 @@ class Coach:
         self._relic_note = ""      # 筹码界面为什么不动作，给插件说明用
         self._screen = {}          # 当前界面识别结果（screen.py）
         self._cancel_t = 0.0       # 点「取消」的冷却
+        self._uiwin_t = 0.0        # 上次催 uiwin 的时间
         # auto 全权；pilot 只吃命令行 / 控制文件给的授权
         given = {a for a in allow if a in ACTIONS}
         self.allow = set(ACTIONS) if mode == "auto" else given
@@ -1555,10 +1556,19 @@ class Coach:
 
         # 界面识别：协议号 → 界面开关 → 状态快照 → 手牌面板（UI 树太贵，这里不导）
         try:
-            _ui = read_json_fast(os.path.join(PL.game_dir() or "", "ui.json")) or {}
+            _g = PL.game_dir() or ""
+            _ui = read_json_fast(os.path.join(_g, "ui.json")) or {}
+            _win = read_json_fast(os.path.join(_g, "uiwin.json")) or {}
         except Exception:                  # noqa: BLE001
-            _ui = {}
-        self._screen = SC.detect(act, st, _ui)
+            _ui, _win = {}, {}
+        self._screen = SC.detect(act, st, _ui, win=_win)
+        # uiwin 只读、但要占用 cmd.txt：只在「别的信号都认不出来」时催一次，别跟动作命令抢
+        if self._screen.get("screen") in ("idle", "") and time.time() - self._uiwin_t > 2.0:
+            self._uiwin_t = time.time()
+            try:
+                NA.uiwin()
+            except Exception:              # noqa: BLE001
+                pass
 
         payload = {
             "ts": time.strftime("%H:%M:%S"),

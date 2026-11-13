@@ -144,6 +144,11 @@ def halt(sn: int | None = None) -> None:
     send("halt" + (f" sn:{sn}" if sn else ""))
 
 
+def uiwin() -> None:
+    """让探针把「当前 UI 页面」写进 uiwin.json（只读，不动游戏）。"""
+    send("uiwin")
+
+
 def pick_relic(index: int, sn: int | None = None) -> None:
     """三选一筹码：0/1/2 对应界面从左到右。"""
     send(f"relic {index}" + (f" sn:{sn}" if sn else ""))
