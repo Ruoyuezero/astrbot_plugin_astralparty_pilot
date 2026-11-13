@@ -36,7 +36,8 @@ EXCLUDE_DIRS = {
     "pkg/payload",
 }
 # 一律不进包的文件名 / 后缀
-EXCLUDE_NAMES = {"LogOutput.log", "ErrorLog.log", "Thumbs.db", ".DS_Store"}
+EXCLUDE_NAMES = {"LogOutput.log", "ErrorLog.log", "Thumbs.db", ".DS_Store",
+                 "CHANGELOG.local.md"}          # 本地维护笔记，不入包
 EXCLUDE_SUFFIXES = (".pyc", ".pyo", ".log", ".tmp")
 
 
