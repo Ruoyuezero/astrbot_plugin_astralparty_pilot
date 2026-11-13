@@ -2238,6 +2238,7 @@ class AstralPartyPilotPlugin(Star):
     # ------------------------------------------------- 一次性动作的结果 ----
     async def _appa_once(self, event: AstrMessageEvent, act: str):
         """跑一个一次性动作：成了就静默，没成才回一条「为什么没做成」。"""
+        before = await asyncio.to_thread(self._appa_snapshot)
         async for _ in self._appa_on(event, [act], full=False):
             pass
         # 先确认这一项真写进了控制文件：写不进去＝引擎根本不会看到，
@@ -2255,6 +2256,41 @@ class AstralPartyPilotPlugin(Star):
         ok, why = await self._appa_wait_once(act)
         if not ok:
             yield event.plain_result(why)
+            return
+        # 授权被收走只说明「引擎处理过了」，不代表真做了事：
+        # 出牌阶段不对 / 战斗界面没开时，引擎会把这一项直接消化掉、什么也不点。
+        # 这种情况下比一下手牌和阶段，没变化就按 _appa_why 把原因说出来。
+        after = await asyncio.to_thread(self._appa_snapshot)
+        if self._appa_did_nothing(act, before, after):
+            yield event.plain_result(self._appa_why(act))
+
+    def _appa_snapshot(self) -> dict:
+        """一次性动作前后的对照快照：手牌、阶段、战斗界面、是否在局。"""
+        try:
+            d = CO.read(self.config) or {}
+        except Exception:  # noqa: BLE001
+            return {}
+        me = d.get("me") or {}
+        return {
+            "in_match": bool(d.get("in_match")),
+            "stage": d.get("stage") or "none",
+            "fight": bool(d.get("fight")),
+            "hand": [c.get("id") for c in (me.get("cards") or [])],
+        }
+
+    @staticmethod
+    def _appa_did_nothing(act: str, before: dict, after: dict) -> bool:
+        """这一次到底有没有真做事。判据尽量保守：只有明确「没动」才算没做成。"""
+        if not before or not after:
+            return False                       # 读不到状态就不乱说
+        if act == "card":
+            return (before.get("hand") == after.get("hand")
+                    and before.get("stage") == after.get("stage")
+                    and before.get("fight") == after.get("fight"))
+        if act in ("ok", "atk", "def", "dodge", "skip"):
+            # 这几个只在战斗界面里有意义；两帧都没有战斗界面＝确实没动
+            return not before.get("fight") and not after.get("fight")
+        return False
 
     async def _appa_wait_once(self, act: str, timeout: float = 0.0):
         """等引擎把这一项做完。

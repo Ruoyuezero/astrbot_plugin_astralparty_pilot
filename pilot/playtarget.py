@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """需要选目标的出牌链路 —— 拖牌到中心 → 点目标 → 点确认 → 把鼠标挪开。
 
@@ -138,6 +138,22 @@ def _used(before, after, card):
     a = [str(x) for x in after]
     c = str(card)
     return a.count(c) < b.count(c) or len(a) < len(b)
+
+
+def wait_hand(before, card, timeout=2.4, step=0.4):
+    """拖完之后轮询手牌，最多等 timeout 秒，返回最新手牌。
+
+    为什么不再 sleep 一次就断言：`state.json` 是探针定时写的，战斗界面里更新还会更慢。
+    只等 0.8 秒就判「没出成」，会把「其实已经出出去了」当失败，接着再拖一张 → 连出两张。
+    """
+    t0 = time.time()
+    after = hand_ids(load_state())
+    while time.time() - t0 < timeout:
+        if _used(before, after, card):
+            return after
+        time.sleep(step)
+        after = hand_ids(load_state())
+    return after
 
 
 def _pick(ui, card_id):
@@ -591,8 +607,8 @@ def play(p, dry=False, force=False):
                 _confirm_twice(hwnd, origin, scale, cax, cay)
             _park(hwnd, origin, scale)
 
-    time.sleep(0.8)
-    after = hand_ids(load_state())
+    time.sleep(0.5)
+    after = wait_hand(before, p["card"])
     if _used(before, after, p["card"]):
         print(f"  ✓ 出牌成功，手牌 {len(before)} → {len(after)}")
         _park(hwnd, origin, scale)
@@ -606,8 +622,8 @@ def play(p, dry=False, force=False):
         print(f"  → {cwhy}")
         _confirm_twice(hwnd, origin, scale, cax, cay)
         _park(hwnd, origin, scale)
-        time.sleep(0.8)
-        after = hand_ids(load_state())
+        time.sleep(0.4)
+        after = wait_hand(before, p["card"])
         if _used(before, after, p["card"]):
             print(f"  ✓ 出牌成功，手牌 {len(before)} → {len(after)}")
             return True
