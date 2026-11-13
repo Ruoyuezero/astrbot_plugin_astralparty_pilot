@@ -79,8 +79,9 @@ def ctl_file(cfg: dict | None = None) -> str:
     return os.path.join(g, "coach_ctl.json") if g else ""
 
 
-ACTIONS = ("card", "skill", "go", "choose", "stop", "buy", "relic", "atk", "def",
-           "dodge", "skip")
+ACTIONS = ("card", "skill", "go", "choose", "stop", "buy", "buyskip",
+           "relic", "relicskip", "relicrenew",
+           "atk", "def", "dodge", "skip", "ok")
 # /appa on 全自动的授权：go 在就不含 stop（要停手动 /appa stop）；
 # 不含 skip（全自动该打的怪要打）
 FULL_ALLOW = ("card", "skill", "go", "choose", "buy", "relic", "atk", "def")

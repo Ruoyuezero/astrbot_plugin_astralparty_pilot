@@ -2240,6 +2240,18 @@ class AstralPartyPilotPlugin(Star):
         """跑一个一次性动作：成了就静默，没成才回一条「为什么没做成」。"""
         async for _ in self._appa_on(event, [act], full=False):
             pass
+        # 先确认这一项真写进了控制文件：写不进去＝引擎根本不会看到，
+        # 以前这种情况会「秒成功」——主人看到的就是「发了没反应」。
+        try:
+            landed = (act in await asyncio.to_thread(CO.ctl_allow, self.config)
+                      or act in await asyncio.to_thread(CO.ctl_once, self.config))
+        except Exception:  # noqa: BLE001
+            landed = True
+        if not landed:
+            yield event.plain_result(
+                f"「{PILOT_ACT_CN.get(act, act)}」没能交给引擎：控制文件里没有这一项。\n"
+                "多半是插件与引擎的动作清单不一致（重启插件重拉引擎即可）。")
+            return
         ok, why = await self._appa_wait_once(act)
         if not ok:
             yield event.plain_result(why)
