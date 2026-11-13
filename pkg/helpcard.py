@@ -30,7 +30,7 @@ CMD_COL_MAX = 250                 # 指令列最大宽度上限（再长就靠�
 
 def _row_layout(sections: list) -> int:
     """算指令列宽度：取最长指令 + 18px 间隙，至少给说明列留 170px。"""
-    f = _font(15, True)
+    f = _font(15)
     longest = 0
     for _icon, _name, rows in sections:
         for cmd, _desc in rows:
@@ -40,10 +40,10 @@ def _row_layout(sections: list) -> int:
 
 def render_help(sections: list, out_path: str) -> str:
     """sections = [(icon, 节名, [(指令, 说明), ...]), ...]"""
-    f_title = _font(30, True)
+    f_title = _font(30)
     f_sub = _font(15)
-    f_sec = _font(19, True)
-    f_cmd = _font(15, True)
+    f_sec = _font(19)
+    f_cmd = _font(15)
     f_dsc = _font(14)
     f_foot = _font(13)
 
