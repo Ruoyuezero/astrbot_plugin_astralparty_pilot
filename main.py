@@ -121,8 +121,8 @@ HELP_SECTIONS = [
         ("/app skin <名字|ID>-<序>", "只看第 N 套：局内小人 + 立绘，如 /app skin 124-3"),
         ("/app cg <名字|ID>", "角色全部战斗 CG（一行两张）"),
         ("/app cg <名字|ID>-<排>", "只看第 N 排的两张，如 /app cg 124-3"),
-        ("/app emoji <名字|ID>", "角色表情包（8 个一行）"),
-        ("/app emoji <名字|ID>-<序>", "只看第 N 张表情，如 /app emoji 124-3"),
+        ("/app emoji <名字|ID>", "角色表情包（8 个一行，动态的带「动」标）"),
+        ("/app emoji <名字|ID>-<序>", "只看第 N 张表情，如 /app emoji 124-3（动态的发 GIF）"),
     ]),
     ("🎯", "筹码图鉴", [
         ("/app relic", "列出全部筹码（按流派分组，图标 + 编号 + 名称）"),
@@ -1325,6 +1325,18 @@ class AstralPartyPilotPlugin(Star):
                 yield event.plain_result(
                     f"「{h['name']}」一共 {len(items)} 张表情，没有第 {idx} 张呢～")
                 return
+            seq = items[idx - 1][0]
+            # 动态表情（序列图）直接发 GIF，静图发原图
+            if AL.is_emoji_anim(h["id"], seq):
+                try:
+                    fd, tmp = tempfile.mkstemp(suffix=".gif", prefix="app_emoji_")
+                    os.close(fd)
+                    await asyncio.to_thread(
+                        AR.render_emoji_gif, h, seq, tmp, self._emoji_fps())
+                    yield event.image_result(tmp)
+                    return
+                except Exception as exc:  # noqa: BLE001
+                    logger.error(f"[星趴] 动态表情渲染失败：{exc}")
             yield event.image_result(items[idx - 1][1])
             return
         if not AL.hero_emojis(h["id"]):
@@ -2496,6 +2508,18 @@ class AstralPartyPilotPlugin(Star):
         if isinstance(v, (int, float)):
             return bool(v)
         return str(v).strip().lower() in {"true", "1", "yes", "y", "on", "开", "开启"}
+
+    def _emoji_fps(self) -> float:
+        """动态表情播放帧率：配置 emoji_fps，缺省 30。取不到或不合理就用默认。"""
+        try:
+            v = self.config.get("emoji_fps")
+        except Exception:  # noqa: BLE001
+            return AR.EMOJI_FPS
+        try:
+            f = float(v)
+        except (TypeError, ValueError):
+            return AR.EMOJI_FPS
+        return f if 5 <= f <= 60 else AR.EMOJI_FPS
 
     def _is_admin(self, event: AstrMessageEvent) -> bool:
         """管理员判定：配置里的 admin_qqs 优先，其次认 AstrBot 全局管理员。

@@ -17,7 +17,8 @@
   "monster_aliases": 81,
   "relic_aliases": 69,
   "heroes": 36,
-  "buffs_with_icon": 109
+  "buffs_with_icon": 109,
+  "vemoji": 76
  },
  "files": {
   "cards": "kb/cards.json",
@@ -34,7 +35,8 @@
   "achievements": "kb/achievements.json",
   "hero_alias": "kb/hero_alias.json",
   "monster_alias": "kb/monster_alias.json",
-  "relic_alias": "kb/relic_alias.json"
+  "relic_alias": "kb/relic_alias.json",
+  "vemoji": "kb/vemoji.json"
  },
  "maps": [
   {

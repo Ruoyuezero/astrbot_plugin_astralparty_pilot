@@ -1139,8 +1139,62 @@ def render_hero_emoji(hero: dict, out_path: str, cols: int = 8,
         lab = str(nn)
         draw.text((x + (cell - no_f.getlength(lab)) / 2, yy + cell + 4),
                   lab, font=no_f, fill=MUTE)
+        if artlib.is_emoji_anim(hero["id"], nn):
+            # 动态表情：右上角打个小「动」标，免得总览里看着都是静图
+            tag_f = _font(12, True)
+            tw = tag_f.getlength("动") + 10
+            draw.rounded_rectangle([x + cell - tw - 4, yy + 4, x + cell - 4, yy + 20],
+                                   radius=6, fill=ACCENT)
+            draw.text((x + cell - tw + 1, yy + 4), "动", font=tag_f, fill=(255, 255, 255))
 
     canvas.save(out_path, "PNG")
+    return out_path
+
+
+# ------------------------------------------------------------ 动态表情包 ----
+# 动态表情是一张序列图：`misc/VEmoji_<英雄>_<序号>.png`，每格 168×168
+# （160 的画面 + 4px 内边距，对应 Unlit/Sequence 的 _FramePaddingPixels），
+# 帧按「从左到右、从上到下」排，末尾空格子是补齐用的。
+EMOJI_CELL = 168
+EMOJI_PAD = 4
+EMOJI_FPS = 30              # 游戏里由代码传给着色器的 _Sequence.z，资产里没有；可配置
+
+
+def emoji_anim_frames(sheet_path: str, cell: int = EMOJI_CELL) -> list:
+    """把序列图切成帧（裁掉末尾的空格子）；返回 PIL.Image 列表。"""
+    im = Image.open(sheet_path).convert("RGBA")
+    W, H = im.size
+    cols, rows = W // cell, H // cell
+    frames = []
+    for r in range(rows):
+        for c in range(cols):
+            box = (c * cell, r * cell, (c + 1) * cell, (r + 1) * cell)
+            frames.append(im.crop(box))
+    # 末尾可能有多余的空格子（补齐成矩形），只丢尾部，中间的空帧（淡入）要留
+    while frames and frames[-1].getchannel("A").getextrema()[1] == 0:
+        frames.pop()
+    return frames
+
+
+def render_emoji_gif(hero: dict, seq: str, out_path: str,
+                     fps: float = EMOJI_FPS) -> str:
+    """把一个动态表情的序列图渲染成 GIF。"""
+    seq = str(seq).zfill(2)
+    sheet = artlib.hero_emoji_anim(hero["id"]).get(seq)
+    if not sheet:
+        raise FileNotFoundError("没有找到该表情的动态序列图")
+    frames = emoji_anim_frames(sheet)
+    if not frames:
+        raise FileNotFoundError("动态表情序列图是空的")
+    # GIF 只有 256 色：用自适应调色板，透明底改成白底（QQ 里透明会变黑边）
+    flat = []
+    for f in frames:
+        bg = Image.new("RGB", f.size, (255, 255, 255))
+        bg.paste(f, (0, 0), f)
+        flat.append(bg.convert("P", palette=Image.ADAPTIVE, colors=255))
+    dur = max(20, int(round(1000.0 / (fps or EMOJI_FPS))))
+    flat[0].save(out_path, "GIF", save_all=True, append_images=flat[1:],
+                 duration=dur, loop=0, disposal=1, optimize=False)
     return out_path
 
 

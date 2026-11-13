@@ -11,6 +11,9 @@
 - cg      ：UT_Hero_Bust_<英雄id>[_皮肤后缀]_<0|1>.png
             UT_Monster_Bust_<怪物编号>_<0|1>.png          —— CG 总览 / CG 直发用
 - emoji   ：UT_Item_Emoji_<英雄id>_<序号>[_EN|_JP].png     —— 表情包总览用
+- misc    ：VEmoji_<英雄id>_<序号>.png                     —— 动态表情的序列图
+            （168×168 一格、从左到右从上到下排帧，末尾空格子是补齐用的；
+             哪些表情是动态的见 `kb/vemoji.json`，由游戏 Character.txt 生成）
 
 文件名里的皮肤后缀：没有 = 原始皮肤，`_01` / `_02`… = 第 N 套皮肤，`_Max` = 羁绊皮肤。
 `_sfw` 版本一律忽略（与普通版重复）；表情包的 `_EN` / `_JP` 是同图的多语言版，中文版优先。
@@ -417,6 +420,43 @@ def hero_emojis(hid) -> list[tuple[str, str]]:
     """[(表情序号, 图片路径)]，按序号升序。"""
     h = index()["heroes"].get(str(hid)) or {}
     return list(_ready_map(h.get("emoji") or {}).items())
+
+
+# ------------------------------------------------------- 动态表情（VEmoji）----
+# 游戏里部分表情不是静图，而是一张「序列图」（misc/VEmoji_<英雄>_<序号>.png，
+# 168×168 一格、按从左到右从上到下排帧），由 Unlit/Sequence 着色器播放。
+# 哪些表情是动态的记在 kb/vemoji.json（由游戏 Character.txt + Item.txt 生成）。
+_vemoji_cache: dict | None = None
+
+
+def _vemoji_map() -> dict:
+    global _vemoji_cache
+    if _vemoji_cache is None:
+        import json
+        p = os.path.join(HERE, "kb", "vemoji.json")
+        try:
+            with open(p, encoding="utf-8") as f:
+                _vemoji_cache = json.load(f)
+        except OSError:
+            _vemoji_cache = {}
+    return _vemoji_cache
+
+
+def hero_emoji_anim(hid) -> dict[str, str]:
+    """{表情序号: 序列图路径}，只返回动态表情；静图不在里面。"""
+    m = _vemoji_map().get(str(hid)) or {}
+    out = {}
+    for seq, fn in m.items():
+        p = icon("misc", fn)
+        if p:
+            out[seq] = p
+    return out
+
+
+def is_emoji_anim(hid, seq) -> bool:
+    """这个表情是不是动态的（不看文件在不在，只查表）。"""
+    return str(seq).zfill(2) in (_vemoji_map().get(str(hid)) or {})
+
 
 
 def monster_portrait(no) -> str | None:
