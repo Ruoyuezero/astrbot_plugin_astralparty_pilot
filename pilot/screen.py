@@ -99,9 +99,12 @@ PANEL_SCREEN = {
     "battleselectmonsterwindow": "assault_pick",
     "landfillingstationwindow": "main_move",
     "fightwindow": "fight_play",
-    "chooseroundcardwindow": "main_watch",     # 选轮次牌（不是我能操作的）
-    "handcardpanel": "main_turn",
+    "chooseroundcardwindow": "main_watch",      # 选轮次牌：不是我能操作的
+    "battlepremonsterwindow": "assault_pick",
 }
+# 弹窗栈里常见的“噪音窗口”，看到就跳过（它们在但没实际意义）
+WIN_NOISE = ("loadingwindow", "tipswindow", "systemtipswindow", "operatetimewindow",
+             "expressionwindow", "battlehintwindow", "mapdistancetipswindow")
 
 # UI 树里的窗口类名/路径关键词 → 界面（小写包含匹配，先命中先用）
 TREE_RULES = (
@@ -169,22 +172,37 @@ def detect(act: dict | None = None, st: dict | None = None,
     act = act or {}
     st = st or {}
     ui = ui or {}
+    aid = int(act.get("id") or 0)
+    rel = act.get("relic") or {}
+    shop = act.get("shop") or {}
     st_ok = _age(st.get("ts"), 600)
     ui_ok = _age(ui.get("ts"), 120)
     tree_ok = _age((tree or {}).get("ts"), 120)
     aid = int(act.get("id") or 0)
     rel = act.get("relic") or {}
 
-    # 第 0 层：探针读到的 UIManager 页面栈顶（最准）
-    # 注意：只认 panel —— `_cached*Window` 是懒加载缓存，窗口关掉了对象还在，
-    # 拿它当「现在开着」会把 LoadingWindow / TipsWindow 这种历史窗口当成真的。
+    # 第 0 层：探针读到的 **弹窗栈** 与 **页面栈**（最准）
+    #   prop_up     = UIManager.propUpWindows，栈顶就是最上层弹窗
+    #   panel       = 页面栈顶（基础页面，如 UI.HandCardPanel）
+    #   uncleared   = _unclearedWindows，兜底
+    #   windows     = _cached*Window，懒加载缓存，**不能当“现在开着”**（窗口关掉对象还在）
     if win and _age(win.get("ts"), 30):
-        name = str(win.get("panel") or "")
-        key = name.lower()
-        for kw, screen in PANEL_SCREEN.items():
-            if kw in key and kw != "handcardpanel":
-                return _mk(screen, "uiwin", 0.98, f"页面={name}")
-    shop = act.get("shop") or {}
+        def _look(names):
+            for nm in names or []:
+                key = str(nm).lower()
+                if not key or any(n in key for n in WIN_NOISE):
+                    continue
+                for kw, screen in PANEL_SCREEN.items():
+                    if kw in key:
+                        return screen, nm
+            return None, None
+
+        for field, label in (("prop_up", "弹窗栈"), ("panel", "页面栈"), ("uncleared", "未清理窗口")):
+            names = win.get(field) if field != "panel" else [win.get("panel")]
+            got, nm = _look(names)
+            if got:
+                return _mk(got, f"uiwin.{field}", 0.99 if field == "prop_up" else 0.95,
+                           f"{label}={nm}")
 
     # 第 1 层：协议动作号（弹窗）
     if aid in ACT_SCREEN:

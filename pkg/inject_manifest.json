@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-13 20:56:16",
+ "generated_at": "2026-11-13 21:32:27",
  "source": "pkg/payload",
  "total": 237,
- "bytes": 83679070,
+ "bytes": 83680094,
  "groups": {
   "bepinex-core": {
    "count": 37,
@@ -31,7 +31,7 @@
   },
   "plugin": {
    "count": 2,
-   "bytes": 121769,
+   "bytes": 122793,
    "desc": "陪玩插件本体 AstralProbe.dll"
   }
  },
@@ -1207,8 +1207,8 @@
   },
   {
    "rel": "BepInEx/plugins/AstralProbe.dll",
-   "size": 121344,
-   "sha256": "b9aed37fbb8b03879d17ea7c00e85fe584c1bc212016e7ae2182f55c6a6ec377",
+   "size": 122368,
+   "sha256": "3bb97f802a3f60e8d9896c0fb2aeb3790d9255e715d86579720ab520201f1634",
    "group": "plugin",
    "optional": false
   },
