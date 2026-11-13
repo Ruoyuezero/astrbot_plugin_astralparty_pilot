@@ -31,13 +31,13 @@
   },
   "deploy_src": {
     "type": "text",
-    "description": "代打文件源目录（/appa 注入用）",
+    "description": "陪玩文件源目录（/appa 注入用）",
     "hint": "填一个现成的 BepInEx 注入目录（含 winhttp.dll、doorstop_config.ini、BepInEx\\）。/appa 会把里面的文件同步进游戏根目录，插件本体 AstralProbe.dll 在 BepInEx/plugins 里一起带走。\r\n留空＝用插件目录下的 pkg/payload（它不随插件市场包分发，需从 Release 下载 appa-v2.4.0-beta1.0.zip 解压进来）；那里也没有时才找游戏目录同级的 game_files。\r\n只覆盖比目标新的文件，旧文件备份到游戏目录的 _pilot_backup\\时间戳\\ 下；游戏开着时被占用的 dll 会跳过，关掉游戏再发一次即可。",
     "default": ""
   },
   "pilot_prefer": {
     "type": "string",
-    "description": "代打默认倾向",
+    "description": "陪玩默认倾向",
     "hint": "eco＝发育 / atk＝进攻 / def＝防守",
     "default": "eco"
   },
@@ -62,7 +62,7 @@
   "admin_qqs": {
     "type": "string",
     "description": "管理员 QQ（逗号分隔）",
-    "hint": "例如 123456789,10001。/appa（看本机对局 + 整套代打指令）只允许这些人使用；留空＝只认 AstrBot 全局管理员。",
+    "hint": "例如 123456789,10001。/appa（看本机对局 + 整套陪玩指令）只允许这些人使用；留空＝只认 AstrBot 全局管理员。",
     "default": ""
   },
   "emoji_fps": {

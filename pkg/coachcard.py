@@ -13,7 +13,7 @@ from .artrender import Blocks, _draw_chips, _open
 from .livecard import BLUE, GOLD, GREEN, W, PAD, _chibi, _hero_name
 
 # 三种操控模式按「实际交给 bot 多少」判定，不看引擎内部 mode：
-#   全给   = 全自动代打   给一部分 = 半自动代打   一个都没给 = 玩家自己操控
+#   全给   = 全自动陪玩   给一部分 = 半自动陪玩   一个都没给 = 玩家自己操控
 ACT_CN = {"card": "出牌", "skill": "开技能", "go": "移动"}
 CORE_ACTS = ("card", "skill", "go")
 
@@ -40,7 +40,7 @@ def render_advice(d: dict, out_path: str) -> str:
     granted = set(d.get("allow") or [])
     allow = [a for a in CORE_ACTS if a in granted]
     auto = mode == "auto" or (granted and all(a in granted for a in CORE_ACTS))
-    badges = ["全自动代打" if auto else ("半自动代打" if allow else "玩家自主操控")]
+    badges = ["全自动陪玩" if auto else ("半自动陪玩" if allow else "玩家自主操控")]
     if not auto and allow:
         badges.append("代动 " + "/".join(ACT_CN[a] for a in allow))
     if d.get("dry"):
@@ -93,9 +93,9 @@ def render_advice(d: dict, out_path: str) -> str:
                _font(14), MUTE, line_h=24, before=10)
 
     if auto:
-        note = "全自动代打：bot 自己出牌 / 开技能 / 推进"
+        note = "全自动陪玩：bot 自己出牌 / 开技能 / 推进"
     elif allow:
-        note = "半自动代打：只代动 " + "、".join(ACT_CN[a] for a in allow) + "，其余你自己点"
+        note = "半自动陪玩：只替你做 " + "、".join(ACT_CN[a] for a in allow) + "，其余你自己点"
     else:
         note = "玩家自主操控：bot 只看不动，只推建议"
     b.text(f"{note} · 数据时间 {d.get('ts') or ''}", _font(13), MUTE, line_h=22, before=10)

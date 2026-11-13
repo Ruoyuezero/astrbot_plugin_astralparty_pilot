@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-AstralPartyPilot · 自动代打
+AstralPartyPilot · 自动陪玩
 
 监视游戏目录下的 state.json，轮到自己时决策并下发指令。
 指令写入 cmd.txt，由 BepInEx 插件每帧消费。
@@ -831,7 +831,7 @@ def main():
         try:
             me = me_of(st)
         except IdentityError as e:
-            # 读不准自己就什么都不做 —— 宁可全程挂机，也不能拿别人的数据代打
+            # 读不准自己就什么都不做 —— 宁可全程挂机，也不能拿别人的数据替你操作
             say(f"[身份校验失败] {e} → 停手，不下发任何指令")
             if args.once:
                 return

@@ -1,9 +1,9 @@
 """星趴（Astral Party）助手插件入口。
 
 知识库（kb/）、决策逻辑（pkg/）与陪玩引擎（pilot/）都随插件一起分发，
-插件负责把它们变成 QQ 里的图文图鉴（/app）与代打操控（/appa）。
+插件负责把它们变成 QQ 里的图文图鉴（/app）与陪玩操控（/appa）。
 
-代打三种模式：全自动（/appa on）、半自动（/appa card 等）、玩家自主操控（/appa off）。
+陪玩三种模式：全自动（/appa on）、半自动（/appa card 等）、玩家自主操控（/appa off）。
 """
 
 from __future__ import annotations
@@ -144,10 +144,10 @@ HELP_SECTIONS = [
         ("/appa sid", "列出本机所有登录票 sid（按账号区分，填 alt_sid 用；仅管理员）"),
     ]),
     ("🎮", "陪玩（仅管理员 · 🚧 开发中，未完全实装）", [
-        ("🚧 开发中", "陪玩代打（/appa 系列）尚在开发，未完全实装，请静待更新"),
-        ("/appa", "注入代打组件：dll / BepInEx 装进游戏根目录（游戏要关着）"),
+        ("🚧 开发中", "陪玩（/appa 系列）尚在开发，未完全实装，请静待更新"),
+        ("/appa", "注入陪玩组件：dll / BepInEx 装进游戏根目录（游戏要关着）"),
         ("/appa rm", "撤回注入：按清单把注入的文件移走（先备份，清单外的一个不动）"),
-        ("/appa on", "全自动代打：出牌、技能、移动、战斗全交给 bot"),
+        ("/appa on", "全自动陪玩：出牌、技能、移动、战斗全交给 bot"),
         ("/appa off", "玩家自主操控：bot 只推建议，鼠标不碰"),
         ("/appa me", "查本机登录账号：在局返回进度卡，否则返回档案卡（全程不联网）"),
         ("/appa sid", "列出本机所有登录票 sid（按账号区分，填 alt_sid 用）"),
@@ -156,7 +156,7 @@ HELP_SECTIONS = [
         ("/appa skill", "开技能"),
         ("/appa go", "移动 / 选「继续移动」"),
         ("/appa choose", "遇岔路自动选更优的一条"),
-        ("/appa stop", "角色停在当前格（不继续移动）—— 不是关代打"),
+        ("/appa stop", "角色停在当前格（不继续移动）—— 不是关陪玩"),
         ("/appa buy", "经过商店时：买一张"),
         ("/appa buyskip", "跳过购买：卡牌商店不买、直接离开"),
         ("/appa relic", "只选筹码（三选一挑品质最好的）"),
@@ -551,7 +551,7 @@ class AstralPartyPilotPlugin(Star):
             "查别人：/app <UID>（例如 /app 2425110）\n"
             "看本机（局内卡 / 档案卡）：/app\n"
             "登录账号看档案：/app in · /app uid · /app out\n"
-            "代打请用 /appa（/appa on 全自动 · /appa card 半自动 · /appa off 交回自己）\n"
+            "陪玩请用 /appa（/appa on 全自动 · /appa card 半自动 · /appa off 交回自己）\n"
             "发 /app help 看完整说明"
         )
 
@@ -1789,13 +1789,13 @@ class AstralPartyPilotPlugin(Star):
     # ------------------------------------------------------------ /appa ----
     @filter.command("appa", alias={"APPA", "Appa"})
     async def appa(self, event: AstrMessageEvent):
-        """代打总入口：/appa 查状态，/appa on 全自动，/appa <项> 只做那一件事。
+        """陪玩总入口：/appa 查状态，/appa on 全自动，/appa <项> 只做那一件事。
 
-        /appa 整套（含状态查询和所有代打开关）都只允许管理员用：它会动 bot 这台机器
+        /appa 整套（含状态查询和所有陪玩开关）都只允许管理员用：它会动 bot 这台机器
         上的游戏，不能让别人随手开关。
         """
         if not self._is_admin(event):
-            yield event.plain_result(self._deny_text("/appa 代打"))
+            yield event.plain_result(self._deny_text("/appa 陪玩"))
             return
         raw = (event.message_str or "").strip()
         words = re.sub(r"^[/／]?\s*appa", "", raw, flags=re.I).strip().split()
@@ -1838,7 +1838,7 @@ class AstralPartyPilotPlugin(Star):
                 f"「{sub}」不是 /appa 的子命令呢～可用的有：\n"
                 "· 开关：on（全自动）· off（自主操控）· me（查本机）· sid（登录票）\n"
                 "· 单项：card / skill / go / choose / stop / relic / buy / buyskip / relicskip / atk / def / dodge / skip / ok\n"
-                "· 不带参数：把代打组件注入游戏根目录（游戏要关着）\n"
+                "· 不带参数：把陪玩组件注入游戏根目录（游戏要关着）\n"
                 "· rm：按注入清单撤回注入的文件（先备份，清单外的不动）\n"
                 "完整说明发 /app help 看「陪玩」那一节")
             return
@@ -1871,7 +1871,7 @@ class AstralPartyPilotPlugin(Star):
 
     @staticmethod
     def _pilot_tag(cur: dict) -> str:
-        """代打模式的短名字（卡面用，不带 emoji）。"""
+        """陪玩模式的短名字（卡面用，不带 emoji）。"""
         if not cur.get("running"):
             return "没开"
         granted = set(cur.get("allow") or [])
@@ -1880,16 +1880,16 @@ class AstralPartyPilotPlugin(Star):
         return "模式② 半自动" if granted else "模式③ 玩家自主"
 
     def _pilot_line(self, cur: dict, allow_cn: str) -> str:
-        """代打状态压成一行（跟在局内卡后面）。"""
+        """陪玩状态压成一行（跟在局内卡后面）。"""
         if not cur.get("running"):
-            return "🤖 代打：没开 —— 想全自动发 /appa on；自己打就无视这句"
+            return "🤖 陪玩：没开 —— 想全自动发 /appa on；自己打就无视这句"
         tag = self._pilot_tag(cur)
         pid = cur.get("pid")
         tail = f"（pid {pid}）" if pid else ""
-        return f"🤖 代打：{tag}{tail} ｜ 授权：{allow_cn or '无'}"
+        return f"🤖 陪玩：{tag}{tail} ｜ 授权：{allow_cn or '无'}"
 
     async def _appa_deploy(self, event: AstrMessageEvent):
-        """/appa：把代打必需的程序注入游戏根目录。
+        """/appa：把陪玩必需的程序注入游戏根目录。
 
         装的是 winhttp.dll、doorstop_config.ini、.doorstop_version，以及整棵 BepInEx
         （插件本体 AstralProbe.dll 就在 BepInEx/plugins 里）。只做部署不碰对局状态：
@@ -2105,7 +2105,7 @@ class AstralPartyPilotPlugin(Star):
         """/appa me：查本机登录账号 —— 在局出局内卡，不在局出档案卡。
 
         在局内（state.json 20 秒内还在更新）→ 局内卡图片（我的角色 / 血量 / 金币 /
-        所在格）+ 一行代打状态；不在局 → 用本地存的档案出档案卡（没存过就用本机
+        所在格）+ 一行陪玩状态；不在局 → 用本地存的档案出档案卡（没存过就用本机
         state.json / accounts.json 现拼一张，战绩那几格留「—」）。
         全程不连服务器 —— 联机会把大厅里正在开着的号顶下线。
         """
@@ -2403,7 +2403,7 @@ class AstralPartyPilotPlugin(Star):
         if act == "choose":
             return head + (why or "没有分岔要选")
         if act == "stop":
-            # stop = 让角色停在当前格（停靠站/继续移动那条），不是关代打
+            # stop = 让角色停在当前格（停靠站/继续移动那条），不是关陪玩
             if stage not in ("move", "choose"):
                 return head + "现在不在移动/选路阶段"
             return head + _short(why or "没停在当前格")
@@ -2412,7 +2412,7 @@ class AstralPartyPilotPlugin(Star):
     async def _appa_off(self, event: AstrMessageEvent):
         msg = await asyncio.to_thread(CO.stop, self.config)
         self._stop_push()
-        yield event.plain_result("已关闭代打")
+        yield event.plain_result("已关闭陪玩")
 
     def _ensure_push(self, event: AstrMessageEvent) -> None:
         umo = getattr(event, "unified_msg_origin", "") or ""

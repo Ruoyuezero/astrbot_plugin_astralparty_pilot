@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""把代打必需的文件注入游戏根目录（`/appa` 的实现）。
+"""把陪玩必需的文件注入游戏根目录（`/appa` 的实现）。
 
 注入清单一律以插件内的 `pkg/inject_manifest.json` 为准（`python -m pkg.gen_manifest`
 生成），里面逐条写着相对路径、大小、SHA256、分组和用途：
@@ -89,7 +89,7 @@ EXES = ("AstralParty_CN.exe", "AstralParty_INT.exe")
 
 
 def src_dir(cfg: dict | None = None) -> str:
-    """代打文件源目录：配置 deploy_src 优先，其次仓库默认位置，都没有返回空串。"""
+    """陪玩文件源目录：配置 deploy_src 优先，其次仓库默认位置，都没有返回空串。"""
     v = ""
     if isinstance(cfg, dict):
         v = str(cfg.get("deploy_src") or "").strip()

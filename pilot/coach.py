@@ -11,7 +11,7 @@
 
 两种模式：
     pilot  辅助：轮到我 → 算建议 → 写 coach.json；**只动手被授权的动作**
-    auto   代打：三类动作全授权，轮到我 → 算建议 → 真拖牌 / 开技能 / 点移动键
+    auto   陪玩：三类动作全授权，轮到我 → 算建议 → 真拖牌 / 开技能 / 点移动键
 
 授权粒度（--allow / 控制文件 coach_ctl.json，对应 /appa 各子命令）：
     card    出牌（只出无需选目标的牌）
@@ -1716,7 +1716,7 @@ class Coach:
             try:
                 payload = self.tick(st)
             except AP.IdentityError as e:
-                # 认不出自己就绝不动作 —— 宁可挂机，也不能拿别人的数据代打
+                # 认不出自己就绝不动作 —— 宁可挂机，也不能拿别人的数据替你操作
                 self.say(f"[身份校验失败] {e} → 停手")
                 payload = {"ts": time.strftime("%H:%M:%S"), "pid": os.getpid(),
                            "mode": self.mode, "in_match": True, "my_turn": False,
