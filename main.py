@@ -202,6 +202,26 @@ PILOT_ACT_ALIAS = {
     "ok": "ok", "确定": "ok", "确认": "ok", "提交": "ok", "出牌确定": "ok", "confirm": "ok",
     "dodge": "dodge", "闪避": "dodge", "躲": "dodge", "闪": "dodge",
 }
+# 每条指令只允许在这些界面执行（与 pilot/screen.py 的 ACTION_SCREENS 一致）
+_SCREEN_ALLOW = {
+    "card": {"main_turn", "fight_play", "fight_play_atk", "fight_play_def"},
+    "skill": {"main_turn"},
+    "go": {"main_turn", "main_move"},
+    "choose": {"main_move"},
+    "stop": {"main_move"},
+    "buy": {"shop_card"},
+    "buyskip": {"shop_card"},
+    "relic": {"relic_pick"},
+    "relicskip": {"relic_buy"},
+    "relicrenew": {"relic_pick"},
+    "atk": {"fight_ask", "fight_watch", "fight_play", "fight_play_atk"},
+    "def": {"fight_choice", "fight_play_def"},
+    "dodge": {"fight_choice"},
+    "ok": {"fight_play", "fight_play_atk", "fight_play_def"},
+    "skip": {"fight_ask", "fight_play", "fight_play_atk", "fight_play_def", "main_turn"},
+}
+_SCREEN_OK = {a: (lambda s, _ok=v: s in _ok) for a, v in _SCREEN_ALLOW.items()}
+
 PILOT_ACT_CN = {"card": "出牌", "skill": "开技能", "go": "移动/继续", "choose": "岔路选路",
                 "stop": "停下", "buy": "商店购买", "relic": "选筹码",
                 "atk": "攻击怪物", "def": "防御", "dodge": "闪避", "skip": "跳过",
@@ -2356,6 +2376,13 @@ class AstralPartyPilotPlugin(Star):
         lines = [str(x) for x in (ev.get("lines") or [])]
         why = str(d.get("why") or "").strip()
 
+        # 界面识别：明确认成别的界面时，直接说「现在是什么页」，比解释阶段更短
+        scr = str(d.get("screen") or "")
+        scr_cn = str(d.get("screen_cn") or "")
+        if scr and scr != "idle" and scr_cn:
+            if not _SCREEN_OK.get(act, lambda s: True)(scr):
+                return head + f"现在在「{scr_cn}」"
+
         if act == "card":
             if d.get("fight"):
                 note = str(d.get("fight_note") or "").strip()
@@ -2401,7 +2428,7 @@ class AstralPartyPilotPlugin(Star):
                 return head + "不在筹码三选一界面"
             return head + _short(why or "没选成")
         if act == "choose":
-            return head + (why or "没有分岔要选")
+            return head + _short(why or "没有分岔要选")
         if act == "stop":
             # stop = 让角色停在当前格（停靠站/继续移动那条），不是关陪玩
             if stage not in ("move", "choose"):

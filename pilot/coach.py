@@ -1454,6 +1454,17 @@ class Coach:
                 payload["allow"] = [a for a in ACTIONS if a in self.allow]
         return payload
 
+    def _screen_ok(self, *actions) -> bool:
+        """当前界面能不能做这些动作。
+
+        界面没认出来（idle/未知）时一律放行 —— 识别不确定不该把陪玩整个停掉；
+        只有**明确认成别的界面**时才拦（例如在观战页就别去点出牌键）。
+        """
+        s = (self._screen or {}).get("screen") or "idle"
+        if s in ("idle", ""):
+            return True
+        return any(SC.allows(a, s) for a in actions)
+
     def _tick(self, st):
         self.load_ctl()
         self._last_state = st            # fight_open() 在导不到 UI 树时靠它兜底
@@ -1513,7 +1524,7 @@ class Coach:
 
         # ① 分岔口优先级最高：这时动作已出队，stage 多是 none、my 也常是 0，
         #    所以必须放在「不是我的回合就返回」的前面。
-        if self.handle_arrows(act, cells):
+        if self._screen_ok("choose") and self.handle_arrows(act, cells):
             payload["event"] = self.last_event
             payload["acted"] = self.acted
             payload["stage"] = "branch"
@@ -1528,7 +1539,7 @@ class Coach:
             return payload
 
         # ②' 战斗界面已经开着（stage 常是 none、act id=-1）：按授权点 攻击/防御/闪避
-        if self.handle_fight_ui():
+        if self._screen_ok("atk", "def", "ok", "skip") and self.handle_fight_ui():
             payload["event"] = self.last_event
             payload["acted"] = self.acted
             payload["stage"] = "fight"
@@ -1537,7 +1548,7 @@ class Coach:
         # ②'' 战斗界面开着、又授权了出牌：把战斗牌（攻击 / 防御）拖进战斗区。
         #    只在自己手里有可出的战斗牌时才动；没授权 card 时这一步直接跳过，
         #    所以「打小偷直接点攻击」的老路子不受影响。
-        if self.handle_fight_card(act, st, me):
+        if self._screen_ok("card") and self.handle_fight_card(act, st, me):
             payload["event"] = self.last_event
             payload["acted"] = self.acted
             payload["stage"] = "fight_card"
@@ -1546,36 +1557,36 @@ class Coach:
         # ③ 商店 / 筹码 / 继续停止：这三个都是「服务端在等我回一个协议」，
         #    跟 my_turn 的判定无关（商店里 pa 是 NONE，check_turn 常判 0），
         #    所以同样放在回合判定之前。
-        if self.handle_shop(act):
+        if self._screen_ok("buy", "buyskip") and self.handle_shop(act):
             payload["event"] = self.last_event
             payload["acted"] = self.acted
             payload["stage"] = "shop"
             return payload
-        if self.handle_relic(act):
+        if self._screen_ok("relic", "relicskip") and self.handle_relic(act):
             payload["event"] = self.last_event
             payload["acted"] = self.acted
             payload["stage"] = "relic"
             return payload
-        if self.handle_relic_renew():
+        if self._screen_ok("relicrenew") and self.handle_relic_renew():
             payload["event"] = self.last_event
             payload["acted"] = self.acted
             payload["stage"] = "relic"
             return payload
-        if self.handle_stopcont(act):
+        if self._screen_ok("stop", "go") and self.handle_stopcont(act):
             payload["event"] = self.last_event
             payload["acted"] = self.acted
             payload["stage"] = "stopcont"
             return payload
         # 停靠站的「继续移动 / 停下」：act.json 里没有这一步（id=-1），
         # 只能靠 UI 树里的 btn_Continue / btn_Stop 认。同样在回合判定之前。
-        if self.handle_station(act):
+        if self._screen_ok("go", "stop") and self.handle_station(act):
             payload["event"] = self.last_event
             payload["acted"] = self.acted
             payload["stage"] = "station"
             return payload
         # 站在怪物突击门上：先选一只怪（atk 突击 / skip 只传送不打），
         # 弹出来的 5047 再交给 handle_battle 决定打不打。
-        if self.handle_atk_gate(st, act):
+        if self._screen_ok("atk") and self.handle_atk_gate(st, act):
             payload["event"] = self.last_event
             payload["acted"] = self.acted
             payload["stage"] = "gate"
