@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """AstralPartyPilot · 陪玩引擎（auto / pilot）
 
@@ -1075,16 +1075,57 @@ class Coach:
 
         fight_ui_open() 每次都要导一遍 UI 树，一帧一帧地导会卡游戏主线程，
         所以缓存 1 秒：判断界面在不在，这个精度足够。
+
+        2026-11-13 补：导树经常「没回音」（战斗中尤其明显，日志里一串
+        `[停靠站诊断] uitree 5 没回音`），只认 FightWindow 就会一直判成「不在战斗」，
+        于是战斗牌永远不出。所以加一条**协议兜底**：
+        `state.battle` 为真、且 `state.fight` 里有 attacker/defender、`end` 为 0，
+        就认为在战斗里 —— 这些字段来自对局协议，比 UI 树可靠。
         """
         now = time.time()
         if self._fight_open is not None and now - self._fight_open_t < ttl:
             return self._fight_open
         r = self.fight_ui_open()
         self._fight_open_t = now
-        self._fight_open = bool(r) if r is not None else False
+        opened = bool(r) if r is not None else False
+        if not opened:
+            opened = self._fight_by_state()
+        self._fight_open = opened
         if not self._fight_open:
             self._fight_card_note = ""      # 出战斗的旧原因别带到下一场
         return self._fight_open
+
+    def _fight_by_state(self) -> bool:
+        """协议兜底：state 里 battle=1 + fight 有攻防双方 + 没结束 → 在战斗里。
+
+        再卡两条，免得「战斗刚结束、state 还没刷新」时把普通出牌当成战斗牌：
+          - state 不能太旧（`ts` 是 HH:MM:SS，超过 180 秒就当过期）——
+            探针只在状态变化时写文件，等玩家操作时不动是正常的，所以窗口给宽；
+          - 攻防双方里必须有一方是自己（说明这场战斗和我有关）。
+        """
+        st = getattr(self, "_last_state", None) or {}
+        if not st.get("battle"):
+            return False
+        fi = st.get("fight") or {}
+        if not (fi.get("attacker") or fi.get("defender")):
+            return False
+        if fi.get("end"):
+            return False
+        ts = str(st.get("ts") or "")
+        if ts:
+            try:
+                hh, mm, ss = (int(x) for x in ts.split(":"))
+                now = time.localtime()
+                age = (now.tm_hour * 3600 + now.tm_min * 60 + now.tm_sec) - (hh * 3600 + mm * 60 + ss)
+                if age < 0:
+                    age += 86400                       # 跨零点
+                if age > 180:
+                    return False
+            except (ValueError, TypeError):
+                pass
+        mine = st.get("selfPid") or st.get("self")
+        pids = {(fi.get("attacker") or {}).get("pid"), (fi.get("defender") or {}).get("pid")}
+        return bool(mine) and mine in pids
 
     def handle_fight_ui(self):
         """战斗界面已经开着时替主人点一下：攻击 / 确定 / 防御 / 放过。
@@ -1363,6 +1404,7 @@ class Coach:
 
     def _tick(self, st):
         self.load_ctl()
+        self._last_state = st            # fight_open() 在导不到 UI 树时靠它兜底
         act = NA.state() or {}          # 插件写的当前动作（含 arrows / shop / relic）
         me = AP.me_of(st)
         stage = AP.cur_stage(st, me)
