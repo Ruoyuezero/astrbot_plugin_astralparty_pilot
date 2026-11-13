@@ -156,7 +156,7 @@ HELP_SECTIONS = [
         ("/appa skill", "开技能"),
         ("/appa go", "移动 / 选「继续移动」"),
         ("/appa choose", "遇岔路自动选更优的一条"),
-        ("/appa stop", "停下来（不继续走）"),
+        ("/appa stop", "角色停在当前格（不继续移动）—— 不是关代打"),
         ("/appa buy", "经过商店时：买一张"),
         ("/appa buyskip", "跳过购买：卡牌商店不买、直接离开"),
         ("/appa relic", "只选筹码（三选一挑品质最好的）"),
@@ -1946,9 +1946,9 @@ class AstralPartyPilotPlugin(Star):
                          "\n关掉游戏再发一次 /appa 就好")
         if res["failed"]:
             head = "、".join(rel for rel, _ in res["failed"][:3])
-            lines.append(f"⚠️ {len(res['failed'])} 个文件写入失败（{head}）")
-        lines.append("启动游戏后 dll 会自动加载；要开代打发 /appa on")
-        yield event.plain_result("\n".join(lines))
+            yield event.plain_result(f"❌ 注入没做完：{len(res['failed'])} 个文件写入失败（{head}）")
+            return
+        yield event.plain_result("已注入")
 
     async def _appa_rm(self, event: AstrMessageEvent):
         """/appa rm：按注入清单把注入的文件撤掉（只撤清单里的，先备份）。
@@ -2222,21 +2222,12 @@ class AstralPartyPilotPlugin(Star):
             msg = (await asyncio.to_thread(CO.start, self.config, "pilot", False,
                                            prefer, picks, once))
 
-        names = "、".join(PILOT_ACT_CN[a] for a in picks)
-        lines = []
-        if full:
-            lines.append(f"🎮 模式① 全自动代打 —— {msg}")
-            lines.append(f"交给 bot：{names}")
-            lines.append("遇到怪物默认打、被打不闪避；不代「停下来」，想停发 /appa stop")
-            lines.append("想看当前进度就发 /app")
-        else:
-            lines.append(f"🎯 模式② 半自动代打 · 代「{names}」这一次 —— {msg}")
-            lines.append("这些都是**一次性**的：做完一下自动收回授权，要再来一次就再发一遍")
-            lines.append("其余动作仍归你自己点，bot 不碰")
+        if not full:
+            return                      # 一次性动作：成功不吭声，失败由 _appa_once 说
         if not await asyncio.to_thread(LS.running):
-            lines.append("💡 现在没检测到游戏进程，进对局后才会动。")
-        lines.append("要转成模式③（你自己操控）：/appa off")
-        yield event.plain_result("\n".join(lines))
+            yield event.plain_result("全自动已开，但没检测到游戏进程")
+            return
+        yield event.plain_result("全自动已开")
 
     # ------------------------------------------------- 一次性动作的结果 ----
     async def _appa_once(self, event: AstrMessageEvent, act: str):
@@ -2252,9 +2243,7 @@ class AstralPartyPilotPlugin(Star):
         except Exception:  # noqa: BLE001
             landed = True
         if not landed:
-            yield event.plain_result(
-                f"「{PILOT_ACT_CN.get(act, act)}」没能交给引擎：控制文件里没有这一项。\n"
-                "多半是插件与引擎的动作清单不一致（重启插件重拉引擎即可）。")
+            yield event.plain_result(f"❌ {PILOT_ACT_CN.get(act, act)}没做成：动作清单不一致，重启插件")
             return
         ok, why = await self._appa_wait_once(act)
         if not ok:
@@ -2337,127 +2326,93 @@ class AstralPartyPilotPlugin(Star):
         return False, await asyncio.to_thread(self._appa_why, act, time.time() - t0)
 
     def _appa_why(self, act: str, spent: float = 0.0) -> str:
-        """「这一下为什么没做成」——读引擎最近一帧，能说到点子上。"""
+        """「这一下为什么没做成」——只回一句话，不解释流程、不给建议。"""
         cn = PILOT_ACT_CN.get(act, act)
-        head = f"⚠️ /appa {act}（{cn}）这一下没做成，授权已收回。\n"
+        head = f"❌ {cn}没做成："
+
+        def _short(t: str, n: int = 36) -> str:
+            t = str(t or "").strip().replace("\n", " ")
+            return t if len(t) <= n else t[:n] + "…"
         try:
             d = CO.read(self.config) or {}
             age = CO.state_age(self.config)
         except Exception:  # noqa: BLE001
             d, age = {}, -1.0
         if not d:
-            return head + "引擎还没写过状态 —— 游戏没开，或者还没进对局。"
+            return head + "读不到引擎状态（游戏没开 / 没进对局）"
         pid = d.get("pid")
-        # 只有「状态帧也停更了」才怪进程：引擎做完动作会自己退出，光看 pid 会把
-        # 「刚干完活/正在收尾」误报成「引擎没起来」（2026-11-09 就是这么误导的）。
         try:
-            stale = age < 0 or age > 30.0
-            if pid and stale and not CO.alive(int(pid)):
-                return head + "引擎进程已经不在（游戏没开 / 代打没启动）。"
+            if pid and (age < 0 or age > 30.0) and not CO.alive(int(pid)):
+                return head + "引擎进程已退出"
         except Exception:  # noqa: BLE001
             pass
         if not d.get("in_match"):
-            return head + "现在不在对局里。"
+            return head + "不在对局里"
         stage = d.get("stage") or "none"
         stage_cn = d.get("stage_cn") or stage
-        mine = bool(d.get("my_turn"))
         actd = d.get("act") or {}
+        aid = int(actd.get("id") or 0)
         ev = d.get("event") or {}
         lines = [str(x) for x in (ev.get("lines") or [])]
         why = str(d.get("why") or "").strip()
-        tail = f"（引擎：{why}）" if why else ""
 
         if act == "card":
             if d.get("fight"):
                 note = str(d.get("fight_note") or "").strip()
-                return head + (note + "。" if note else "战斗界面里没出成这张战斗牌。")
+                return head + (note or "战斗里没有能出的牌")
             if stage != "card":
-                spent_cn = f"{spent:.0f} 秒" if spent else "一会儿"
-                return head + (
-                    f"等不到出牌阶段 —— 当前是「{stage_cn}」，等了 {spent_cn} 也没轮到出牌。\n"
-                    "出牌只在**轮到你、且出牌窗口打开**时才有效；发早了只能白等。\n"
-                    "要么等轮到你时再发，要么用 /appa on 让 bot 自己等（它会在合适的时机出）。")
+                return head + f"不在出牌阶段（{stage_cn}）"
             if any("没有可出的牌" in l for l in lines):
-                return head + "手牌里没有现在能出的牌。"
+                return head + "手里没有能出的牌"
             if any("都出不了" in l for l in lines):
-                return head + "手上的牌这会儿都出不了（战斗牌 / 地块牌 / 认不出目标）。"
-            spent_cn = f"{spent:.0f} 秒" if spent else "好一会儿"
-            return head + (
-                f"出牌链路等了 {spent_cn} 还没走完"
-                "（拖牌 → 等弹窗 → 导 UI 树选目标 → 确认，正常 10~13 秒）。\n"
-                "如果游戏界面停在「选目标」：牌可能已经拖到中心、但目标没选中 —— "
-                "手动点一下目标/确认把它收尾，或按取消把这张牌退回来。")
+                return head + "手里的牌这会儿都出不了"
+            return head + "拖牌没生效"
         if act == "skill":
             if stage != "card":
-                return head + f"现在不是出牌 / 技能阶段 —— 当前是「{stage_cn}」。"
+                return head + f"不在出牌/技能阶段（{stage_cn}）"
             cd = (d.get("me") or {}).get("skillCD")
-            if cd:
-                return head + f"技能还在冷却（剩 {cd} 回合）。"
-            return head + f"技能键没按下去{tail}。"
+            return head + (f"技能冷却中（剩 {cd} 回合）" if cd else (why or "技能键没按下去"))
         if act == "go":
-            # 移动和出牌不冲突：出牌阶段点移动键就是「这轮不出牌，直接走」
-            # （2026-11-05 主人纠正：可以不出牌直接移动，别叫人先把手牌走完）
             if stage in ("card", "move"):
-                return head + f"移动键没点下去{tail}。"
-            return head + f"这一步按不了移动 —— 当前是「{stage_cn}」。"
+                return head + (why or "移动键没点下去")
+            return head + f"现在不能移动（{stage_cn}）"
         if act in ("atk", "def", "dodge"):
-            aid = int(actd.get("id") or 0)
-            if aid not in (5047, 5039) and stage not in ("battle", "fight"):
-                return head + f"现在没有战斗弹窗 / 战斗界面 —— 当前是「{stage_cn}」。"
-            return head + f"这一下没点成{tail}。"
+            if aid not in (5047, 5039) and not d.get("fight"):
+                return head + "没有战斗弹窗/战斗界面"
+            return head + (why or "没点成")
         if act == "ok":
-            if not d.get("fight"):
-                spent_cn = f"{spent:.0f} 秒" if spent else "一会儿"
-                return head + (f"等了 {spent_cn} 也没有战斗出牌页 —— 当前是「{stage_cn}」。\n"
-                               "这条只管「攻击/防御出牌页出完牌后点确定提交」，不在战斗里发它没用。\n"
-                               "想让它自己在战斗里出牌+提交：/appa on。")
-            return head + f"确定键没点成{tail}。"
+            return head + ("没有战斗出牌页" if not d.get("fight") else (why or "确定键没点成"))
         if act == "buy":
-            if not (actd.get("shop")):
-                return head + "现在不在商店界面。"
-            return head + f"买了但没成功（钱不够 / 卡买不了）{tail}。"
+            return head + ("不在商店" if not actd.get("shop") else (why or "没买成（钱不够/买不了）"))
         if act == "buyskip":
-            if not (actd.get("shop")):
-                return head + "现在不在卡牌商店 —— 这条只管「到了商店不买、直接走」。"
-            return head + f"商店没走出去{tail}。"
+            return head + ("不在卡牌商店" if not actd.get("shop") else (why or "商店没走出去"))
         if act == "relicskip":
-            # 5249 = 询问是否购买筹码
-            aid = int(actd.get("id") or 0)
             note = str(d.get("relic_note") or "").strip()
             if aid != 5249:
-                spent_cn = f"{spent:.0f} 秒" if spent else "一会儿"
-                extra = f"\n引擎看到的是：{note}" if note else ""
-                if aid == 5211:
-                    return head + ("现在停在**筹码三选一**（5211），不是「买不买」的询问。\n"
-                                   "三选一必须选一张走人：要 bot 挑就发 /appa relic。") + extra
-                return head + (f"等了 {spent_cn} 也没有「要不要买这个筹码」的询问（当前动作 id={aid}）。\n"
-                               "这条只管 5249 那种询问；三选一用 /appa relic，卡牌商店不买用 /appa buyskip。") + extra
-            return head + f"筹码购买没取消掉{tail}。"
+                if aid == 5211 or "三选一" in note:
+                    return head + "这是筹码三选一，必须选一张（用 /appa relic）"
+                return head + (note or "现在没有「买不买筹码」的询问")
+            return head + (why or "没取消掉")
         if act == "relicrenew":
-            return head + ("没点成「刷新」—— 这条要在筹码商店页面（右下角有刷新键）发；"
-                           "刷新要花金币，金币不够时游戏不会换牌。")
+            return head + (why or "刷新键没点成（可能金币不够）")
         if act == "relic":
-            if not (actd.get("relic")):
-                return head + "现在不在选筹码的三选一界面。"
-            return head + f"筹码没选成{tail}。"
+            note = str(d.get("relic_note") or "").strip()
+            if note or int(actd.get("id") or 0) not in (5211, 5249):
+                return head + "不在筹码三选一界面"
+            return head + _short(why or "没选成")
         if act == "choose":
-            if not (actd.get("arrows")):
-                return head + "现在没有岔路可走。"
-            return head + f"岔路没选成{tail}。"
+            return head + (why or "没有分岔要选")
         if act == "stop":
-            return head + f"现在没有可停下的地方 / 停靠站弹窗 —— 当前是「{stage_cn}」。"
-        if not mine:
-            return head + f"还没轮到主人动手 —— 当前是「{stage_cn}」。"
-        if actd.get("name"):
-            return head + f"卡在「{actd.get('name')}」（动作 id {actd.get('id')}）{tail}。"
-        return head + f"当前是「{stage_cn}」，没有可以做的「{cn}」{tail}。"
+            # stop = 让角色停在当前格（停靠站/继续移动那条），不是关代打
+            if stage not in ("move", "choose"):
+                return head + "现在不在移动/选路阶段"
+            return head + _short(why or "没停在当前格")
+        return head + _short(why or "没做成")
 
     async def _appa_off(self, event: AstrMessageEvent):
         msg = await asyncio.to_thread(CO.stop, self.config)
         self._stop_push()
-        yield event.plain_result(
-            f"🖐 模式③ 玩家自主操控：{msg}\n"
-            "授权一并收回，鼠标完全归你；bot 只在旁边看，想看本机发 /app。")
+        yield event.plain_result("已关闭代打")
 
     def _ensure_push(self, event: AstrMessageEvent) -> None:
         umo = getattr(event, "unified_msg_origin", "") or ""

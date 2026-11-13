@@ -78,7 +78,7 @@
 | `/appa skill`           | 开技能 |
 | `/appa go`              | 移动 / 选「继续移动」 |
 | `/appa choose`          | 岔路自动选更优的一条 |
-| `/appa stop`            | 在出生点或保障点停下来 |
+| `/appa stop`            | 角色停在当前格、不继续移动（**不是关代打**，关代打发 `/appa off`） |
 | `/appa buy`             | 经过商店时：买一张 |
 | `/appa buyskip`         | 跳过购买：卡牌商店不买、直接离开 |
 | `/appa relic`           | 选筹码（三选一挑品质最好的） |
