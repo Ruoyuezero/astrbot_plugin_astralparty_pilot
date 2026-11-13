@@ -1256,7 +1256,14 @@ class Coach:
             return False
 
         fi = st.get("fight") or {}
-        atk_side = (fi.get("attacker") or {}).get("pid") == st.get("selfPid")
+        mine = st.get("selfPid") or st.get("self")
+        atk_pid = (fi.get("attacker") or {}).get("pid")
+        def_pid = (fi.get("defender") or {}).get("pid")
+        if mine and mine not in (atk_pid, def_pid):
+            # 攻防双方里都没有我 —— 认不出这轮是攻是守，别拿错牌型去试
+            self._fight_card_note = "认不出这轮是攻击方还是防御方（state 里对不上自己）"
+            return False
+        atk_side = atk_pid == mine
         side = (fi.get("attacker") if atk_side else fi.get("defender")) or {}
         want_cn, side_cn = ("攻击", "攻击方") if atk_side else ("防御", "防御方")
         avail = side.get("cost")

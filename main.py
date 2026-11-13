@@ -204,7 +204,7 @@ PILOT_ACT_ALIAS = {
 }
 # 每条指令只允许在这些界面执行（与 pilot/screen.py 的 ACTION_SCREENS 一致）
 _SCREEN_ALLOW = {
-    "card": {"main_turn", "fight_play", "fight_play_atk", "fight_play_def"},
+    "card": {"main_turn", "fight_play_atk", "fight_play_def"},
     "skill": {"main_turn"},
     "go": {"main_turn", "main_move"},
     "choose": {"main_move"},

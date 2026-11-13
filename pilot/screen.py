@@ -51,7 +51,7 @@ SCREENS = {
     "fight_choice": "被攻击选择（闪避/防御）",
     "fight_play_atk": "攻击出牌页（出攻击牌/确定）",
     "fight_play_def": "被攻击出牌页（出防御牌/确定）",
-    "fight_play": "战斗出牌页（阵营未知）",
+    "fight_play": "战斗出牌页（认不出是攻是守）",
     "fight_watch": "战斗进行中（看动画/等结算）",
     "assault_pick": "突击选怪",
     "dice_pick": "骰子点数选择",
@@ -60,7 +60,7 @@ SCREENS = {
 
 # 每个指令**只允许**在这些界面执行（其它界面一律不动）
 ACTION_SCREENS = {
-    "card": {"main_turn", "fight_play", "fight_play_atk", "fight_play_def"},
+    "card": {"main_turn", "fight_play_atk", "fight_play_def"},
     "skill": {"main_turn"},
     "go": {"main_turn", "main_move"},
     "choose": {"main_move"},
