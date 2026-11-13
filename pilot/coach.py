@@ -60,6 +60,7 @@ import netact as NA             # noqa: E402  协议直发（移动选路 / 商�
 import click as CL             # noqa: E402  坐标换算 / 共用位置槽
 import playcard as PC           # noqa: E402  鼠标出牌 / 点移动键
 import popup as POP             # noqa: E402  二选一弹窗（继续移动/停留、是否攻击）
+import screen as SC            # noqa: E402  界面识别（协议号 → 界面名）
 import playtarget as PT         # noqa: E402  出牌 + 选目标（玩家/怪物/地块）
 from click import P             # noqa: E402  百分比 → 舞台坐标（见 click.P）
 
@@ -165,6 +166,7 @@ class Coach:
         self._fight_card_t = 0.0    # 战斗界面出战斗牌的冷却（手牌刷新有延迟）
         self._fight_card_note = ""  # 战斗里出不了战斗牌的原因，给插件说明用
         self._relic_note = ""      # 筹码界面为什么不动作，给插件说明用
+        self._screen = {}          # 当前界面识别结果（screen.py）
         # auto 全权；pilot 只吃命令行 / 控制文件给的授权
         given = {a for a in allow if a in ACTIONS}
         self.allow = set(ACTIONS) if mode == "auto" else given
@@ -1128,10 +1130,12 @@ class Coach:
         if not st.get("battle"):
             return False
         fi = st.get("fight") or {}
-        if not (fi.get("attacker") or fi.get("defender")):
-            return False
         if fi.get("end"):
             return False
+        if not (fi.get("attacker") or fi.get("defender")):
+            # 有 battle=1 但读不到攻防双方（战斗中段/动画中很常见）：
+            # 仍算在战斗里，只是不知道谁攻谁守 —— 出牌路径会自己判断阵营。
+            return True
         ts = str(st.get("ts") or "")
         if ts:
             try:
@@ -1140,7 +1144,9 @@ class Coach:
                 age = (now.tm_hour * 3600 + now.tm_min * 60 + now.tm_sec) - (hh * 3600 + mm * 60 + ss)
                 if age < 0:
                     age += 86400                       # 跨零点
-                if age > 180:
+                # 探针只在状态变化时写文件：等你操作时几分钟不动是正常的，
+                # 所以窗口给到 10 分钟；战斗一结束 battle/end 会变、文件立刻刷新。
+                if age > 600:
                     return False
             except (ValueError, TypeError):
                 pass
@@ -1468,6 +1474,13 @@ class Coach:
                 action, why = {"kind": "pass"}, f"决策异常：{e}"
                 self.say(f"[决策异常] {e}")
 
+        # 界面识别：协议号 → 界面开关 → 状态快照 → 手牌面板（UI 树太贵，这里不导）
+        try:
+            _ui = read_json_fast(os.path.join(PL.game_dir() or "", "ui.json")) or {}
+        except Exception:                  # noqa: BLE001
+            _ui = {}
+        self._screen = SC.detect(act, st, _ui)
+
         payload = {
             "ts": time.strftime("%H:%M:%S"),
             "pid": os.getpid(), "mode": self.mode, "dry": self.dry,
@@ -1483,7 +1496,12 @@ class Coach:
             "event": self.last_event,
             "acted": self.acted or None,
             # 战斗界面：是否开着（缓存值）+ 战斗里出不了战斗牌的原因
-            "fight": bool(self._fight_open),
+            # 战斗界面：UI 树认出来就算，认不出再用协议兜底（不然会一直是 False）
+            "fight": bool(self._fight_open) or self._fight_by_state(),
+            "screen": self._screen.get("screen"),
+            "screen_cn": self._screen.get("cn"),
+            "screen_why": self._screen.get("why"),
+            "screen_from": self._screen.get("from"),
             "fight_note": self._fight_card_note,
             "relic_note": self._relic_note,
             # 调试用：插件当前卡在哪个动作 + 分岔/商店/筹码的即时状态
