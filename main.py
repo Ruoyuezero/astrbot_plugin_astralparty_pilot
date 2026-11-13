@@ -149,7 +149,7 @@ HELP_SECTIONS = [
         ("/appa rm", "撤回注入：按清单把注入的文件移走（先备份，清单外的一个不动）"),
         ("/appa on", "全自动陪玩：出牌、技能、移动、战斗全交给 bot"),
         ("/appa off", "玩家自主操控：bot 只推建议，鼠标不碰"),
-        ("/appa me", "查本机登录账号：在局返回进度卡，否则返回档案卡（全程不联网）"),
+        ("/appa me", "查本机登录账号：在局返回进度卡，否则返回档案卡；并显示当前界面（全程不联网）"),
         ("/appa sid", "列出本机所有登录票 sid（按账号区分，填 alt_sid 用）"),
         ("单项：一次只交一项", "下面每条都只做一件事，其余仍归你；大小写 / 全角 / 尾巴标点都不影响"),
         ("/appa card", "出牌（需要选目标的牌会自动挑人/挑怪）"),
@@ -2141,7 +2141,7 @@ class AstralPartyPilotPlugin(Star):
             try:
                 await asyncio.to_thread(LC.render_ingame, {}, st, me, tmp)
                 yield event.image_result(tmp)
-                yield event.plain_result(self._pilot_line(cur, allow_cn))
+                yield event.plain_result(self._pilot_line(cur, allow_cn) + "\n" + self._screen_line())
             except Exception as exc:  # noqa: BLE001
                 logger.error(f"[星趴] 渲染局内卡失败：{exc}")
                 yield event.plain_result(f"局内卡没画出来：{exc}")
@@ -2153,6 +2153,50 @@ class AstralPartyPilotPlugin(Star):
             yield event.image_result(img)
         yield event.plain_result(note)
         return
+
+    def _screen_line(self) -> str:
+        """一行「现在是什么界面」——给 /appa me 核对用。
+
+        前半来自引擎（`coach.json` 的 screen），后半是探针原始读数（`uiwin.json`），
+        两者对不上就说明映射表或页面栈取错了，一眼能看出来。
+        """
+        try:
+            d = CO.read(self.config) or {}
+        except Exception:  # noqa: BLE001
+            d = {}
+        scr = str(d.get("screen") or "")
+        cn = str(d.get("screen_cn") or "")
+        src = str(d.get("screen_from") or "")
+        why = str(d.get("screen_why") or "")
+        if not scr:
+            return "🧭 界面：未知（引擎还没写过）"
+        line = f"🧭 界面：{cn or scr}（`{scr}`"
+        if src:
+            line += f" · from {src}"
+        line += "）"
+        if why:
+            line += f"\n　 依据：{why}"
+        try:
+            g = os.path.dirname(LS.state_path() or "")
+        except Exception:  # noqa: BLE001
+            g = ""
+        try:
+            import json as _json
+            _p = os.path.join(str(g or ""), "uiwin.json")
+            if g and os.path.isfile(_p):
+                w = _json.load(open(_p, encoding="utf-8-sig")) or {}
+                bits = []
+                if w.get("panel"):
+                    bits.append(f"页面 {w['panel']}")
+                if w.get("prop_up"):
+                    bits.append("弹窗 " + "/".join(str(x) for x in w["prop_up"][:2]))
+                if w.get("uncleared"):
+                    bits.append("未清理 " + "/".join(str(x) for x in w["uncleared"][:2]))
+                if bits:
+                    line += f"\n　 探针（{w.get('ts') or '-'}）：" + " · ".join(bits)
+        except Exception:  # noqa: BLE001
+            pass
+        return line
 
     def _current_account(self, qq: str) -> dict:
         """本机「正在登录」的账号到底是谁。
@@ -2241,7 +2285,7 @@ class AstralPartyPilotPlugin(Star):
         except Exception as exc:  # noqa: BLE001
             logger.error(f"[星趴] 渲染档案卡失败：{exc}")
             return "", f"档案卡没画出来：{exc}\n{pilot}"
-        return tmp, note + "\n" + pilot
+        return tmp, note + "\n" + pilot + "\n" + self._screen_line()
 
     @staticmethod
     def _local_profile(target: int, rec: dict, raw: dict | None,
