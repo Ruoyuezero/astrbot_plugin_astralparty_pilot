@@ -164,6 +164,7 @@ class Coach:
         self._fight_open_t = 0.0
         self._fight_card_t = 0.0    # 战斗界面出战斗牌的冷却（手牌刷新有延迟）
         self._fight_card_note = ""  # 战斗里出不了战斗牌的原因，给插件说明用
+        self._relic_note = ""      # 筹码界面为什么不动作，给插件说明用
         # auto 全权；pilot 只吃命令行 / 控制文件给的授权
         given = {a for a in allow if a in ACTIONS}
         self.allow = set(ACTIONS) if mode == "auto" else given
@@ -601,7 +602,8 @@ class Coach:
 
         # ② 走人：buyskip 授权，或者 buy 已经买过 / 没得买
         self._shop_t = now
-        self.acted = {"what": "离开商店", "note": f"sn {sn}"}
+        self.acted = {"what": "离开商店", "note": f"sn {sn}",
+                          "kind": "buy" if has_buy else "buyskip"}
         self.say(f"[商店] 离开（sn {sn}｜{'跳过购买' if not has_buy else '已买过'}）")
         if not self.dry:
             NA.leave(sn)
@@ -720,12 +722,28 @@ class Coach:
         has_relicskip = "relicskip" in self.allow
         wants_pick = has_buy or has_relic
 
+        if aid not in (RELIC_PICK_ID, RELIC_BUY_ID):
+            # 插件已经从协议里读到筹码界面（act.relic.open + sn + ids）时，不再依赖 act.id：
+            # 实测三选一开着的时候 act.id 是 -1，只认 5211 会一直是「没反应」。
+            _rel = act.get("relic") or {}
+            if _rel.get("open") and int(_rel.get("sn") or 0) > 0:
+                aid = RELIC_PICK_ID
+                self._relic_note = ""
+        if aid not in (RELIC_PICK_ID, RELIC_BUY_ID):
+            # 既不是三选一也不是买筹码询问 —— 把「现在是什么」记下来，插件好告诉主人
+            self._relic_note = (f"当前动作 id={aid}（{act.get('name') or '?'}），"
+                                f"不是筹码界面（三选一 {RELIC_PICK_ID} / 买筹码 {RELIC_BUY_ID}）")
+            return False
         if aid == RELIC_PICK_ID:
             rel = act.get("relic") or {}
             ids = [int(x) for x in (rel.get("ids") or [])]
             if not ids:
                 return False
             if not (wants_pick or has_skip):
+                if has_relicskip:
+                    # relicskip 只管「买不买」的询问；三选一必须选一张走人
+                    self._relic_note = ("当前是筹码三选一（必须选一张），"
+                                        "relicskip 只管「买不买这个筹码」的询问 —— 这里用 /appa relic")
                 if now - self._relic_t > 8:
                     self._relic_t = now
                     self.say(f"[筹码] 三选一到了（{ids}），但选筹码/购买/跳过都没授权"
@@ -742,7 +760,7 @@ class Coach:
                         idx, why = 0, "跳过：只取第一个（候选 %s）" % (ids,)
                     if self._relic_pick_by_mouse(idx):
                         self._relic_mouse_t = now
-                        self.acted = {"what": f"选筹码 #{idx}（鼠标）", "note": why}
+                        self.acted = {"what": f"选筹码 #{idx}（鼠标）", "note": why, "kind": "relic"}
                         self.say(f"[筹码] 协议读不到 sn，改用鼠标点第 {idx} 个 + 确定（{why}）")
                         return True
                 if now - self._relic_t > 8:
@@ -757,7 +775,8 @@ class Coach:
             else:
                 idx, why = 0, "跳过：只取第一个（候选 %s）" % (ids,)
             self._relic_key, self._relic_t = sn, now
-            self.acted = {"what": f"选筹码 #{idx}", "note": why}
+            self._relic_note = ""
+            self.acted = {"what": f"选筹码 #{idx}", "note": why, "kind": "relic"}
             self.say(f"[筹码] 选第 {idx} 个（{why}｜sn {sn}）")
             if not self.dry:
                 NA.pick_relic(idx, sn)
@@ -776,14 +795,15 @@ class Coach:
             if self._relic_key == sn and now - self._relic_t < 4:
                 return False
             self._relic_key, self._relic_t = sn, now
+            self._relic_note = ""
             if wants_pick:
-                self.acted = {"what": "买筹码", "note": f"sn {sn}"}
+                self.acted = {"what": "买筹码", "note": f"sn {sn}", "kind": "relic"}
                 self.say(f"[筹码] 买（sn {sn}）")
                 if not self.dry:
                     NA.buy_relic(sn)
                     time.sleep(0.25)
             else:
-                self.acted = {"what": "跳过购买筹码", "note": f"sn {sn}"}
+                self.acted = {"what": "跳过购买筹码", "note": f"sn {sn}", "kind": "relicskip"}
                 self.say(f"[筹码] 跳过购买筹码（sn {sn}）")
                 if not self.dry:
                     NA.skip_relic(sn)
@@ -1364,7 +1384,8 @@ class Coach:
         ("结束出牌", "go"),                 # 必须排在 "出牌" 前面
         ("出牌", "card"), ("开技能", "skill"), ("选目标确认", "skill"),
         ("选路", "choose"),
-        ("买 #", "buy"), ("离开商店", "buy"), ("筹码", "relic"),
+        ("跳过购买筹码", "relicskip"), ("跳过购买", "buyskip"),
+        ("买 #", "buy"), ("离开商店", "buy"), ("选筹码", "relic"), ("筹码", "relic"),
         ("继续移动", "go"), ("移动", "go"),
         ("停下", "stop"), ("弹窗", "go"),
         ("开战", "atk"), ("攻击", "atk"),
@@ -1464,6 +1485,7 @@ class Coach:
             # 战斗界面：是否开着（缓存值）+ 战斗里出不了战斗牌的原因
             "fight": bool(self._fight_open),
             "fight_note": self._fight_card_note,
+            "relic_note": self._relic_note,
             # 调试用：插件当前卡在哪个动作 + 分岔/商店/筹码的即时状态
             "act": {"id": act.get("id"), "name": act.get("name"), "sn": act.get("sn"),
                     "arrows": len(act.get("arrows") or []),

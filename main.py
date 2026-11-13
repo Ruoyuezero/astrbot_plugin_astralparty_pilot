@@ -2422,8 +2422,16 @@ class AstralPartyPilotPlugin(Star):
             return head + f"商店没走出去{tail}。"
         if act == "relicskip":
             # 5249 = 询问是否购买筹码
-            if int(actd.get("id") or 0) != 5249:
-                return head + "现在没有「要不要买这个筹码」的询问 —— 这条只管这种询问。"
+            aid = int(actd.get("id") or 0)
+            note = str(d.get("relic_note") or "").strip()
+            if aid != 5249:
+                spent_cn = f"{spent:.0f} 秒" if spent else "一会儿"
+                extra = f"\n引擎看到的是：{note}" if note else ""
+                if aid == 5211:
+                    return head + ("现在停在**筹码三选一**（5211），不是「买不买」的询问。\n"
+                                   "三选一必须选一张走人：要 bot 挑就发 /appa relic。") + extra
+                return head + (f"等了 {spent_cn} 也没有「要不要买这个筹码」的询问（当前动作 id={aid}）。\n"
+                               "这条只管 5249 那种询问；三选一用 /appa relic，卡牌商店不买用 /appa buyskip。") + extra
             return head + f"筹码购买没取消掉{tail}。"
         if act == "relicrenew":
             return head + ("没点成「刷新」—— 这条要在筹码商店页面（右下角有刷新键）发；"
