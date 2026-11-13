@@ -151,7 +151,7 @@ HELP_SECTIONS = [
         ("/appa off", "玩家自主操控：bot 只推建议，鼠标不碰"),
         ("/appa me", "查本机登录账号：在局返回进度卡，否则返回档案卡（全程不联网）"),
         ("/appa sid", "列出本机所有登录票 sid（按账号区分，填 alt_sid 用）"),
-        ("单项：一次只交一项", "下面每条都只做一件事，其余仍归你"),
+        ("单项：一次只交一项", "下面每条都只做一件事，其余仍归你；大小写 / 全角 / 尾巴标点都不影响"),
         ("/appa card", "出牌（需要选目标的牌会自动挑人/挑怪）"),
         ("/appa skill", "开技能"),
         ("/appa go", "移动 / 选「继续移动」"),
@@ -221,6 +221,15 @@ _ACT_WAIT = {
 
 # /app cg / skin / emoji 的 124-3：角色 +「-序号」，只对 /app 生效
 _CG_ROW_RE = re.compile(r"^(?P<hero>.+?)[-—–](?P<row>\d{1,2})$")
+
+
+def _act_key(s: str) -> str:
+    """子命令归一化：全角转半角（ＯＫ→OK）、转小写、去掉尾巴上的标点。
+
+    手机输入法很容易打出「ＯＫ」「ok！」「ok。」，不归一化就会被当成未知子命令。
+    """
+    t = unicodedata.normalize("NFKC", str(s or "")).strip().lower()
+    return t.strip("!！。.,，、~～?？:：;；")
 
 def _clip(text: str, limit: int) -> str:
     text = text.strip()
@@ -1775,7 +1784,7 @@ class AstralPartyPilotPlugin(Star):
         yield event.image_result(tmp)
 
     # ------------------------------------------------------------ /appa ----
-    @filter.command("appa")
+    @filter.command("appa", alias={"APPA", "Appa"})
     async def appa(self, event: AstrMessageEvent):
         """代打总入口：/appa 查状态，/appa on 全自动，/appa <项> 只做那一件事。
 
@@ -1786,13 +1795,13 @@ class AstralPartyPilotPlugin(Star):
             yield event.plain_result(self._deny_text("/appa 代打"))
             return
         raw = (event.message_str or "").strip()
-        words = re.sub(r"^[/／]?\s*appa", "", raw).strip().split()
-        sub = words[0].lower() if words else ""
+        words = re.sub(r"^[/／]?\s*appa", "", raw, flags=re.I).strip().split()
+        sub = _act_key(words[0]) if words else ""
         joined = " ".join(words[1:])
 
         # 两段式子命令：/appa relic renew（relic 本体是"选筹码"，renew 是"刷新筹码"）
         if sub in ("relic", "relics", "筹码", "遗物") and \
-                joined.strip().lower() in ("renew", "refresh", "reroll", "刷新", "换一批"):
+                _act_key(joined) in ("renew", "refresh", "reroll", "刷新", "换一批"):
             sub = "relicrenew"
 
         if sub in ("me", "我", "自己", "局内", "局内卡", "状态"):
