@@ -1596,7 +1596,10 @@ class Coach:
                                            "id": (action or {}).get("id")}
                 TR.record(st, me, cells, action, why, screen=self._screen,
                           allow=self.allow, gi=self.gi, pref=self.prefer, mode=self.mode,
-                          extra={"prev_delta": delta} if delta else None)
+                          extra={"prev_delta": delta} if delta else None,
+                          map_name=mapname or "",
+                          pve=(not any(p.get("type") == 1 and not p.get("self") and not p.get("bot")
+                                       for p in (st.get("players") or []))))
         except Exception as e:                 # noqa: BLE001
             self.say(f"[轨迹] 记录失败：{e}")
 

@@ -16,6 +16,9 @@ import json
 import os
 import time
 
+HERE = os.path.dirname(os.path.abspath(__file__))
+ROOT = os.path.dirname(HERE)          # 插件根目录（kb/ 在这下面）
+
 MAX_LINE = 12000           # 单行上限，超了截断（避免一局把文件撑爆）
 
 _PLAYER_KEEP = ("i", "self", "pid", "heroId", "hp", "maxhp", "atk", "def",
@@ -54,6 +57,24 @@ def _trim_player(p: dict) -> dict:
     rel = p.get("relics") or []
     out["relics"] = [r.get("id") if isinstance(r, dict) else r for r in rel][:12]
     return out
+
+
+_HERO_CACHE: dict = {}
+
+
+def hero_name(hero_id) -> str:
+    """角色 id → 中文名（kb/heroes.json）。拿不到就返回空串。"""
+    if not hero_id:
+        return ""
+    if not _HERO_CACHE:
+        try:
+            import json as _j
+            kb = os.path.join(ROOT, "kb", "heroes.json")
+            _HERO_CACHE.update(_j.load(open(kb, encoding="utf-8-sig")) or {})
+        except (OSError, ValueError):
+            _HERO_CACHE["_fail"] = 1
+    info = _HERO_CACHE.get(str(hero_id)) or {}
+    return str(info.get("name") or "")
 
 
 BUFF_TAGS = (
@@ -153,7 +174,8 @@ def _hp_band(me: dict) -> str:
 
 def record(st: dict, me: dict, cells: list, decision: dict, why: str,
            screen: dict | None = None, allow=None, gi=None, pref: str = "eco",
-           mode: str = "pilot", extra: dict | None = None) -> str:
+           mode: str = "pilot", extra: dict | None = None,
+           map_name: str = "", pve: bool | None = None) -> str:
     """写一条决策记录。返回写入的文件路径（写失败返回空串）。"""
     d = trace_dir()
     if not d:
@@ -168,6 +190,9 @@ def record(st: dict, me: dict, cells: list, decision: dict, why: str,
         "allow": sorted(allow or []),
         "st": _trim_state(st),
         "me": _trim_player(me),
+        "hero": {"id": me.get("heroId"), "name": hero_name(me.get("heroId"))},
+        "map": map_name or "",
+        "pve": pve,
         "scene": scene(st, cells or [], me),
         "hp_band": _hp_band(me),
         "buff_tags": buff_tags(me.get("buffs")),

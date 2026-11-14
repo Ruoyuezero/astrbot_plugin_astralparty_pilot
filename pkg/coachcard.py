@@ -96,7 +96,9 @@ def render_advice(d: dict, out_path: str, cfg: dict | None = None) -> str:
     # 📚 相关经验：只在「玩家自主操控 / 半自动」时给（全自动不需要人看攻略）
     if not auto and str((cfg or {}).get("guide_rag", "1")).strip().lower() not in ("0", "false", "off", "关"):
         try:
-            hits = GD.search(GD.situation_query(d), k=3, cfg=cfg or {})
+            _me = d.get("me") or {}
+            _boost = [GD.hero_name(_me.get("heroId")), str(d.get("map") or "")]
+            hits = GD.search(GD.situation_query(d), k=3, cfg=cfg or {}, boost=_boost)
         except Exception:                      # noqa: BLE001
             hits = []
         if hits:

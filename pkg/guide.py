@@ -31,6 +31,22 @@ _EMB_FAIL = {"t": 0.0}      # 上次向量接口失败的时间（冷却 5 分�
 _WORD = re.compile(r"[A-Za-z0-9_+\-]{2,}")
 
 
+_HERO: dict = {}
+
+
+def hero_name(hero_id) -> str:
+    """角色 id → 中文名（kb/heroes.json）。"""
+    if not hero_id:
+        return ""
+    if not _HERO:
+        try:
+            _HERO.update(json.load(io.open(os.path.join(HERE, "kb", "heroes.json"),
+                                           encoding="utf-8-sig")) or {})
+        except (OSError, ValueError):
+            _HERO["_fail"] = 1
+    return str((_HERO.get(str(hero_id)) or {}).get("name") or "")
+
+
 # ---------------------------------------------------------------- 切块 ----
 def _parse(path: str = GUIDE) -> list[dict]:
     """按标题切「经验卡」：每个 ## / ### / #### 一条，正文到下一个标题为止。"""
@@ -228,7 +244,8 @@ def chunks() -> list[dict]:
     return _CACHE["chunks"]
 
 
-def search(query: str, k: int = 3, cfg: dict | None = None) -> list[dict]:
+def search(query: str, k: int = 3, cfg: dict | None = None,
+           boost: list[str] | None = None) -> list[dict]:
     """检索相关经验。返回 [{id,title,path,text,score,via}]，按分数降序。"""
     cs = chunks()
     if not cs or not str(query or "").strip():
@@ -248,6 +265,13 @@ def search(query: str, k: int = 3, cfg: dict | None = None) -> list[dict]:
                 vs = _norm([_cos(qv[0], v) for v in _CACHE["vec"]])
                 scores = [0.45 * b + 0.55 * v for b, v in zip(bm, vs)]
                 via = "hybrid"
+    # 角色 / 地图命中加权：同一张图同一个角色下的经验更该被推到前面
+    terms = [t for t in (boost or []) if t]
+    if terms:
+        for i, c in enumerate(cs):
+            blob = f"{c.get('path') or ''} {c.get('title') or ''} {c.get('text') or ''}"
+            if any(t in blob for t in terms):
+                scores[i] = min(1.0, scores[i] * 1.35 + 0.05)
     order = sorted(range(len(cs)), key=lambda i: scores[i], reverse=True)[:max(1, int(k))]
     out = []
     for i in order:
@@ -281,7 +305,8 @@ def situation_query(d: dict) -> str:
         else:
             bits.append("掉血 回血牌")
     if me.get("heroId"):
-        bits.append(f"角色{me['heroId']}")
+        nm = hero_name(me["heroId"])
+        bits.append(f"{nm} 角色{me['heroId']}" if nm else f"角色{me['heroId']}")
     if d.get("fight"):
         bits.append("战斗 攻击牌 防御牌 反击")
     if d.get("stage_cn") and "移动" in str(d.get("stage_cn")):

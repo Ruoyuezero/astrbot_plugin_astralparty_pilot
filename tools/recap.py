@@ -106,6 +106,21 @@ def timeline(recs: list[dict], limit: int = 60) -> list[str]:
 
 
 # ------------------------------------------------------- 模板化经验 ----
+def _hm(r: dict) -> tuple:
+    """这条记录属于哪个「角色 + 地图」卷。"""
+    hero = r.get("hero") or {}
+    h = str(hero.get("name") or hero.get("id") or "未知角色")
+    m = str(r.get("map") or "未知地图")
+    return h, m
+
+
+def _buckets(recs: list[dict]) -> dict:
+    out: dict[tuple, list] = {}
+    for r in recs:
+        out.setdefault(_hm(r), []).append(r)
+    return out
+
+
 def _feat(r: dict) -> tuple:
     """一条决策的「局面指纹」：血量档 + buff 标签 + 最近怪距离 + 怪血档。"""
     hp = r.get("hp_band")
@@ -165,48 +180,61 @@ def _pattern_at(recs: list[dict], featf, min_n: int = 2, min_share: float = 0.6)
 
 
 def pattern_entries(recs: list[dict]) -> list[dict]:
-    """同一「局面指纹」下反复出现的同一个选择 = 一条经验。
+    """按「角色 + 地图」分卷，各自找「局面指纹 → 选择」的共同点。
 
-    单局样本通常只有十几条，所以逐级放宽：先试「血+buff+怪距离+怪血」，
-    凑不够再退到「血+buff」，最后退到只看血量 / 只看 buff。
+    角色机制不同（照的降神、帕露南的网络购物…）、地图机制也不同（森秋幻境有植物建筑、
+    别的图没有），把不同角色/地图的记录混在一起归纳出来的「经验」是假的。
     """
-    levels = (
-        lambda r: _feat(r),
-        lambda r: (_feat(r)[0], _feat(r)[1]),
-        lambda r: (_feat(r)[0],),
-        lambda r: (_feat(r)[1],),
-    )
-    for featf in levels:
-        got = _pattern_at(recs, featf)
-        if got:
-            return got
-    return []
+    out = []
+    for (hero, mp), rs in sorted(_buckets(recs).items(), key=lambda kv: -len(kv[1])):
+        if len(rs) < 2:
+            continue
+        levels = (
+            lambda r: _feat(r),
+            lambda r: (_feat(r)[0], _feat(r)[1]),
+            lambda r: (_feat(r)[0],),
+            lambda r: (_feat(r)[1],),
+        )
+        got = []
+        for featf in levels:
+            got = _pattern_at(rs, featf)
+            if got:
+                break
+        for e in got:
+            e["title"] = f"【{hero}·{mp}】{e['title']}"
+            e["tags"] = {"hero": hero, "map": mp}
+            e["src"] = f"{hero}/{mp} 指纹统计"
+            out.append(e)
+    return out[:10]
 
 
 def card_context_entries(recs: list[dict]) -> list[dict]:
-    """反过来看：某张牌被选的那些次，共同点是什么（场景化经验）。"""
-    per: dict[str, list[dict]] = {}
-    for r in recs:
-        d = r.get("decision") or {}
-        if str(d.get("kind")) != "play" or not d.get("id"):
-            continue
-        per.setdefault(str(d["id"]), []).append(r)
+    """反过来看：某张牌被选的那些次，共同场景是什么（**同一角色同一地图内**）。"""
     out = []
-    for cid, rs in sorted(per.items(), key=lambda kv: -len(kv[1]))[:5]:
-        if len(rs) < 3:
-            continue
-        feats = [_feat(r) for r in rs]
-        common = []
-        for idx, label in enumerate(("血量", "buff", "怪距离", "怪血")):
-            vals = {f[idx] for f in feats if f[idx]}
-            if len(vals) == 1:
-                common.append(f"{label}={vals.pop()}")
-        nm = _name(rs[0], cid)
-        out.append({"title": f"《{nm}》的使用场景" + (f"：{'、'.join(common)}" if common else ""),
-                    "body": f"这局里它被选了 {len(rs)} 次"
-                            + (f"，每次都处在「{'、'.join(common)}」的组合下。" if common else "，场景比较分散（说明它的适用面宽）。"),
-                    "src": f"选牌场景统计（{len(rs)} 次）"})
-    return out
+    for (hero, mp), rs0 in sorted(_buckets(recs).items(), key=lambda kv: -len(kv[1])):
+        per: dict[str, list[dict]] = {}
+        for r in rs0:
+            d = r.get("decision") or {}
+            if str(d.get("kind")) != "play" or not d.get("id"):
+                continue
+            per.setdefault(str(d["id"]), []).append(r)
+        for cid, rs in sorted(per.items(), key=lambda kv: -len(kv[1]))[:3]:
+            if len(rs) < 2:
+                continue
+            feats = [_feat(r) for r in rs]
+            common = []
+            for idx, label in enumerate(("血量", "buff", "怪距离", "怪血")):
+                vals = {f[idx] for f in feats if f[idx]}
+                if len(vals) == 1:
+                    common.append(f"{label}={vals.pop()}")
+            nm = _name(rs[0], cid)
+            out.append({"title": f"【{hero}·{mp}】《{nm}》的使用场景"
+                                 + (f"：{'、'.join(common)}" if common else ""),
+                        "body": f"在 {hero} 打 {mp} 时，这张牌被选了 {len(rs)} 次"
+                                + (f"，都在「{'、'.join(common)}」的组合下。" if common else "，场景比较分散。"),
+                        "tags": {"hero": hero, "map": mp},
+                        "src": f"{hero}/{mp} 选牌场景"})
+    return out[:8]
 
 
 def heuristic_entries(recs: list[dict]) -> list[dict]:
