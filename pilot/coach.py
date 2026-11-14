@@ -614,7 +614,8 @@ class Coach:
             cand.append((sc, i, cid))
         if not cand:
             return None
-        if price > 0 and gold > 0:
+        if price > 0:
+            # 钱不够就是买不起（原先 gold > 0 才检查，钱为 0 时会误买）
             afford = [x for x in cand if price <= gold]
             if not afford:
                 return None
