@@ -210,6 +210,10 @@
 | `admin_qqs`       | 管理员 QQ，逗号分隔。`/appa` 整套指令仅管理员本地使用；留空＝只认 AstrBot 全局管理员                                     |
 | `emoji_fps`       | 动态表情出 GIF 的帧率（5~60，默认 30）。游戏里动态表情是一张序列图，插件按这个帧率拼成 GIF                                            |
 | `emoji_transparent` | 动态表情 GIF 用**透明背景**（默认开）。开＝透底贴深色聊天不显白框；关＝铺白底，柔边更完整                                          |
+| `guide_rag`      | 建议卡附「相关经验」（检索 `docs/攻略.md`），默认开；只在自主操控 / 半自动时显示 |
+| `embed_api`      | 向量模型地址（OpenAI 兼容 `/embeddings`，如 Ollama `http://127.0.0.1:11434/v1`）；留空只用 BM25 |
+| `embed_model`    | 向量模型名，默认 `bge-m3` |
+| `embed_key`      | 向量接口 Key（本地 Ollama 留空） |
 ### 美术图库
 
 插件本体只带字体和 logo，不含任何游戏素材。素材全部来自外部库：

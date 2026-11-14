@@ -2577,7 +2577,7 @@ class AstralPartyPilotPlugin(Star):
                 fd, tmp = tempfile.mkstemp(suffix=".png", prefix="app_coach_")
                 os.close(fd)
                 try:
-                    await asyncio.to_thread(CCARD.render_advice, d, tmp)
+                    await asyncio.to_thread(CCARD.render_advice, d, tmp, self.config)
                 except Exception as exc:  # noqa: BLE001
                     logger.error(f"[星趴] 建议卡渲染失败：{exc}")
                     continue

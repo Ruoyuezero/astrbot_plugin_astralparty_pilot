@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from PIL import Image, ImageDraw
 
+from . import guide as GD
 from . import kb
 from .cardrender import ACCENT, BG, BODY, MUTE, PANEL_BG, RULE, TITLE, _font
 from .artrender import Blocks, _draw_chips, _open
@@ -27,7 +28,7 @@ def _chip_rows(me: dict) -> list:
             ("星币", me.get("gold", "—"), GOLD)]
 
 
-def render_advice(d: dict, out_path: str) -> str:
+def render_advice(d: dict, out_path: str, cfg: dict | None = None) -> str:
     ev = d.get("event") or {}
     me = d.get("me") or {}
     mode = d.get("mode") or "pilot"
@@ -91,6 +92,27 @@ def render_advice(d: dict, out_path: str) -> str:
     if acted:
         b.text(f"bot 刚动作：{acted.get('what')} —— {acted.get('note') or ''}",
                _font(14), MUTE, line_h=24, before=10)
+
+    # 📚 相关经验：只在「玩家自主操控 / 半自动」时给（全自动不需要人看攻略）
+    if not auto and str((cfg or {}).get("guide_rag", "1")).strip().lower() not in ("0", "false", "off", "关"):
+        try:
+            hits = GD.search(GD.situation_query(d), k=3, cfg=cfg or {})
+        except Exception:                      # noqa: BLE001
+            hits = []
+        if hits:
+            via = hits[0].get("via") or "bm25"
+            b.heading(f"相关经验（攻略检索 · {via}）", before=12)
+            for i, h in enumerate(hits, 1):
+                head = str(h.get("title") or "").strip()
+                body = " ".join(str(h.get("text") or "").split())
+                if len(body) > 96:
+                    body = body[:96] + "…"
+                b.items.append(("t", f"{i}. {head}", _font(15, True), BLUE, PAD, b.y, 24))
+                b.y += 24
+                if body:
+                    b.text(body, _font(14), MUTE, line_h=22)
+            b.text("经验只是参考，自动出牌仍按固定规则评分（/appa on）", _font(12), MUTE,
+                   line_h=20, before=6)
 
     if auto:
         note = "全自动陪玩：bot 自己出牌 / 开技能 / 推进"

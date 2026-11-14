@@ -76,5 +76,27 @@
     "description": "动态表情 GIF 用透明背景（关掉＝铺白底）",
     "default": true,
     "hint": "开＝背景透掉，贴到深色聊天底上不会出现白方块；关＝铺白底，边缘更柔但会带一块白色方块。"
+  },
+  "guide_rag": {
+    "type": "bool",
+    "default": true,
+    "description": "建议卡附「相关经验」（检索 docs/攻略.md）",
+    "hint": "只在玩家自主操控 / 半自动时附；全自动不显示。关掉就只出规则建议。"
+  },
+  "embed_api": {
+    "type": "text",
+    "default": "",
+    "description": "向量模型地址（OpenAI 兼容 /embeddings，留空只用 BM25）",
+    "hint": "例：Ollama → http://127.0.0.1:11434/v1  或 https://dashscope.aliyuncs.com/compatible-mode/v1。留空则纯关键词检索。"
+  },
+  "embed_model": {
+    "type": "string",
+    "default": "bge-m3",
+    "description": "向量模型名（Ollama 可填 bge-m3 / bge-large-zh）"
+  },
+  "embed_key": {
+    "type": "text",
+    "default": "",
+    "description": "向量接口的 API Key（本地 Ollama 留空）"
   }
 }
