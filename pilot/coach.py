@@ -1594,7 +1594,7 @@ class Coach:
                     _s1 = snap_all.get(_pid)
                     if not _s1:
                         continue
-                    for _k in ("hp", "node", "cards", "buffs", "relics"):
+                    for _k in ("hp", "node", "star", "cards", "buffs", "relics"):
                         if _s0.get(_k) != _s1.get(_k):
                             _world_changed = True
                             break

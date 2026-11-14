@@ -657,10 +657,17 @@ def _decide_move(st, cells, me, gi, pref):
         return {"kind": "pass"}, "没有地图数据，无法选点"
 
     tmap = {c["id"]: c.get("t", 0) for c in cells}
+    # 够钱升星就去起始点/保障点升星，别把钱花在买牌上（主人 2026-11-14 口述经验）
+    star, gold = me.get("star"), me.get("gold") or 0
+    need = R.next_star_cost(star)
+    can_star = bool(need) and int(gold) >= int(need)
     best = None
     for n in range(1, 7):
         for dest, path in walks(cells, pos, n, fronts):
-            v = D.cell_value(tmap.get(dest, 0), pref)
+            t = tmap.get(dest, 0)
+            v = D.cell_value(t, pref)
+            if can_star and t in (1, 2):        # 1 起始点 / 2 保障点 = 可升星
+                v += 1.2                        # 其它格价值 0~1，这里要明显更高
             if len(path) > 2:                       # 途经格轻微计入，别一路踩炮台
                 mid = [D.cell_value(tmap.get(x, 0), pref) for x in path[1:-1]]
                 v += 0.15 * sum(mid) / len(mid)
@@ -670,8 +677,11 @@ def _decide_move(st, cells, me, gi, pref):
         return {"kind": "pass"}, "找不到可走的路（前方无连通格）"
     v, n, dest, path = best
     via = " → ".join(str(x) for x in path[1:-1]) or "直达"
+    tail = ""
+    if can_star and tmap.get(dest, 0) in (1, 2):
+        tail = f"，够钱升星（{gold}/{need}）"
     return ({"kind": "dice", "point": n},
-            f"倾向 {pref}：掷 {n} 点 → {cell_desc(cells, dest)}（途经 {via}，价值 {v:.2f}）")
+            f"倾向 {pref}：掷 {n} 点 → {cell_desc(cells, dest)}（途经 {via}，价值 {v:.2f}{tail}）")
 
 
 def decide(st, cells, me, gi, pref="eco"):

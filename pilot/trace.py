@@ -22,7 +22,7 @@ ROOT = os.path.dirname(HERE)          # 插件根目录（kb/ 在这下面）
 MAX_LINE = 24000           # 单行上限，超了截断（避免一局把文件撑爆）
 
 _PLAYER_KEEP = ("i", "self", "pid", "heroId", "hp", "maxhp", "atk", "def",
-                "gold", "node", "mp", "skillCD", "type", "bot", "offline")
+                "gold", "node", "mp", "star", "prog", "skillCD", "type", "bot", "offline")
 
 
 def trace_dir() -> str:
@@ -190,6 +190,7 @@ def snapshot(st: dict, me: dict | None = None) -> dict:
         out[pid] = {
             "i": p.get("i"), "self": p.get("self") or 0, "t": p.get("typeName") or "",
             "hp": p.get("hp"), "gold": p.get("gold"), "node": p.get("node"),
+            "star": p.get("star"),
             "cards": _ids(p.get("cards")),
             "relics": _ids(p.get("relics")),
             "buffs": _ids(p.get("buffs")),
