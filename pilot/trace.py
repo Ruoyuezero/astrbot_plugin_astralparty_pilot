@@ -222,6 +222,15 @@ def diff(prev: dict, now: dict) -> list[dict]:
             e["hp"] = [p.get("hp"), n.get("hp")]
         if p.get("gold") != n.get("gold"):
             e["gold"] = [p.get("gold"), n.get("gold")]
+            _d = (n.get("gold") or 0) - (p.get("gold") or 0)
+            if _d:
+                e["dgold"] = _d
+        # 归因：星级变了 = 升星；筹码多了且钱少了 = 筹码商店买筹码
+        if p.get("star") != n.get("star"):
+            e["star"] = [p.get("star"), n.get("star")]
+            e["event"] = "升星"
+        elif (n.get("relics") or []) != (p.get("relics") or []) and (e.get("dgold") or 0) < 0:
+            e["event"] = "买筹码"
         ro = [r for r in (p.get("relics") or []) if r not in set(n.get("relics") or [])]
         ri = [r for r in (n.get("relics") or []) if r not in set(p.get("relics") or [])]
         if ro:

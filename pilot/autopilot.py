@@ -518,9 +518,6 @@ def score_card(cid, gi, me=None):
     if cid_s in PVE_FULL_HP_CARDS and ratio >= 1.0:
         s = max(s, PVE_FULL_HP_SCORE)       # 满血才敢升攻 / 吃持续回血
     # 有毒外卖 / 狂暴在身：受伤加码，自伤牌一律不出
-    # 迷幻海鲜汤：战斗骰点固定 1/6 → 改点、遥控骰子这类牌几乎没用
-    if is_dice_card(cid, name) and _owns_relic(me, 50057):
-        s = min(s, DICE_DEMOTE)
     if cid_s in FORBID_WITH_HURT_BUFF and hurt_buffs(me):
         s = min(s, DICE_DEMOTE)
     # 王之力：血太薄时自伤 4 点会把自己打残，也不出
@@ -707,10 +704,10 @@ def _decide_move(st, cells, me, gi, pref):
     star, gold = me.get("star"), me.get("gold") or 0
     need = R.next_star_cost(star)
     can_star = bool(need) and int(gold) >= int(need)
-    # 龙宫游乐园·迷幻海鲜汤(50057)：战斗骰点只会是 1 或 6 → 走位只能按这两个点数规划
-    dice_pts = (1, 6) if _owns_relic(me, 50057) else range(1, 7)
+    # 注意：迷幻海鲜汤(50057) 只影响**战斗骰点**（攻击/被攻击时只会 1 或 6），
+    # 跟移动骰无关，所以这里仍按 1~6 规划走位（2026-11-14 主人纠正）。
     best = None
-    for n in dice_pts:
+    for n in range(1, 7):
         for dest, path in walks(cells, pos, n, fronts):
             t = tmap.get(dest, 0)
             v = D.cell_value(t, pref)
