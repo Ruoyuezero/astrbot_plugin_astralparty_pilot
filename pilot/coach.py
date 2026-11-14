@@ -61,6 +61,7 @@ import click as CL             # noqa: E402  坐标换算 / 共用位置槽
 import playcard as PC           # noqa: E402  鼠标出牌 / 点移动键
 import popup as POP             # noqa: E402  二选一弹窗（继续移动/停留、是否攻击）
 import screen as SC            # noqa: E402  界面识别（协议号 → 界面名）
+import trace as TR             # noqa: E402  决策轨迹（复盘 / 离线评估用）
 import playtarget as PT         # noqa: E402  出牌 + 选目标（玩家/怪物/地块）
 from click import P             # noqa: E402  百分比 → 舞台坐标（见 click.P）
 
@@ -169,6 +170,9 @@ class Coach:
         self._screen = {}          # 当前界面识别结果（screen.py）
         self._cancel_t = 0.0       # 点「取消」的冷却
         self._uiwin_t = 0.0        # 上次催 uiwin 的时间
+        self._trace_key = None     # 上次记轨迹的（回合）标识，防重复
+        self._trace_prev = None    # 上一条轨迹的（血量/金币/位置/手牌），用来算后果
+        self._trace_prev_action = None
         # auto 全权；pilot 只吃命令行 / 控制文件给的授权
         given = {a for a in allow if a in ACTIONS}
         self.allow = set(ACTIONS) if mode == "auto" else given
@@ -1570,6 +1574,31 @@ class Coach:
                 NA.uiwin()
             except Exception:              # noqa: BLE001
                 pass
+
+        # 决策轨迹：只有「轮到我 + 有明确动作」才记，同一回合只记一条
+        try:
+            tkey = (st.get("ts"), st.get("sn"), stage, (action or {}).get("kind"))
+            if my and stage in ("card", "move") and action and tkey != self._trace_key:
+                self._trace_key = tkey
+                snap = {"hp": me.get("hp"), "gold": me.get("gold"), "node": me.get("node"),
+                        "cards": sorted(c.get("id") for c in (me.get("cards") or []) if c.get("id"))}
+                prev = self._trace_prev
+                delta = None
+                if prev:
+                    delta = {k: (snap.get(k), prev.get(k)) for k in ("hp", "gold", "node")}
+                    delta["cards_out"] = [c for c in (prev.get("cards") or []) if c not in set(snap["cards"])]
+                    delta["cards_in"] = [c for c in snap["cards"] if c not in set(prev.get("cards") or [])]
+                    pa = self._trace_prev_action or {}
+                    delta["_kind"] = pa.get("kind")
+                    delta["_card"] = pa.get("id")
+                self._trace_prev = snap
+                self._trace_prev_action = {"kind": (action or {}).get("kind"),
+                                           "id": (action or {}).get("id")}
+                TR.record(st, me, cells, action, why, screen=self._screen,
+                          allow=self.allow, gi=self.gi, pref=self.prefer, mode=self.mode,
+                          extra={"prev_delta": delta} if delta else None)
+        except Exception as e:                 # noqa: BLE001
+            self.say(f"[轨迹] 记录失败：{e}")
 
         payload = {
             "ts": time.strftime("%H:%M:%S"),

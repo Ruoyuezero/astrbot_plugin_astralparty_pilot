@@ -22,6 +22,8 @@ import urllib.request
 
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 GUIDE = os.path.join(HERE, "docs", "攻略.md")
+# 第二个文件是 `tools/recap.py` 从对局轨迹里提炼的条目（待人工确认）
+GUIDES = [GUIDE, os.path.join(HERE, "docs", "攻略_自动经验.md")]
 
 _CACHE: dict = {"key": None, "chunks": [], "bm25": None, "vec": None}
 _CJK = re.compile(r"[\u4e00-\u9fff]")
@@ -175,11 +177,15 @@ def _norm(xs: list[float]) -> list[float]:
 def _load_vecs(chunks: list[dict], cfg: dict) -> list[list[float]] | None:
     """取（或算）每个 chunk 的向量，按文件 mtime + 模型名缓存。"""
     model = str((cfg or {}).get("embed_model") or "bge-m3")
-    try:
-        mtime = os.path.getmtime(GUIDE)
-    except OSError:
+    mt = []
+    for f in GUIDES:
+        try:
+            mt.append(int(os.path.getmtime(f)))
+        except OSError:
+            continue
+    if not mt:
         return None
-    cache_key = f"{mtime:.0f}|{model}|{len(chunks)}"
+    cache_key = f"{max(mt)}|{model}|{len(chunks)}"
     p = _vec_path()
     try:
         doc = json.load(io.open(p, encoding="utf-8"))
@@ -202,12 +208,23 @@ def _load_vecs(chunks: list[dict], cfg: dict) -> list[list[float]] | None:
 
 # ---------------------------------------------------------------- 对外 ----
 def chunks() -> list[dict]:
-    try:
-        mtime = os.path.getmtime(GUIDE)
-    except OSError:
+    key = []
+    for f in GUIDES:
+        try:
+            key.append((f, os.path.getmtime(f)))
+        except OSError:
+            continue
+    key = tuple(key)
+    if not key:
         return []
-    if _CACHE["key"] != mtime:
-        _CACHE.update({"key": mtime, "chunks": _parse(), "bm25": None, "vec": None})
+    if _CACHE["key"] != key:
+        allc = []
+        for f, _m in key:
+            for c in _parse(f):
+                c["src"] = os.path.basename(f)
+                c["id"] = f"g{len(allc):03d}"
+                allc.append(c)
+        _CACHE.update({"key": key, "chunks": allc, "bm25": None, "vec": None})
     return _CACHE["chunks"]
 
 
