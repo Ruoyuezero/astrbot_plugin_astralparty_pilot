@@ -24,13 +24,16 @@ _PLAYER_KEEP = ("i", "self", "pid", "heroId", "hp", "maxhp", "atk", "def",
 
 def trace_dir() -> str:
     """轨迹目录：插件数据目录下的 trace/。"""
-    try:
-        from pkg import datapaths as DP          # 插件侧
-        base = DP.data_dir()
+    base = ""
+    try:                                          # 引擎侧：pilot/ 在 sys.path 上
+        import paths as PL
+        base = PL.DATA_DIR
     except Exception:  # noqa: BLE001
-        try:
-            from . import paths as PL            # 引擎侧
-            base = PL.data_dir()
+        base = ""
+    if not base:
+        try:                                      # 插件侧
+            from pkg import datapaths as DP
+            base = DP.data_dir()
         except Exception:  # noqa: BLE001
             base = os.path.expanduser("~")
     p = os.path.join(base, "trace")
