@@ -19,7 +19,7 @@ import time
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)          # 插件根目录（kb/ 在这下面）
 
-MAX_LINE = 12000           # 单行上限，超了截断（避免一局把文件撑爆）
+MAX_LINE = 24000           # 单行上限，超了截断（避免一局把文件撑爆）
 
 _PLAYER_KEEP = ("i", "self", "pid", "heroId", "hp", "maxhp", "atk", "def",
                 "gold", "node", "mp", "skillCD", "type", "bot", "offline")
@@ -172,15 +172,64 @@ def _hp_band(me: dict) -> str:
     return "带伤"
 
 
+def snapshot(st: dict, me: dict | None = None) -> dict:
+    """全场快照：每个 pid → 手牌/筹码/buff/血量/金币/位置（用来算「谁刚做了什么」）。"""
+    out: dict = {}
+    for p in (st.get("players") or []):
+        pid = str(p.get("pid"))
+        out[pid] = {
+            "i": p.get("i"), "self": p.get("self") or 0, "t": p.get("typeName") or "",
+            "hp": p.get("hp"), "gold": p.get("gold"), "node": p.get("node"),
+            "cards": sorted(c.get("id") for c in (p.get("cards") or []) if c.get("id")),
+            "relics": sorted(r.get("id") for r in (p.get("relics") or []) if r.get("id")),
+            "buffs": sorted(b.get("id") for b in (p.get("buffs") or []) if b.get("id")),
+        }
+    return out
+
+
+def diff(prev: dict, now: dict) -> list[dict]:
+    """两次快照之间每个人干了什么：出牌（手牌差集）、移动、掉血、涨钱、拿筹码。
+
+    队友的选择全在这——我们看不到他们点哪儿，但「出了哪张牌 / 走了几格」都能还原。
+    """
+    ev: list[dict] = []
+    for pid, n in (now or {}).items():
+        p = (prev or {}).get(pid)
+        if not p:
+            continue
+        e = {"pid": pid, "i": n.get("i"), "t": n.get("t"), "self": n.get("self")}
+        co = [c for c in (p.get("cards") or []) if c not in set(n.get("cards") or [])]
+        ci = [c for c in (n.get("cards") or []) if c not in set(p.get("cards") or [])]
+        if co:
+            e["out"] = co
+        if ci:
+            e["in"] = ci
+        if p.get("node") != n.get("node"):
+            e["node"] = [p.get("node"), n.get("node")]
+        if p.get("hp") != n.get("hp"):
+            e["hp"] = [p.get("hp"), n.get("hp")]
+        if p.get("gold") != n.get("gold"):
+            e["gold"] = [p.get("gold"), n.get("gold")]
+        ro = [r for r in (p.get("relics") or []) if r not in set(n.get("relics") or [])]
+        if ro:
+            e["relic_out"] = ro
+        if len(e) > 4:                      # 有实质变化才留（跳过纯序号）
+            ev.append(e)
+    return ev
+
+
 def record(st: dict, me: dict, cells: list, decision: dict, why: str,
            screen: dict | None = None, allow=None, gi=None, pref: str = "eco",
            mode: str = "pilot", extra: dict | None = None,
-           map_name: str = "", pve: bool | None = None) -> str:
+           map_name: str = "", pve: bool | None = None,
+           prev_snap: dict | None = None) -> str:
     """写一条决策记录。返回写入的文件路径（写失败返回空串）。"""
     d = trace_dir()
     if not d:
         return ""
     ids = list(st.get("usable") or []) + [c.get("id") for c in (me.get("cards") or [])]
+    for p0 in (st.get("players") or []):            # 队友 / 怪物的牌名也一起记
+        ids += [c.get("id") for c in (p0.get("cards") or [])]
     line = {
         "t": round(time.time(), 3),
         "ts": time.strftime("%H:%M:%S"),
@@ -191,6 +240,8 @@ def record(st: dict, me: dict, cells: list, decision: dict, why: str,
         "st": _trim_state(st),
         "me": _trim_player(me),
         "hero": {"id": me.get("heroId"), "name": hero_name(me.get("heroId"))},
+        "others": [_trim_player(p) for p in (st.get("players") or []) if not p.get("self")],
+        "since_prev": diff(prev_snap or {}, snapshot(st, me)),
         "map": map_name or "",
         "pve": pve,
         "scene": scene(st, cells or [], me),

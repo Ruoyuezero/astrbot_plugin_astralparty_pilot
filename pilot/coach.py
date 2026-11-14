@@ -173,6 +173,7 @@ class Coach:
         self._trace_key = None     # 上次记轨迹的（回合）标识，防重复
         self._trace_prev = None    # 上一条轨迹的（血量/金币/位置/手牌），用来算后果
         self._trace_prev_action = None
+        self._trace_snap = None      # 全场快照（队友/怪物），算「谁刚做了什么」
         # auto 全权；pilot 只吃命令行 / 控制文件给的授权
         given = {a for a in allow if a in ACTIONS}
         self.allow = set(ACTIONS) if mode == "auto" else given
@@ -1594,12 +1595,15 @@ class Coach:
                 self._trace_prev = snap
                 self._trace_prev_action = {"kind": (action or {}).get("kind"),
                                            "id": (action or {}).get("id")}
+                snap_all = TR.snapshot(st, me)
                 TR.record(st, me, cells, action, why, screen=self._screen,
                           allow=self.allow, gi=self.gi, pref=self.prefer, mode=self.mode,
                           extra={"prev_delta": delta} if delta else None,
                           map_name=mapname or "",
+                          prev_snap=self._trace_snap,
                           pve=(not any(p.get("type") == 1 and not p.get("self") and not p.get("bot")
                                        for p in (st.get("players") or []))))
+                self._trace_snap = snap_all
         except Exception as e:                 # noqa: BLE001
             self.say(f"[轨迹] 记录失败：{e}")
 

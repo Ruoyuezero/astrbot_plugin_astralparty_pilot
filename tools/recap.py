@@ -208,6 +208,39 @@ def pattern_entries(recs: list[dict]) -> list[dict]:
     return out[:10]
 
 
+def teammate_entries(recs: list[dict]) -> list[dict]:
+    """队友（同局其他英雄）出过的牌 —— 同卷统计，并与我们自己的选择对比。
+
+    数据来自每条记录的 `since_prev`：两次「轮到我」之间发生的所有动作差分，
+    `out` 就是某人打出的那张牌（我们看不到他点哪儿，但牌是确定的）。
+    """
+    out = []
+    for (hero, mp), rs in sorted(_buckets(recs).items(), key=lambda kv: -len(kv[1])):
+        tm: dict[str, int] = {}
+        mine = {str((r.get("decision") or {}).get("id")) for r in rs
+                if str((r.get("decision") or {}).get("kind")) == "play"}
+        for r in rs:
+            for e in (r.get("since_prev") or []):
+                if e.get("self"):
+                    continue
+                for cid in (e.get("out") or []):
+                    tm[str(cid)] = tm.get(str(cid), 0) + 1
+        for cid, n in sorted(tm.items(), key=lambda kv: -kv[1])[:3]:
+            if n < 2:
+                continue
+            r0 = next((r for r in rs if str(cid) in json.dumps(r.get("names") or {})), rs[0])
+            nm = _name(r0, cid)
+            if str(cid) in mine:
+                out.append({"title": f"【{hero}·{mp}】队友也在用《{nm}》（{n} 次）",
+                            "body": f"队友这局出了 {n} 次《{nm}》，你这边也选过 —— 说明这张牌在这一卷里是共识选择，可提高它的评分权重。",
+                            "tags": {"hero": hero, "map": mp}, "src": f"{hero}/{mp} 队友出牌"})
+            else:
+                out.append({"title": f"【{hero}·{mp}】队友出过《{nm}》，我们没选过（{n} 次）",
+                            "body": f"队友出了 {n} 次《{nm}》，我们这局一次都没选。值得人工看一眼：是评分漏了它，还是确实不划算。",
+                            "tags": {"hero": hero, "map": mp}, "src": f"{hero}/{mp} 队友出牌"})
+    return out[:6]
+
+
 def card_context_entries(recs: list[dict]) -> list[dict]:
     """反过来看：某张牌被选的那些次，共同场景是什么（**同一角色同一地图内**）。"""
     out = []
@@ -390,7 +423,7 @@ def main(argv=None) -> int:
     print("复盘：", p)
 
     entries = (pattern_entries(recs) + card_context_entries(recs)
-               + heuristic_entries(recs))[:12]
+               + teammate_entries(recs) + heuristic_entries(recs))[:14]
     if a.llm and a.api:
         got = llm_entries(recs, a.api, a.model, a.key)
         if got:
