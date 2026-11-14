@@ -1695,7 +1695,11 @@ class Coach:
             _dec = action or {"kind": "played"}
             tkey = (st.get("sn"), stage, _dec.get("kind"), _dec.get("id") or _dec.get("point"),
                     _hand, "" if action else int(time.time() // 20))
-            if _can and tkey != self._trace_key:
+            # 空窗口（pa=0、没有可出牌也没有技能）上的 pass 不是决策，别记成经验
+            _empty_window = (str((_dec or {}).get("kind")) == "pass"
+                             and not st.get("usable") and not st.get("skills")
+                             and st.get("pa") == 0)
+            if _can and not _empty_window and tkey != self._trace_key:
                 self._trace_key = tkey
                 snap = {"hp": me.get("hp"), "gold": me.get("gold"), "node": me.get("node"),
                         "cards": sorted(c.get("id") for c in (me.get("cards") or []) if c.get("id"))}

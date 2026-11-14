@@ -295,7 +295,12 @@ def cur_stage(st, me=None):
         ph = st.get("phase")
         s = {"play": "card", "move": "move"}.get(ph, "none")
     if s == "none" and st.get("my") and st.get("sn"):
-        return "card"
+        # pa=0 是「窗口还没开」（服务端还没下发 UsableCards），这时不能当出牌阶段，
+        # 否则会在空窗口上做一次 pass 决策，被记成「我选择不动」（2026-11-14 踩到）。
+        pa = st.get("pa")
+        if pa is None or pa == 1 or st.get("usable") or st.get("skills"):
+            return "card"
+        return "none"
     return s
 
 
