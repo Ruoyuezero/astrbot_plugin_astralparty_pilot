@@ -174,6 +174,7 @@ class Coach:
         self._trace_prev = None    # 上一条轨迹的（血量/金币/位置/手牌），用来算后果
         self._trace_prev_action = None
         self._trace_snap = None      # 全场快照（队友/怪物），算「谁刚做了什么」
+        self._trace_hb = 0.0         # 心跳：没变化也每 20 秒记一条，别丢队友的动作
         # auto 全权；pilot 只吃命令行 / 控制文件给的授权
         given = {a for a in allow if a in ACTIONS}
         self.allow = set(ACTIONS) if mode == "auto" else given
@@ -1578,8 +1579,39 @@ class Coach:
 
         # 决策轨迹：只有「轮到我 + 有明确动作」才记，同一回合只记一条
         try:
-            tkey = (st.get("ts"), st.get("sn"), stage, (action or {}).get("kind"))
-            if my and stage in ("card", "move") and action and tkey != self._trace_key:
+            # 记录条件放宽到「三种都能覆盖」：
+            #   ① 轮到我（card / move 阶段）
+            #   ② 战斗中（被攻击出牌页 my_turn 常是 0、stage 常是 none）
+            #   ③ **我的手牌变了**（最硬：不管什么界面，只要出牌/摸牌就一定变）
+            _hand = tuple(sorted(c.get("id") for c in (me.get("cards") or []) if c.get("id")))
+            _prev_self = ((self._trace_snap or {}).get(str(me.get("pid"))) or {}).get("cards") or []
+            _hand_changed = bool(self._trace_snap) and sorted(_prev_self) != list(_hand)
+            snap_all = TR.snapshot(st, me)
+            # 全场有没有变化（队友出牌 / 怪物掉血 / 有人上 buff）—— 队友的动作只靠这个抓
+            _world_changed = False
+            if self._trace_snap:
+                for _pid, _s0 in self._trace_snap.items():
+                    _s1 = snap_all.get(_pid)
+                    if not _s1:
+                        continue
+                    for _k in ("hp", "node", "cards", "buffs", "relics"):
+                        if _s0.get(_k) != _s1.get(_k):
+                            _world_changed = True
+                            break
+                    if _world_changed:
+                        break
+            _hb = time.time() - float(self._trace_hb or 0) > 20
+            _prev_rel = ((self._trace_snap or {}).get(str(me.get("pid"))) or {}).get("relics") or []
+            _rel_now = sorted(r.get("id") for r in (me.get("relics") or []) if isinstance(r, dict) and r.get("id"))
+            if not _rel_now and (me.get("relics") or []):        # 有的版本直接给 int 列表
+                _rel_now = sorted(int(r) for r in (me.get("relics") or []) if isinstance(r, int))
+            _relic_changed = bool(self._trace_snap) and sorted(_prev_rel) != _rel_now
+            _can = ((stage in ("card", "move") and (my or bool(st.get("battle"))))
+                    or _hand_changed or _relic_changed or _world_changed or _hb)
+            _dec = action or {"kind": "played"}
+            tkey = (st.get("sn"), stage, _dec.get("kind"), _dec.get("id") or _dec.get("point"),
+                    _hand, "" if action else int(time.time() // 20))
+            if _can and tkey != self._trace_key:
                 self._trace_key = tkey
                 snap = {"hp": me.get("hp"), "gold": me.get("gold"), "node": me.get("node"),
                         "cards": sorted(c.get("id") for c in (me.get("cards") or []) if c.get("id"))}
@@ -1595,8 +1627,10 @@ class Coach:
                 self._trace_prev = snap
                 self._trace_prev_action = {"kind": (action or {}).get("kind"),
                                            "id": (action or {}).get("id")}
-                snap_all = TR.snapshot(st, me)
-                TR.record(st, me, cells, action, why, screen=self._screen,
+                self._trace_hb = time.time() if (_world_changed or _hb) else self._trace_hb
+                _why = why or ("（按手牌/筹码变化记录，界面没有给出阶段）"
+                               if (_hand_changed or _relic_changed) else "")
+                TR.record(st, me, cells, _dec, _why, screen=self._screen,
                           allow=self.allow, gi=self.gi, pref=self.prefer, mode=self.mode,
                           extra={"prev_delta": delta} if delta else None,
                           map_name=mapname or "",

@@ -172,6 +172,16 @@ def _hp_band(me: dict) -> str:
     return "带伤"
 
 
+def _ids(seq) -> list:
+    """卡牌/筹码/buff 列表里可能是 int，也可能是 {"id":...} —— 一律取出 id。"""
+    out = []
+    for x in seq or []:
+        v = x.get("id") if isinstance(x, dict) else x
+        if v:
+            out.append(v)
+    return sorted(out, key=lambda v: str(v))
+
+
 def snapshot(st: dict, me: dict | None = None) -> dict:
     """全场快照：每个 pid → 手牌/筹码/buff/血量/金币/位置（用来算「谁刚做了什么」）。"""
     out: dict = {}
@@ -180,9 +190,9 @@ def snapshot(st: dict, me: dict | None = None) -> dict:
         out[pid] = {
             "i": p.get("i"), "self": p.get("self") or 0, "t": p.get("typeName") or "",
             "hp": p.get("hp"), "gold": p.get("gold"), "node": p.get("node"),
-            "cards": sorted(c.get("id") for c in (p.get("cards") or []) if c.get("id")),
-            "relics": sorted(r.get("id") for r in (p.get("relics") or []) if r.get("id")),
-            "buffs": sorted(b.get("id") for b in (p.get("buffs") or []) if b.get("id")),
+            "cards": _ids(p.get("cards")),
+            "relics": _ids(p.get("relics")),
+            "buffs": _ids(p.get("buffs")),
         }
     return out
 
@@ -211,8 +221,11 @@ def diff(prev: dict, now: dict) -> list[dict]:
         if p.get("gold") != n.get("gold"):
             e["gold"] = [p.get("gold"), n.get("gold")]
         ro = [r for r in (p.get("relics") or []) if r not in set(n.get("relics") or [])]
+        ri = [r for r in (n.get("relics") or []) if r not in set(p.get("relics") or [])]
         if ro:
             e["relic_out"] = ro
+        if ri:
+            e["relic_in"] = ri
         bo = [b for b in (p.get("buffs") or []) if b not in set(n.get("buffs") or [])]
         bi = [b for b in (n.get("buffs") or []) if b not in set(p.get("buffs") or [])]
         if bo:
