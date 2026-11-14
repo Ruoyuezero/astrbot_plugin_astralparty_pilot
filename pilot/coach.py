@@ -175,6 +175,11 @@ class Coach:
         self._trace_prev_action = None
         self._trace_snap = None      # 全场快照（队友/怪物），算「谁刚做了什么」
         self._trace_hb = 0.0         # 心跳：没变化也每 20 秒记一条，别丢队友的动作
+        self._turn_no = 0            # 本局第几轮（每次「轮到我出牌」+1）
+        self._turn_sn = None         # 上次计数的 sn（防止同一回合重复累加）
+        self._match_key = None       # 用玩家 pid 组合识别是不是换了一局
+        self._me = {}                # 本帧的我（商店/筹码判定要用）
+        self._cells = []             # 本帧地图
         # auto 全权；pilot 只吃命令行 / 控制文件给的授权
         given = {a for a in allow if a in ACTIONS}
         self.allow = set(ACTIONS) if mode == "auto" else given
@@ -527,8 +532,71 @@ class Coach:
         return True
 
     # ---------------- 商店 ----------------
-    def _shop_pick(self, cards, bought, ready, gold, price):
-        """从货架上挑一张：跳过已买/被别人买走的，按 card_value 从高到低，买得起才要。"""
+    # 治愈系《维生素药丸》：每获得一张卡牌 +1 层治愈 → 买牌本身就产资源
+    VITAMIN_RELIC = 50027
+    VITAMIN_TURN = 10
+
+    def _vitamin_force_buy(self) -> tuple[bool, str]:
+        """要不要「无论什么牌都买」。
+
+        主人 2026-11-14 口径：进度到 10 轮左右、满血、能打到怪 → 无论什么牌都买
+        （因为有《维生素药丸》，每买一张牌就多 1 层治愈，牌本身好坏次要）。
+        """
+        me = self._me or {}
+        relics = me.get("relics") or []
+        has_vit = self.VITAMIN_RELIC in {r for r in relics if isinstance(r, int)}
+        if not has_vit:
+            for r in relics:
+                nm = str((r or {}).get("name") or "") if isinstance(r, dict) else ""
+                if "维生素药丸" in nm:
+                    has_vit = True
+                    break
+        if not has_vit:
+            return False, ""
+        if int(self._turn_no or 0) < self.VITAMIN_TURN:
+            return False, f"第 {self._turn_no} 轮（<{self.VITAMIN_TURN}）还没到猛买的时候"
+        hp, mx = me.get("hp"), me.get("maxhp")
+        if not (isinstance(hp, int) and isinstance(mx, int) and mx and hp >= mx):
+            return False, "不是满血（美工刀/治愈流要满血）"
+        # 能打到怪：有活怪，且 8 步内可达
+        alive = [p for p in (self._last_state or {}).get("players") or []
+                 if p.get("type") == 2 and (p.get("hp") or 0) > 0]
+        if not alive:
+            return False, "场上没有活着的怪"
+        if not self._reach_monster([int(p.get("node")) for p in alive if p.get("node") is not None], 8):
+            return False, "8 步内摸不到怪"
+        return True, f"维生素药丸 + 第 {self._turn_no} 轮 + 满血 + 能打到怪 → 什么牌都买"
+
+    def _reach_monster(self, nodes, limit: int) -> bool:
+        """从我的位置出发，limit 步内能不能走到任意怪物格。"""
+        me = self._me or {}
+        start = me.get("node")
+        if start is None or not nodes:
+            return False
+        nb = {int(c["id"]): [int(x) for x in (c.get("nb") or [])]
+              for c in (self._cells or []) if c.get("id") is not None}
+        if int(start) not in nb:
+            return False
+        seen = {int(start): 0}
+        q = [int(start)]
+        goal = {int(n) for n in nodes}
+        while q:
+            cur = q.pop(0)
+            if cur in goal:
+                return True
+            if seen[cur] >= limit:
+                continue
+            for nxt in nb.get(cur, []):
+                if nxt not in seen:
+                    seen[nxt] = seen[cur] + 1
+                    q.append(nxt)
+        return False
+
+    def _shop_pick(self, cards, bought, ready, gold, price, force: bool = False):
+        """从货架上挑一张：跳过已买/被别人买走的，按 card_value 从高到低，买得起才要。
+
+        force=True 时**不管牌好坏**，只要买得起就买（治愈流靠买牌叠治愈层）。
+        """
         cand = []
         for c in cards:
             i = c.get("i")
@@ -551,6 +619,9 @@ class Coach:
             if not afford:
                 return None
             cand = afford
+        if force:
+            cand.sort(key=lambda x: (x[1]))       # 买得起就行，按货架顺序拿第一张
+            return cand[0]
         cand.sort(key=lambda x: (-x[0], x[1]))   # 评分高的优先，同分取靠前的
         return cand[0]
 
@@ -593,7 +664,10 @@ class Coach:
 
         # ① 还想买：挑一张
         if has_buy and cards and not self._shop_sent:
-            pick = self._shop_pick(cards, bought, ready, gold, price)
+            _force, _why = self._vitamin_force_buy()
+            pick = self._shop_pick(cards, bought, ready, gold, price, force=_force)
+            if _force and pick:
+                self.say(f"[商店] {_why} → 买 {pick[2]}")
             if pick:
                 sc, i, cid = pick
                 name = self.gi.cname(cid)
@@ -1545,11 +1619,20 @@ class Coach:
         self._last_state = st            # fight_open() 在导不到 UI 树时靠它兜底
         act = NA.state() or {}          # 插件写的当前动作（含 arrows / shop / relic）
         me = AP.me_of(st)
+        # 轮次：换局重置；同一回合（sn 相同）只加一次
+        _mk = tuple(sorted(str(p.get("pid")) for p in (st.get("players") or [])))
+        if _mk and _mk != self._match_key:
+            self._match_key, self._turn_no, self._turn_sn = _mk, 0, None
+        self._me, self._cells = me, None
         stage = AP.cur_stage(st, me)
         my = AP.check_turn(st, me)
 
         mp = self.gi.read_json(self.gi.mapf) or {}
         cells = mp.get("lands") or []
+        self._cells = cells
+        if my and stage == "card" and st.get("sn") != self._turn_sn:
+            self._turn_sn = st.get("sn")
+            self._turn_no += 1
         mapname, _note = AP.identify_map(cells) if cells else (None, "")
 
         action, why = (None, "")
@@ -1632,7 +1715,8 @@ class Coach:
                                if (_hand_changed or _relic_changed) else "")
                 TR.record(st, me, cells, _dec, _why, screen=self._screen,
                           allow=self.allow, gi=self.gi, pref=self.prefer, mode=self.mode,
-                          extra={"prev_delta": delta} if delta else None,
+                          extra=dict({"turn_no": self._turn_no},
+                                      **({"prev_delta": delta} if delta else {})),
                           map_name=mapname or "",
                           prev_snap=self._trace_snap,
                           pve=(not any(p.get("type") == 1 and not p.get("self") and not p.get("bot")
@@ -1646,6 +1730,7 @@ class Coach:
             "pid": os.getpid(), "mode": self.mode, "dry": self.dry,
             "in_match": bool(st.get("players")),
             "my_turn": my, "stage": stage, "stage_cn": STAGE_CN.get(stage, stage),
+            "turn_no": self._turn_no,
             "map": mapname, "prefer": self.prefer,
             "allow": [a for a in ACTIONS if a in self.allow],
             "me": {k: me.get(k) for k in ("pid", "heroId", "hp", "maxhp", "atk", "def",
