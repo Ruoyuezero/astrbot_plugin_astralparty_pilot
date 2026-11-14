@@ -213,6 +213,12 @@ def diff(prev: dict, now: dict) -> list[dict]:
         ro = [r for r in (p.get("relics") or []) if r not in set(n.get("relics") or [])]
         if ro:
             e["relic_out"] = ro
+        bo = [b for b in (p.get("buffs") or []) if b not in set(n.get("buffs") or [])]
+        bi = [b for b in (n.get("buffs") or []) if b not in set(p.get("buffs") or [])]
+        if bo:
+            e["buff_out"] = bo
+        if bi:
+            e["buff_in"] = bi
         if len(e) > 4:                      # 有实质变化才留（跳过纯序号）
             ev.append(e)
     return ev
