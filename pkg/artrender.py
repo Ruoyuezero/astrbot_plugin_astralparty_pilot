@@ -1335,7 +1335,8 @@ def render_relic_list(out_path: str, cols: int = 6) -> str:
             c, row = i % cols, i // cols
             x = margin + c * (cell_w + gap)
             yy = y + row * (cell_h + gap)
-            _relic_tile(canvas, draw, r, x, yy, icon, 0.80)
+            # 图标要在单元格里居中：cell_w 比 icon 宽，直接贴左会显得「比文字偏左」
+            _relic_tile(canvas, draw, r, x + (cell_w - icon) // 2, yy, icon, 0.80)
             col = _relic_color(r.get("quality"))
             nm = _ellipsis(str(r.get("name") or ""), name_f, cell_w)
             draw.text((x + (cell_w - name_f.getlength(nm)) / 2, yy + icon + 2),
