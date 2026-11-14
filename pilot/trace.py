@@ -52,7 +52,7 @@ def _trim_player(p: dict) -> dict:
     bs = p.get("buffs") or []
     out["buffs"] = [{"id": b.get("id"), "n": b.get("name") or "", "keep": b.get("keep")}
                     for b in bs if isinstance(b, dict)][:12]
-    cards = p.get("cards") or []
+    cards = p.get("cards_proto") or p.get("cards") or []
     out["cards"] = [c.get("id") if isinstance(c, dict) else c for c in cards][:20]
     rel = p.get("relics") or []
     out["relics"] = [r.get("id") if isinstance(r, dict) else r for r in rel][:12]
@@ -191,7 +191,8 @@ def snapshot(st: dict, me: dict | None = None) -> dict:
             "i": p.get("i"), "self": p.get("self") or 0, "t": p.get("typeName") or "",
             "hp": p.get("hp"), "gold": p.get("gold"), "node": p.get("node"),
             "star": p.get("star"),
-            "cards": _ids(p.get("cards")),
+            # cards_proto 是 Hero 快照里的真实手牌（全员都有，别人的不冻结）
+            "cards": _ids(p.get("cards_proto") or p.get("cards")),
             "relics": _ids(p.get("relics")),
             "buffs": _ids(p.get("buffs")),
         }

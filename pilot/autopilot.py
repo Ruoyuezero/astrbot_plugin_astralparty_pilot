@@ -458,6 +458,19 @@ def _has_blade(me) -> bool:
     return False
 
 
+def _owns_relic(me, *ids) -> bool:
+    """身上有没有这些筹码（id 列表里可能是 int 或 dict）。"""
+    want = {int(i) for i in ids}
+    for r in (me or {}).get("relics") or []:
+        rid = r.get("id") if isinstance(r, dict) else r
+        try:
+            if int(rid) in want:
+                return True
+        except (TypeError, ValueError):
+            continue
+    return False
+
+
 def score_card(cid, gi, me=None):
     info = gi.cinfo(cid)
     name = info.get("zh", "")
@@ -505,6 +518,9 @@ def score_card(cid, gi, me=None):
     if cid_s in PVE_FULL_HP_CARDS and ratio >= 1.0:
         s = max(s, PVE_FULL_HP_SCORE)       # 满血才敢升攻 / 吃持续回血
     # 有毒外卖 / 狂暴在身：受伤加码，自伤牌一律不出
+    # 迷幻海鲜汤：战斗骰点固定 1/6 → 改点、遥控骰子这类牌几乎没用
+    if is_dice_card(cid, name) and _owns_relic(me, 50057):
+        s = min(s, DICE_DEMOTE)
     if cid_s in FORBID_WITH_HURT_BUFF and hurt_buffs(me):
         s = min(s, DICE_DEMOTE)
     # 王之力：血太薄时自伤 4 点会把自己打残，也不出
@@ -513,6 +529,14 @@ def score_card(cid, gi, me=None):
     # 你有我有：双方各得 1 张牌，手牌越多越强
     if cid_s == "21002":
         s = max(s, 3.6)
+    # 龙宫游乐园·惊涛御守(50056)：使用效果牌时受到 1 点伤害。
+    # 所以 1 血时任何出牌都会直接死；2 血且身上有狂暴（会再掉血）也不能出。
+    if _owns_relic(me, 50056):
+        _h = int((me or {}).get("hp") or 0)
+        if _h <= 1:
+            return 0.0, name, desc
+        if _h <= 2 and hurt_buffs(me):
+            return 0.0, name, desc
     # 治愈系「美工刀」：**满血时**攻击 +4/+2，并加治愈层数攻击。
     # 满血时用自损牌（《以毒攻毒》立刻失去 2 点生命）会把满血加成打掉 —— 硬压到底。
     if (me and me.get("hp") and me.get("maxhp") and me["hp"] >= me["maxhp"]
@@ -683,8 +707,10 @@ def _decide_move(st, cells, me, gi, pref):
     star, gold = me.get("star"), me.get("gold") or 0
     need = R.next_star_cost(star)
     can_star = bool(need) and int(gold) >= int(need)
+    # 龙宫游乐园·迷幻海鲜汤(50057)：战斗骰点只会是 1 或 6 → 走位只能按这两个点数规划
+    dice_pts = (1, 6) if _owns_relic(me, 50057) else range(1, 7)
     best = None
-    for n in range(1, 7):
+    for n in dice_pts:
         for dest, path in walks(cells, pos, n, fronts):
             t = tmap.get(dest, 0)
             v = D.cell_value(t, pref)
