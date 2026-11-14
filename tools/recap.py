@@ -106,6 +106,109 @@ def timeline(recs: list[dict], limit: int = 60) -> list[str]:
 
 
 # ------------------------------------------------------- 模板化经验 ----
+def _feat(r: dict) -> tuple:
+    """一条决策的「局面指纹」：血量档 + buff 标签 + 最近怪距离 + 怪血档。"""
+    hp = r.get("hp_band")
+    if not hp:
+        me = r.get("me") or {}
+        h, mx = me.get("hp"), me.get("maxhp")
+        hp = ("满血" if h == mx else ("低血" if isinstance(h, int) and isinstance(mx, int) and mx and h * 3 <= mx else "带伤")) if isinstance(mx, int) and mx else "?"
+    tags = r.get("buff_tags") or []
+    bt = "+".join(tags) if tags else "无buff"
+    sc = r.get("scene") or {}
+    d = sc.get("dist")
+    db = ("近格≤3" if isinstance(d, int) and 0 <= d <= 3 else
+          "远格≥4" if isinstance(d, int) and d >= 4 else "无怪")
+    mh = sc.get("mon_hp_min")
+    mhb = "怪残血" if isinstance(mh, int) and mh <= 3 else ""
+    return (hp, bt, db, mhb)
+
+
+def _choice(r: dict) -> str:
+    d = r.get("decision") or {}
+    k = str(d.get("kind") or "?")
+    if k == "play" and d.get("id"):
+        info = (r.get("names") or {}).get(str(d["id"])) or {}
+        nm = info.get("zh") or f"#{d['id']}"
+        play = info.get("play")
+        return f"《{nm}》" + (f"（{play}）" if play else "")
+    return {"skill": "开技能", "dice": "掷骰移动", "pass": "不动"}.get(k, k)
+
+
+def _pattern_at(recs: list[dict], featf, min_n: int = 2, min_share: float = 0.6) -> list[dict]:
+    groups: dict[tuple, dict] = {}
+    for r in recs:
+        f = featf(r)
+        g = groups.setdefault(f, {"n": 0, "pick": {}})
+        g["n"] += 1
+        c = _choice(r)
+        g["pick"][c] = g["pick"].get(c, 0) + 1
+    out = []
+    for f, g in sorted(groups.items(), key=lambda kv: -kv[1]["n"])[:8]:
+        if g["n"] < min_n:
+            continue
+        top, k = max(g["pick"].items(), key=lambda kv: kv[1])
+        share = k / g["n"]
+        if share < min_share:
+            continue
+        cond = "、".join(x for x in f if x)
+        if top == "不动":
+            out.append({"title": f"{cond} → 常不动（{k}/{g['n']}）",
+                        "body": f"「{cond}」这种局面里，{g['n']} 次有 {k} 次不动。"
+                                "若不该留牌，说明候选评分在这一档没识别出可用的牌。",
+                        "src": f"指纹统计（{g['n']} 次）"})
+        else:
+            out.append({"title": f"{cond} → 出{top}",
+                        "body": f"「{cond}」这种局面里，{g['n']} 次有 {k} 次选 {top}（{share:.0%}）。",
+                        "src": f"指纹统计（{g['n']} 次）"})
+    return out
+
+
+def pattern_entries(recs: list[dict]) -> list[dict]:
+    """同一「局面指纹」下反复出现的同一个选择 = 一条经验。
+
+    单局样本通常只有十几条，所以逐级放宽：先试「血+buff+怪距离+怪血」，
+    凑不够再退到「血+buff」，最后退到只看血量 / 只看 buff。
+    """
+    levels = (
+        lambda r: _feat(r),
+        lambda r: (_feat(r)[0], _feat(r)[1]),
+        lambda r: (_feat(r)[0],),
+        lambda r: (_feat(r)[1],),
+    )
+    for featf in levels:
+        got = _pattern_at(recs, featf)
+        if got:
+            return got
+    return []
+
+
+def card_context_entries(recs: list[dict]) -> list[dict]:
+    """反过来看：某张牌被选的那些次，共同点是什么（场景化经验）。"""
+    per: dict[str, list[dict]] = {}
+    for r in recs:
+        d = r.get("decision") or {}
+        if str(d.get("kind")) != "play" or not d.get("id"):
+            continue
+        per.setdefault(str(d["id"]), []).append(r)
+    out = []
+    for cid, rs in sorted(per.items(), key=lambda kv: -len(kv[1]))[:5]:
+        if len(rs) < 3:
+            continue
+        feats = [_feat(r) for r in rs]
+        common = []
+        for idx, label in enumerate(("血量", "buff", "怪距离", "怪血")):
+            vals = {f[idx] for f in feats if f[idx]}
+            if len(vals) == 1:
+                common.append(f"{label}={vals.pop()}")
+        nm = _name(rs[0], cid)
+        out.append({"title": f"《{nm}》的使用场景" + (f"：{'、'.join(common)}" if common else ""),
+                    "body": f"这局里它被选了 {len(rs)} 次"
+                            + (f"，每次都处在「{'、'.join(common)}」的组合下。" if common else "，场景比较分散（说明它的适用面宽）。"),
+                    "src": f"选牌场景统计（{len(rs)} 次）"})
+    return out
+
+
 def heuristic_entries(recs: list[dict]) -> list[dict]:
     """只用统计生成「条件 → 做法」条目。每条都带数字，能被证伪。"""
     s = summarize(recs)
@@ -258,7 +361,8 @@ def main(argv=None) -> int:
     p = write_recap(recs, s)
     print("复盘：", p)
 
-    entries = heuristic_entries(recs)
+    entries = (pattern_entries(recs) + card_context_entries(recs)
+               + heuristic_entries(recs))[:12]
     if a.llm and a.api:
         got = llm_entries(recs, a.api, a.model, a.key)
         if got:

@@ -46,11 +46,72 @@ def trace_dir() -> str:
 
 def _trim_player(p: dict) -> dict:
     out = {k: p.get(k) for k in _PLAYER_KEEP if k in p}
+    bs = p.get("buffs") or []
+    out["buffs"] = [{"id": b.get("id"), "n": b.get("name") or "", "keep": b.get("keep")}
+                    for b in bs if isinstance(b, dict)][:12]
     cards = p.get("cards") or []
     out["cards"] = [c.get("id") if isinstance(c, dict) else c for c in cards][:20]
     rel = p.get("relics") or []
     out["relics"] = [r.get("id") if isinstance(r, dict) else r for r in rel][:12]
     return out
+
+
+BUFF_TAGS = (
+    ("atk", ("强化", "攻击", "剑气", "鼓舞", "力量", "暴击", "武器")),
+    ("def", ("护盾", "防御", "格挡", "减伤", "铁壁", "护甲")),
+    ("heal", ("回复", "治疗", "回血", "再生", "生命")),
+    ("move", ("速度", "疾行", "加速", "冲刺")),
+)
+
+
+def buff_tags(buffs) -> list[str]:
+    """把 buff 名归成 atk/def/heal/move 几类（记录里只留标签，省字节）。"""
+    tags = set()
+    for b in buffs or []:
+        nm = str((b or {}).get("n") or (b or {}).get("name") or "")
+        for tag, kws in BUFF_TAGS:
+            if any(k in nm for k in kws):
+                tags.add(tag)
+    return sorted(tags)
+
+
+def _bfs_dist(lands: list, start, targets: set) -> int:
+    """地图上从 start 走到最近 target 需要几步（用 lands 的 nb 邻接）。"""
+    if start is None or not targets:
+        return -1
+    nb = {int(c["id"]): [int(x) for x in (c.get("nb") or [])]
+          for c in (lands or []) if c.get("id") is not None}
+    if start not in nb:
+        return -1
+    seen = {int(start): 0}
+    q = [int(start)]
+    while q:
+        cur = q.pop(0)
+        if cur in targets:
+            return seen[cur]
+        for nxt in nb.get(cur, []):
+            if nxt not in seen:
+                seen[nxt] = seen[cur] + 1
+                q.append(nxt)
+    return -1
+
+
+def scene(st: dict, cells: list, me: dict) -> dict:
+    """出牌时的「怪物在哪、多远、还有多少血」——出牌经验的另一半。"""
+    mons = []
+    for p in (st.get("players") or []):
+        if p.get("type") != 2 and (p.get("typeName") or "") != "怪物":
+            continue
+        mons.append({"pid": p.get("pid"), "hp": p.get("hp"), "maxhp": p.get("maxhp"),
+                     "node": p.get("node")})
+    nodes = {int(m["node"]) for m in mons if m.get("node") is not None}
+    d = _bfs_dist(cells, me.get("node"), nodes)
+    hps = [m["hp"] for m in mons if isinstance(m.get("hp"), int)]
+    heroes = [p for p in (st.get("players") or [])
+              if p.get("type") == 1 and not p.get("self")]
+    return {"mons": mons[:8], "dist": d,
+            "mon_hp_min": min(hps) if hps else None,
+            "mon_n": len(mons), "hero_n": len(heroes)}
 
 
 def _trim_state(st: dict) -> dict:
@@ -74,8 +135,20 @@ def _names_for(gi, ids) -> dict:
         except Exception:  # noqa: BLE001
             continue
         if info:
-            out[str(cid)] = {k: info.get(k) for k in ("zh", "cost", "desc", "type", "play") if info.get(k) is not None}
+            out[str(cid)] = {k: info.get(k) for k in ("zh", "cost", "desc", "type", "play", "kind")
+                             if info.get(k) is not None}
     return out
+
+
+def _hp_band(me: dict) -> str:
+    hp, mx = me.get("hp"), me.get("maxhp")
+    if not isinstance(hp, int) or not isinstance(mx, int) or not mx:
+        return "?"
+    if hp >= mx:
+        return "满血"
+    if hp * 3 <= mx:
+        return "低血"
+    return "带伤"
 
 
 def record(st: dict, me: dict, cells: list, decision: dict, why: str,
@@ -95,6 +168,9 @@ def record(st: dict, me: dict, cells: list, decision: dict, why: str,
         "allow": sorted(allow or []),
         "st": _trim_state(st),
         "me": _trim_player(me),
+        "scene": scene(st, cells or [], me),
+        "hp_band": _hp_band(me),
+        "buff_tags": buff_tags(me.get("buffs")),
         "cells": cells or [],
         "names": _names_for(gi, [i for i in ids if i]) if gi else {},
         "decision": decision or {},
