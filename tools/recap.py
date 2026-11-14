@@ -412,6 +412,8 @@ def main(argv=None) -> int:
     a = ap.parse_args(argv)
 
     recs = TR.load(days=0 if a.file else a.days, path=a.file)
+    # `played` 是「手牌/筹码变了一下、顺手记的局面」，不是引擎的决策，别当经验样本
+    recs = [r for r in recs if str((r.get("decision") or {}).get("kind")) != "played"]
     if a.limit:
         recs = recs[:a.limit]
     if not recs:
