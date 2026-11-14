@@ -8,6 +8,70 @@
   "desc": ""
  },
  {
+  "no": "50002",
+  "name": "拳击手套·中级",
+  "quality": "紫",
+  "faction": "通用系",
+  "icon": "UT_Relic_Attack.png",
+  "desc": ""
+ },
+ {
+  "no": "50003",
+  "name": "拳击手套·高级",
+  "quality": "金",
+  "faction": "通用系",
+  "icon": "UT_Relic_Attack.png",
+  "desc": ""
+ },
+ {
+  "no": "50004",
+  "name": "速度轮滑·初级",
+  "quality": "蓝",
+  "faction": "通用系",
+  "icon": "UT_Relic_Speed.png",
+  "desc": ""
+ },
+ {
+  "no": "50005",
+  "name": "速度轮滑·中级",
+  "quality": "紫",
+  "faction": "通用系",
+  "icon": "UT_Relic_Speed.png",
+  "desc": ""
+ },
+ {
+  "no": "50006",
+  "name": "速度轮滑·高级",
+  "quality": "金",
+  "faction": "通用系",
+  "icon": "UT_Relic_Speed.png",
+  "desc": ""
+ },
+ {
+  "no": "50007",
+  "name": "夹心饼干·一般",
+  "quality": "蓝",
+  "faction": "通用系",
+  "icon": "UT_Relic_Hp.png",
+  "desc": ""
+ },
+ {
+  "no": "50008",
+  "name": "夹心饼干·可口",
+  "quality": "紫",
+  "faction": "通用系",
+  "icon": "UT_Relic_Hp.png",
+  "desc": ""
+ },
+ {
+  "no": "50009",
+  "name": "夹心饼干·美味",
+  "quality": "金",
+  "faction": "通用系",
+  "icon": "UT_Relic_Hp.png",
+  "desc": ""
+ },
+ {
   "name": "美工刀·初级",
   "quality": "紫",
   "faction": "治愈系",
@@ -24,11 +88,91 @@
   "desc": "生命值为满时，攻击力 +4，且攻击时额外上升治愈层数的攻击力。"
  },
  {
+  "no": "50011",
+  "name": "美工刀·锋利",
+  "quality": "金",
+  "faction": "",
+  "icon": "UT_Relic_50010.png",
+  "desc": ""
+ },
+ {
+  "no": "50013",
+  "name": "手电筒·强光",
+  "quality": "紫",
+  "faction": "星光系",
+  "icon": "UT_Relic_KillReward.png",
+  "desc": ""
+ },
+ {
+  "no": "50015",
+  "name": "银行卡·余额少",
+  "quality": "蓝",
+  "faction": "星光系",
+  "icon": "UT_Relic_Gold.png",
+  "desc": ""
+ },
+ {
+  "no": "50016",
+  "name": "银行卡·余额多",
+  "quality": "紫",
+  "faction": "星光系",
+  "icon": "UT_Relic_Gold.png",
+  "desc": ""
+ },
+ {
+  "no": "50017",
+  "name": "银行卡·用不完",
+  "quality": "金",
+  "faction": "星光系",
+  "icon": "UT_Relic_Gold.png",
+  "desc": ""
+ },
+ {
+  "no": "50018",
+  "name": "摩托头盔·一般",
+  "quality": "蓝",
+  "faction": "通用系",
+  "icon": "UT_Relic_Defend.png",
+  "desc": ""
+ },
+ {
+  "no": "50019",
+  "name": "摩托头盔·中级",
+  "quality": "紫",
+  "faction": "通用系",
+  "icon": "UT_Relic_Defend.png",
+  "desc": ""
+ },
+ {
+  "no": "50020",
+  "name": "摩托头盔·高级",
+  "quality": "金",
+  "faction": "通用系",
+  "icon": "UT_Relic_Defend.png",
+  "desc": ""
+ },
+ {
+  "no": "50021",
+  "name": "医疗箱·紧急治疗",
+  "quality": "蓝",
+  "faction": "治愈系",
+  "icon": "UT_Relic_Heal.png",
+  "desc": ""
+ },
+ {
   "no": "50022",
   "name": "医疗箱·完备治疗",
   "quality": "金",
   "faction": "治愈系",
   "icon": "UT_Relic_Heal.png",
+  "desc": ""
+ },
+ {
+  "no": "50024",
+  "name": "肾上腺素·高效",
+  "quality": "金",
+  "faction": "通用系",
+  "icon": "UT_Relic_Enmity.png",
   "desc": ""
  },
  {
@@ -230,6 +374,14 @@
   "no": "50047",
   "icon": "UT_Relic_50047.png",
   "desc": "每回合一次，对拥有【标记】的怪物使用效果牌时，施加 1 层标记，复制使用的效果牌并返回手牌。"
+ },
+ {
+  "no": "50048",
+  "name": "手持风扇·大",
+  "quality": "紫",
+  "faction": "",
+  "icon": "UT_Relic_50030.png",
+  "desc": ""
  },
  {
   "name": "佐茶蛋糕",
@@ -478,6 +630,22 @@
   "no": "50078",
   "icon": "UT_Relic_50078.png",
   "desc": "放过怪物后，对目标造成 2 点伤害并获得 1 星光，如果目标是首领，使目标额外受到星光层数的伤害。"
+ },
+ {
+  "no": "50079",
+  "name": "金色飞星",
+  "quality": "金",
+  "faction": "",
+  "icon": "UT_Relic_50078.png",
+  "desc": ""
+ },
+ {
+  "no": "50080",
+  "name": "时间怀表(破碎)",
+  "quality": "金",
+  "faction": "",
+  "icon": "UT_Relic_50080.png",
+  "desc": ""
  },
  {
   "name": "书签",

@@ -413,7 +413,11 @@ def main(argv=None) -> int:
 
     recs = TR.load(days=0 if a.file else a.days, path=a.file)
     # `played` 是「手牌/筹码变了一下、顺手记的局面」，不是引擎的决策，别当经验样本
-    recs = [r for r in recs if str((r.get("decision") or {}).get("kind")) != "played"]
+    recs = [r for r in recs
+            if str((r.get("decision") or {}).get("kind")) != "played"
+            # 只保留「真的在出牌/移动窗口」的记录：stage=none 的是局面快照，
+            # 拿它统计「不动」会把「不是我回合」算成决策（22/22 那次就是这么来的）
+            and str((r.get("st") or {}).get("stage")) in ("card", "move")]
     if a.limit:
         recs = recs[:a.limit]
     if not recs:
