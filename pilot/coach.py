@@ -1716,7 +1716,12 @@ class Coach:
                                if (_hand_changed or _relic_changed) else "")
                 TR.record(st, me, cells, _dec, _why, screen=self._screen,
                           allow=self.allow, gi=self.gi, pref=self.prefer, mode=self.mode,
-                          extra=dict({"turn_no": self._turn_no},
+                          extra=dict({"turn_no": self._turn_no,
+                                      "act": {"id": act.get("id"), "sn": act.get("sn"),
+                                              "pid": act.get("pid"),
+                                              "queue": len(act.get("queue") or []),
+                                              "shop": bool((act.get("shop") or {}).get("open")),
+                                              "relic": bool((act.get("relic") or {}).get("open"))}},
                                       **({"prev_delta": delta} if delta else {})),
                           map_name=mapname or "",
                           prev_snap=self._trace_snap,
