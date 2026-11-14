@@ -104,6 +104,12 @@ def cheap_star_ok(hero_id, star, gold) -> bool:
 
 
 # ---------------------------------------------------------------- 筹码评分 ----
+def is_map_faction(fac: str) -> bool:
+    """地图专属筹码（"XX专属" / "决赛大赛场"）＝通用筹码，不参与分系。"""
+    f = (fac or "").strip()
+    return bool(f) and (f.endswith("专属") or f == "决赛大赛场")
+
+
 def relic_score(entry: dict, hero_id, owned=(), team=()) -> float:
     """给候选筹码打分。entry 用 kb/relics.json 的字段：name / faction / quality。
 
@@ -115,11 +121,12 @@ def relic_score(entry: dict, hero_id, owned=(), team=()) -> float:
     must = must_faction(hero_id)
     sc = 0.0
 
-    # 已经拿了哪几系（通用系不算分系）
-    has = {f for f in ((o.get("faction") or "").strip() for o in owned) if f and f != GENERIC}
-    taken = has | ({fac} if fac and fac != GENERIC else set())
+    # 已经拿了哪几系（通用系、地图专属都不算分系）
+    has = {f for f in ((o.get("faction") or "").strip() for o in owned)
+           if f and f != GENERIC and not is_map_faction(f)}
+    taken = has | ({fac} if fac and fac != GENERIC and not is_map_faction(fac) else set())
 
-    if fac == GENERIC:
+    if fac == GENERIC or is_map_faction(fac):
         sc += 1.0
     elif must and fac == must:
         sc += 5.0                      # 必拿系，最高优先
