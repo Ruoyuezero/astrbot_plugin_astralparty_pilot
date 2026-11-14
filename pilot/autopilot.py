@@ -442,6 +442,17 @@ def hurt_buffs(me):
     return out
 
 
+def _has_blade(me) -> bool:
+    """我身上有没有「美工刀」（治愈系，满血加攻）——按名字或 kb 系别判。"""
+    for r in (me or {}).get("relics") or []:
+        nm = ""
+        if isinstance(r, dict):
+            nm = str(r.get("name") or r.get("zh") or "")
+        if "美工刀" in nm:
+            return True
+    return False
+
+
 def score_card(cid, gi, me=None):
     info = gi.cinfo(cid)
     name = info.get("zh", "")
@@ -497,6 +508,12 @@ def score_card(cid, gi, me=None):
     # 你有我有：双方各得 1 张牌，手牌越多越强
     if cid_s == "21002":
         s = max(s, 3.6)
+    # 治愈系「美工刀」：**满血时**攻击 +4/+2，并加治愈层数攻击。
+    # 满血时用自损牌（《以毒攻毒》立刻失去 2 点生命）会把满血加成打掉 —— 硬压到底。
+    if (me and me.get("hp") and me.get("maxhp") and me["hp"] >= me["maxhp"]
+            and _has_blade(me)
+            and ("自身立刻失去" in desc or "失去2点生命" in desc or "失去 2 点生命" in desc)):
+        s = min(s, DICE_DEMOTE)
     return s, name, desc
 
 
