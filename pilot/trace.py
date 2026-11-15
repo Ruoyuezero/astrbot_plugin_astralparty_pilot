@@ -52,7 +52,7 @@ def _trim_player(p: dict) -> dict:
     bs = p.get("buffs") or []
     out["buffs"] = [{"id": b.get("id"), "n": b.get("name") or "", "keep": b.get("keep")}
                     for b in bs if isinstance(b, dict)][:12]
-    cards = p.get("cards_proto") or p.get("cards") or []
+    cards = (p.get("cards") or p.get("cards_room") or p.get("cards_proto") or [])
     out["cards"] = [c.get("id") if isinstance(c, dict) else c for c in cards][:20]
     rel = p.get("relics") or []
     out["relics"] = [r.get("id") if isinstance(r, dict) else r for r in rel][:12]
@@ -182,6 +182,54 @@ def _ids(seq) -> list:
     return sorted(out, key=lambda v: str(v))
 
 
+_ROOM_CACHE: dict = {"key": None, "idx": {}}
+
+
+def room_cards(st: dict) -> dict:
+    """从 room.json（插件轮询服务端 5193 写的）取全员手牌，按 (heroId, gold, hp) 对齐到 pid。
+
+    客户端内存里别人的手牌明细是惰性的，只有这个接口能拿到真值。
+    返回 {pid: [cardId, ...]}；文件缺失/过期/对不上就返回空字典。
+    """
+    import json as _j
+    import time as _t
+    try:
+        import paths as _PL
+        g = _PL.GAME_DIR or ""
+    except Exception:            # noqa: BLE001
+        g = ""
+    if not g:
+        return {}
+    f = os.path.join(g, "room.json")
+    try:
+        mt = os.path.getmtime(f)
+        if _t.time() - mt > 8:
+            return {}
+    except OSError:
+        return {}
+    if _ROOM_CACHE["key"] != mt:                 # 同一份 room.json 只解析一次
+        try:
+            room = _j.load(io.open(f, encoding="utf-8"))
+        except (OSError, ValueError):
+            return {}
+        idx: dict = {}
+        for rp in room.get("players") or []:
+            ids = [c.get("id") for c in (rp.get("cards") or []) if c.get("id")]
+            if not ids or rp.get("slot") is None:
+                continue
+            idx[int(rp["slot"])] = ids          # 服务端 slot 就是座位号
+        _ROOM_CACHE.update({"key": mt, "idx": idx})
+    idx = _ROOM_CACHE["idx"]
+    out = {}
+    for p in st.get("players") or []:
+        if p.get("self"):
+            continue
+        got = idx.get(int(p.get("i") if p.get("i") is not None else -1)) or []
+        if got:
+            out[str(p.get("pid"))] = got
+    return out
+
+
 def snapshot(st: dict, me: dict | None = None) -> dict:
     """全场快照：每个 pid → 手牌/筹码/buff/血量/金币/位置（用来算「谁刚做了什么」）。"""
     out: dict = {}
@@ -191,8 +239,13 @@ def snapshot(st: dict, me: dict | None = None) -> dict:
             "i": p.get("i"), "self": p.get("self") or 0, "t": p.get("typeName") or "",
             "hp": p.get("hp"), "gold": p.get("gold"), "node": p.get("node"),
             "star": p.get("star"),
-            # cards_proto 是 Hero 快照里的真实手牌（全员都有，别人的不冻结）
-            "cards": _ids(p.get("cards_proto") or p.get("cards")),
+            # 自己：UI 容器（实时、和决策层同源）；
+            # 别人：服务端快照 cards_proto（容器对他们不刷新）
+            # HandCards 对所有人都是实时的（2026-11-15 与界面 7 张核对过）
+            "cards": _ids(p.get("cards") or p.get("cards_room") or p.get("cards_proto")),
+            # 服务端真实手牌数（CardCount）；别人手牌明细读不到时靠它算「出了几张」
+            "hand_count": p.get("hand_count"),
+            "room_cards": (room_cards(st).get(str(p.get("pid"))) if not p.get("self") else None),
             "relics": _ids(p.get("relics")),
             "buffs": _ids(p.get("buffs")),
         }
@@ -220,6 +273,8 @@ def diff(prev: dict, now: dict) -> list[dict]:
             e["node"] = [p.get("node"), n.get("node")]
         if p.get("hp") != n.get("hp"):
             e["hp"] = [p.get("hp"), n.get("hp")]
+        if p.get("hand_count") != n.get("hand_count"):
+            e["hand"] = [p.get("hand_count"), n.get("hand_count")]
         if p.get("gold") != n.get("gold"):
             e["gold"] = [p.get("gold"), n.get("gold")]
             _d = (n.get("gold") or 0) - (p.get("gold") or 0)
@@ -248,6 +303,23 @@ def diff(prev: dict, now: dict) -> list[dict]:
     return ev
 
 
+MAX_FILE = 24 * 1024 * 1024      # 单个日文件上限
+KEEP_LINES = 4000                # 超了就只留最近这么多行
+
+
+def _trim_file(path: str) -> None:
+    try:
+        if os.path.getsize(path) <= MAX_FILE:
+            return
+        lines = io.open(path, encoding="utf-8", errors="ignore").read().splitlines()
+        if len(lines) <= KEEP_LINES:
+            return
+        io.open(path, "w", encoding="utf-8", newline="\n").write(
+            "\n".join(lines[-KEEP_LINES:]) + "\n")
+    except OSError:
+        pass
+
+
 def record(st: dict, me: dict, cells: list, decision: dict, why: str,
            screen: dict | None = None, allow=None, gi=None, pref: str = "eco",
            mode: str = "pilot", extra: dict | None = None,
@@ -271,6 +343,7 @@ def record(st: dict, me: dict, cells: list, decision: dict, why: str,
         "me": _trim_player(me),
         "hero": {"id": me.get("heroId"), "name": hero_name(me.get("heroId"))},
         "others": [_trim_player(p) for p in (st.get("players") or []) if not p.get("self")],
+        "room_cards": room_cards(st),
         "since_prev": diff(prev_snap or {}, snapshot(st, me)),
         "map": map_name or "",
         "pve": pve,
@@ -292,6 +365,7 @@ def record(st: dict, me: dict, cells: list, decision: dict, why: str,
         line.pop("cells", None)
         txt = json.dumps(line, ensure_ascii=False, separators=(",", ":"))[:MAX_LINE]
     path = os.path.join(d, time.strftime("%Y%m%d") + ".jsonl")
+    _trim_file(path)
     try:
         with io.open(path, "a", encoding="utf-8") as f:
             f.write(txt + "\n")

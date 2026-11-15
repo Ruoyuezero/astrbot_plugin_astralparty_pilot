@@ -218,6 +218,46 @@ class Blocks:
             self.items.append(("achieves", row, nf, icon, self.pad, self.y, 0))
             self.y += max(c[3] for c in row) + gap_y
 
+    def card_strip(self, items: list, height: int = 52, gap: int = 8,
+                   before: int = 2) -> None:
+        """一行卡牌图标，**图下写中文名**。
+
+        items 每项是 (图标路径 或 None, 名字)。名字按格子宽折行，
+        一行放不下自动换行；格子宽取「图标宽」和「名字最宽行」的较大者。
+        """
+        # 没有图的卡也保留（画占位框 + 名字），否则「4 张」只显示 2 个格子
+        items = [(p, str(n or "")) for p, n in (items or [])]
+        if not items:
+            return
+        nf = _font(12)
+        avail = self.width - 2 * self.pad
+        cells = []
+        for path, name in items:
+            im = _open(path) if path else None
+            iw = int(height * 2 / 3) if path is None else height
+            if im is not None and im.height:
+                iw = max(1, int(im.width * height / im.height))
+            lines = _wrap(name, nf, max(iw, 64)) if name else []
+            tw = max([nf.getlength(ln) for ln in lines] + [iw])
+            cw = int(max(iw, min(tw, 108)))
+            if lines:                                  # 按最终格宽重新折行
+                lines = _wrap(name, nf, cw)
+            ch = height + (6 + len(lines) * 15 if lines else 0)
+            cells.append((path, lines, cw, ch, iw))
+        rows, cur, w = [], [], 0
+        for c in cells:
+            if cur and w + c[2] + gap > avail:
+                rows.append(cur)
+                cur, w = [], 0
+            cur.append(c)
+            w += c[2] + gap
+        if cur:
+            rows.append(cur)
+        self.y += before
+        for row in rows:
+            self.items.append(("cards", row, nf, height, self.pad, self.y, 0))
+            self.y += max(c[3] for c in row) + 6
+
     def relic_row(self, items: list, icon: int = 44, line_h: int = 42,
                   name_font=None, before: int = 2) -> None:
         """筹码网格：游戏原始金/紫/蓝圆盘底在上、名字在下居中。
@@ -290,8 +330,34 @@ class Blocks:
                 self._draw_run(draw, s, x, y)
             elif kind == "grid":
                 self._draw_grid(canvas, draw, s, x, y, font, color, lh)
+            elif kind == "cards":
+                self._draw_cards(canvas, draw, s, x, y, font, lh)
             elif kind == "achieves":
                 self._draw_achieves(canvas, draw, s, x, y, font, color, lh)
+
+    def _draw_cards(self, canvas: Image.Image, draw: ImageDraw.ImageDraw,
+                    row: list, x: int, y: int, meta, lh: int) -> None:
+        """画一行卡牌：图标按高度缩放并居中，名字折行写在图下方。"""
+        nf = meta if meta is not None else _font(12)
+        height = lh or 52
+        cx = int(x)
+        for path, lines, cw, _ch, iw in row:
+            ix = cx + (cw - iw) // 2
+            im = _open(path) if path else None
+            if im is None:                       # 占位：浅底 + 虚线感边框
+                draw.rounded_rectangle([ix, int(y), ix + iw, int(y) + height],
+                                       radius=4, fill=(236, 233, 226), outline=RULE)
+            elif im is not None:
+                try:
+                    th = _fit(im, iw, height)
+                    canvas.paste(th, (ix, int(y)), th)
+                except Exception:      # noqa: BLE001
+                    pass
+            ty = int(y) + height + 4
+            for ln in lines:
+                draw.text((cx + (cw - nf.getlength(ln)) / 2, ty), ln, font=nf, fill=BODY)
+                ty += 15
+            cx += cw + 8
 
     def _draw_grid(self, canvas: Image.Image, draw: ImageDraw.ImageDraw,
                    row: list, x: int, y: int, name_font, meta, lh: int) -> None:

@@ -102,11 +102,44 @@ def _hero_skills(hid) -> tuple[str, str, str]:
 _CARD_NAMES: dict | None = None
 
 
+_GAME_CARD_NAMES = None
+_GAME_CARD_NAMES_AT = 0.0
+
+
+def _game_card_names() -> dict:
+    """游戏目录 cardnames.txt（探针从 STRCard 导的 id→中文名），kb 缺条目时兜底。"""
+    global _GAME_CARD_NAMES, _GAME_CARD_NAMES_AT
+    import os
+    from . import livestate as LS
+    try:
+        g = os.path.dirname(LS.state_path() or "")
+        fp = os.path.join(g, "cardnames.txt") if g else ""
+        if not fp or not os.path.exists(fp):
+            return {}
+        mt = os.path.getmtime(fp)
+        if _GAME_CARD_NAMES is not None and mt == _GAME_CARD_NAMES_AT:
+            return _GAME_CARD_NAMES
+        out = {}
+        with open(fp, encoding="utf-8") as fh:
+            for line in fh:
+                parts = line.rstrip("\n").split("\t")
+                if len(parts) >= 2 and parts[0].strip().isdigit() and parts[1].strip():
+                    out[parts[0].strip()] = parts[1].strip()
+        _GAME_CARD_NAMES, _GAME_CARD_NAMES_AT = out, mt
+        return out
+    except Exception:      # noqa: BLE001
+        return {}
+
+
 def _card_name(cid) -> str:
     global _CARD_NAMES
     if _CARD_NAMES is None:
         _CARD_NAMES = {str(c.get("no")): str(c.get("name") or "") for c in kb.cards()}
-    return _CARD_NAMES.get(str(cid)) or f"卡 {cid}"
+    nm = _CARD_NAMES.get(str(cid))
+    if nm:
+        return nm
+    nm = _game_card_names().get(str(cid))
+    return nm or f"卡 {cid}"
 
 
 def _skill_name(sid) -> str:
@@ -126,16 +159,28 @@ def _buff_name(b) -> str:
     引擎写进 state.json 的 buff 大多只有 id（技能/遗物自带的隐藏 buff 没有独立
     名字表），所以按顺序兜底：name → buff 名表 → 来源（技能/遗物）名 → #id。
     """
+    bid = str(b.get("id") or "")
+    # ① 探针给的名字（来自 buffnames.txt，已按 STRBuff 校正）
     nm = (b.get("name") or "").strip()
     if nm:
         return nm
-    bid = str(b.get("id") or "")
+    # ② kb 的 buff 名表（精确）
     try:
         row = kb.buff(bid)
         if row and row.get("name"):
             return str(row["name"])
     except Exception:
         pass
+    # ③ 兜底：id = 遗物编号 × 100 + 1（50060 → 5006001）时用遗物名
+    #    ⚠ 只是兜底：像 5006001 这种「遗物授予的 buff」本身另有名字（逆鳞），
+    #      有名字的时候优先上面的 ①，别用遗物名盖掉。
+    if bid.isdigit() and len(bid) == 7:
+        try:
+            r = kb.relic(bid[:-2])
+            if r and r.get("name"):
+                return str(r["name"])
+        except Exception:
+            pass
     src = b.get("srcName") or ""
     sid = str(b.get("srcId") or "")
     if src == "技能":
@@ -503,7 +548,116 @@ def render_profile(d: dict, out_path: str) -> str:
 
 
 # ── 局内卡 ───────────────────────────────────────────────────────────
-def render_ingame(d: dict, state: dict, p: dict, out_path: str) -> str:
+def _room_hands() -> dict:
+    """读 room.json（插件轮询服务端 5193 写的）→ {座位号: [卡牌 id]}；过期/缺失返回 {}。"""
+    import json
+    import os
+    from . import livestate as LS
+    try:
+        g = os.path.dirname(LS.state_path() or "")
+        fp = os.path.join(g, "room.json")
+        if not g or not os.path.exists(fp) or time.time() - os.path.getmtime(fp) > 12:
+            return {}
+        room = json.load(open(fp, encoding="utf-8"))
+    except Exception:          # noqa: BLE001
+        return {}
+    out = {}
+    for rp in room.get("players") or []:
+        slot = rp.get("slot")
+        ids = [c.get("id") for c in (rp.get("cards") or []) if c.get("id")]
+        if slot is not None and ids:
+            out[int(slot)] = ids
+    return out
+
+
+def _has_global_hands(state: dict) -> bool:
+    """能不能拿到「全场」手牌（>=2 个英雄）—— 能的话就不单列自己的手牌了。"""
+    n = 0
+    for pl in (state or {}).get("players") or []:
+        if pl.get("typeName") == "怪物":
+            continue
+        n += 1
+    return n >= 2
+
+
+def _room_players(room: dict | None = None) -> dict:
+    """{座位号: 玩家 dict}（服务端权威：手牌/筹码/血量/金币）。
+
+    room 由调用方一次性查来（不落盘、不常驻）；没传才退回去读旧的 room.json。
+    """
+    import json
+    import os
+    from . import livestate as LS
+    if room:
+        return {int(rp["slot"]): rp for rp in (room.get("players") or [])
+                if rp.get("slot") is not None}
+    try:
+        g = os.path.dirname(LS.state_path() or "")
+        fp = os.path.join(g, "room.json")
+        if not g or not os.path.exists(fp) or time.time() - os.path.getmtime(fp) > 15:
+            return {}
+        room = json.load(open(fp, encoding="utf-8"))
+    except Exception:          # noqa: BLE001
+        return {}
+    return {int(rp["slot"]): rp for rp in (room.get("players") or []) if rp.get("slot") is not None}
+
+
+def _all_hands(state: dict, me: dict, room: dict | None = None) -> list:
+    """[(座位标签, [卡牌 id])]，顺序按座位。服务端优先，其次 state 快照。"""
+    if room:
+        room_hands = {int(rp["slot"]): [c.get("id") for c in (rp.get("cards") or []) if c.get("id")]
+                      for rp in (room.get("players") or []) if rp.get("slot") is not None}
+    else:
+        room_hands = _room_hands()
+    rows = []
+    for pl in (state or {}).get("players") or []:
+        i = pl.get("i")
+        if i is None or pl.get("typeName") == "怪物":
+            continue
+        # 优先级：服务端房间快照（一次查询来的，最准）→ 本地 HandCards
+        # ⚠ 客户端只同步自己的明细，别人的 HandCards 会滞后（实测差 3 张）
+        ids = list(room_hands.get(int(i)) or [])
+        if not ids:
+            ids = [c.get("id") for c in (pl.get("cards") or []) if c.get("id")]
+        if not ids:
+            ids = [x for x in (pl.get("cards_room") or []) if x]
+        if not ids:
+            ids = [x for x in (pl.get("cards_proto") or []) if x]
+        if not ids and not pl.get("self"):
+            continue
+        star = pl.get("star")
+        bits = [f"{i}号位", _hero_name(pl.get("heroId")), f"{star}星" if star else "",
+                f"HP {pl.get('hp')}/{pl.get('maxhp')}"]
+        label = " · ".join(x for x in bits if x) + ("（我）" if pl.get("self") else "")
+        # 数量：CardCount（hand_count）才是真手牌数；别人的明细列表常常滞后，
+        # 只信 CardCount，明细能补多少补多少（渲染时标注「明细滞后」）。
+        hc = int(pl.get("hand_count") or 0)
+        cnt = len(ids) if room_hands.get(int(i)) else max(len(ids), hc)
+        rows.append((label, ids, cnt))
+    return rows
+
+
+def _card_icon(cid) -> str | None:
+    """卡牌图标路径：UT_HandCard_<no>.png，其次 _sfw，再回退 wikiNo。"""
+    no = str(cid or "")
+    cand = [no, str((kb.card(no) or {}).get("wikiNo") or "")]
+    # 同名卡兜底：20029 与 20028 都叫《符卡-祸》，美术只做了 20028
+    nm = _card_name(no)
+    if nm and not nm.startswith("卡 "):
+        for c in kb.cards():
+            if str(c.get("name") or "") == nm and str(c.get("no")) not in cand:
+                cand.append(str(c.get("no")))
+    for n in cand:
+        if not n:
+            continue
+        for sfx in ("", "_sfw"):
+            pth = artlib.icon("handcard", f"UT_HandCard_{n}{sfx}.png")
+            if pth:
+                return pth
+    return None
+
+
+def render_ingame(d: dict, state: dict, p: dict, out_path: str, room: dict | None = None) -> str:
     s = (d or {}).get("simple") or {}
     name = s.get("name") or f"UID {int(p.get('pid') or 0)}"
     hid = int(p.get("heroId") or 0)
@@ -527,11 +681,20 @@ def render_ingame(d: dict, state: dict, p: dict, out_path: str) -> str:
 
     # proto.round 是玩家快照 Hero.round_，真人玩家常为 -1（不是回合数），
     # 真正的全局回合数服务端没写进 state.json，所以只当 >0 时才显示，避免出现「第 -1 回合」。
-    rnd = int((p.get("proto") or {}).get("round") or 0)
-    tag = " · ".join(x for x in (hname, f"第 {rnd} 回合" if rnd > 0 else "", "局内") if x)
-    tag = _ellipsis(tag, _font(18, True), hdr_avail)
-    blocks.items.append(("t", tag, _font(18, True), ACCENT, PAD, blocks.y, 28))
-    blocks.y += 28
+    rnd = int((state or {}).get("round") or 0)          # 探针读的房间轮次（最准）
+    if rnd <= 0:
+        rnd = int((p.get("proto") or {}).get("round") or 0)   # 兜底：Hero.round_（常为 -1）
+    tag = " · ".join(x for x in (hname, f"第 {rnd} 轮" if rnd > 0 else "", "局内") if x)
+    star = int(p.get("star") or p.get("lv") or 0)
+    stars = "★" * max(star, 0)
+    # 五角星紧跟在「局内」后面，同一行（★ 数量 = 星级）
+    f_tag = _font(18, True)
+    stars_w = f_tag.getlength("  " + stars) if stars else 0
+    tag = _ellipsis(tag, f_tag, hdr_avail - stars_w)
+    runs = [(tag, f_tag, ACCENT)]
+    if stars:
+        runs.append(("  " + stars, f_tag, GOLD))
+    blocks.runlines([runs], line_h=28)
     if p.get("bot") or p.get("offline"):
         blocks.text("（人机）" if p.get("bot") else "（已掉线，由 AI 托管）",
                     _font(14), MUTE, line_h=24, before=2)
@@ -545,14 +708,10 @@ def render_ingame(d: dict, state: dict, p: dict, out_path: str) -> str:
     blocks.items.append(("chips", chips, None, None, PAD, blocks.y, 62))
     blocks.y += 62 + 6
 
-    prog = int(p.get("prog") or 0)
-    extra = [f"位置 第{int(p.get('node') or 0)}格", f"进度 {prog}%"]
+    extra = [f"位置 第{int(p.get('node') or 0)}格"]
     mp = int(p.get("mp") if p.get("mp") is not None else (p.get("proto") or {}).get("mp") or 0)
     if mp:
         extra.append(f"移动力 {mp}")
-    fronts = p.get("fronts") or []
-    if fronts:
-        extra.append(f"可达 {len(fronts)} 格")
     blocks.text(" · ".join(extra), _font(16), BODY, line_h=26, before=2)
 
     # 技能
@@ -569,9 +728,9 @@ def render_ingame(d: dict, state: dict, p: dict, out_path: str) -> str:
         if pas_name:
             blocks.runlines([[(f"被动 · {pas_name}", _font(18, True), TITLE)]], line_h=30)
 
-    # 手牌
+    # 手牌：有「全场手牌」时这一块就多余了，只在没有全场数据时单列
     cards = p.get("cards") or []
-    if cards:
+    if cards and not _has_global_hands(state):
         names = [_card_name(c.get("id")) for c in cards]
         blocks.heading(f"手牌（{len(cards)}）")
         blocks.text("、".join(names), _font(17), BODY, line_h=28)
@@ -591,6 +750,17 @@ def render_ingame(d: dict, state: dict, p: dict, out_path: str) -> str:
             items.append((_buff_icon_path(b) or None, label, ""))
         blocks.icon_row(items, icon=40)
 
+    # 服务端房间快照优先（客户端内存里别人的筹码/手牌会滞后，自己也可能是上一局的旧值）
+    _rp = _room_players(room).get(int(p.get("i") if p.get("i") is not None else -1)) or {}
+    if _rp:
+        p = dict(p)
+        p["relics"] = [r if isinstance(r, dict) else {"id": r} for r in (_rp.get("relics") or [])] or p.get("relics")
+        for k, kk in (("hp", "hp"), ("gold", "gold"), ("atk", "atk"), ("def", "def")):
+            if _rp.get(k) is not None:
+                p[kk] = _rp[k]
+        if _rp.get("lv"):
+            p["star"] = _rp["lv"]
+
     # 筹码（遗物）：玩家当前持有的筹码，用游戏原始金/紫/蓝圆盘底框 + 中文名；
     # 按稀有度从高到低排（金 > 紫 > 蓝），同稀有度保持原有顺序。
     relics = p.get("relics") or []
@@ -605,10 +775,22 @@ def render_ingame(d: dict, state: dict, p: dict, out_path: str) -> str:
             items.append((m, m.get("name") or f"#{r}"))
         blocks.relic_row(items, icon=44)
 
-    if p.get("star") or p.get("lv"):
-        star = int(p.get("star") or p.get("lv") or 0)
-        blocks.heading("升星")
-        blocks.text("★" * max(star, 1) + f"（{star} 星）", _font(20, True), GOLD, line_h=32)
+
+    # 全场手牌（实时）放最后：本地 HandCards 对所有人实时，cards_room 兜底
+    hands = _all_hands(state, p, room)
+    if len(hands) > 1:
+        blocks.heading("全场手牌（实时）")
+        for label, ids, cnt in hands:
+            lag = cnt - len(ids)
+            seg = [(label, _font(16, True), TITLE), (f"　{cnt} 张", _font(14), MUTE)]
+            if lag > 0:
+                seg.append((f"（明细滞后 {lag} 张）", _font(13), MUTE))
+            blocks.runlines([seg], line_h=24)
+            if lag > 0:
+                # 明细不全就别画残图：画出来会让人以为他只剩这几张
+                continue
+            blocks.card_strip([(_card_icon(c), _card_name(c)) for c in ids],
+                              height=52, before=2)
 
     _stamp(blocks, "局内实时")
     return _compose_top_right(chibi_img, blocks, out_path, 42 + 28)
@@ -651,7 +833,7 @@ def render_remote_ingame(d: dict, detail: dict, out_path: str) -> str:
 
     rnd = int(detail.get("round") or 0)
     mapname = _map_name(detail.get("map_id"))
-    tag = " · ".join(x for x in (hname, f"第 {rnd} 回合" if rnd > 0 else "",
+    tag = " · ".join(x for x in (hname, f"第 {rnd} 轮" if rnd > 0 else "",
                                  mapname if mapname else "", "局内") if x)
     tag = _ellipsis(tag, _font(18, True), hdr_avail)
     blocks.items.append(("t", tag, _font(18, True), ACCENT, PAD, blocks.y, 28))

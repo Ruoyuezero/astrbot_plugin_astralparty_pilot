@@ -98,5 +98,17 @@
     "type": "text",
     "default": "",
     "description": "向量接口的 API Key（本地 Ollama 留空）"
+  },
+  "room_watch": {
+    "type": "bool",
+    "default": false,
+    "description": "后台拉「房间内全员手牌」到 room.json（默认关；多人房才有）",
+    "hint": "会周期性登录服务端查询，属于额外风险（可能影响对局稳定性），需要时再打开。只用 alt_sid 小号票；若它正是本机在用的票会自动跳过。单人/PVE 查不到。"
+  },
+  "hands_via_api": {
+    "type": "bool",
+    "default": false,
+    "description": "/appa me 时是否额外查一次服务端，补全别人手牌明细",
+    "hint": "客户端只同步自己的手牌明细，别人的只有数量。想拿到别人明细必须查一次服务端（5193 房间详情），有极小概率被判 11018 并影响同房间客户端；仅在 alt_sid 是小号且没人用它游玩时才安全。"
   }
 }

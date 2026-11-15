@@ -184,6 +184,29 @@ def age(qq) -> float:
     return max(0.0, time.time() - at) if at else -1.0
 
 
+def verify(qq) -> tuple[bool, str]:
+    """真校验这张票还能不能用。
+
+    票是本机游戏正在用的那张就**跳过校验**（登录会把正在玩的号顶下线），返回 (True, "本机在用")。
+    """
+    rec = load(qq)
+    if not rec:
+        return False, "没登录"
+    sid = str(rec.get("sid") or "")
+    if not sid:
+        return False, "没票"
+    try:
+        from . import liveapi as LV
+        if LV.sid_in_use(sid):
+            return True, "本机正在使用，跳过校验"
+        r = LV.check_sid(sid, rec.get("platform") or "cn")
+    except Exception as e:          # noqa: BLE001
+        return False, f"{type(e).__name__}: {e}"
+    if r.get("ok"):
+        return True, ""
+    return False, str(r.get("err") or "票无效")
+
+
 def is_usable(qq, ttl: float = FRESH_TTL) -> bool:
     """登录态是否还能直接用（不联网的本地判断）。
 

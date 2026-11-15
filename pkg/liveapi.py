@@ -526,6 +526,39 @@ class LiveClient:
             "use_hero": gi(st, 4), "adorn": gi(st, 5), "skins": gi(st, 6),
         }
 
+    def room_all(self, room_id: int, server_id: int) -> dict:
+        """查房间详情（5193）并解析**所有玩家**的手牌/筹码/buff。
+
+        room_detail 只挑目标 uid 的那份；这个把整张桌子都返回，用来在本地还原
+        「队友手牌」（客户端只同步数量，明细得靠这个接口）。
+        """
+        self.heartbeat()
+        body = (_enc_sf64(1, room_id)
+                + _varint((1001 << 3) | 5) + int(server_id).to_bytes(4, "little", signed=True))
+        err, rsp = self._send(5193, body, wait=self.timeout) or (0, b"")
+        if err != 0:
+            raise LiveError(_err_text(err), err)
+        room = gm(fields(rsp), 2) or {}
+        players = []
+        for pl in gl(room, 9):
+            h = gm(pl, 10) or {}
+            if not h:
+                continue
+            buffs = []
+            for bm in gl(h, 4):
+                bv = gm(bm, 2) or {}
+                buffs.append({"id": gi(bv, 2), "keep": gi(bv, 5), "unique_id": gi(bm, 1)})
+            players.append({
+                "uid": gi(pl, 1), "slot": gi(pl, 6), "nick": gs(pl, 2),
+                "heroId": gi(h, 2), "node": gi(h, 3), "gold": gi(h, 7),
+                "hp": gi(h, 14), "def": gi(h, 15), "atk": gi(h, 16),
+                "maxhp": gi(h, 23), "lv": gi(h, 33), "mp": gi(h, 10),
+                "cards": [{"id": gi(c, 2)} for c in gl(h, 8)],
+                "buffs": buffs,
+                "relics": [gi(rm, 1) for rm in gl(h, 52)],
+            })
+        return {"round": gi(room, 14), "gameProgress": gi(room, 46), "players": players}
+
     def room_detail(self, uid: int, room_id: int, server_id: int) -> dict:
         """查某房间实时详情（5193）：进度、回合、及房间里目标玩家的手牌/筹码/buff。
 
@@ -692,6 +725,79 @@ def self_profile(ticket_override: dict | None = None, ver: str = "",
             last = exc
             time.sleep(1.0)     # 等旧会话被挤掉，再以「顶号」的方式登一次
     raise last or LiveError("握手失败")
+
+
+def check_sid(sid: str, platform: str = "cn", ver: str = "",
+              timeout: float = 8.0) -> dict:
+    """用这张票登录一次，验证它还有效。
+
+    返回 {"ok": True, "uid":.., "nick":..} 或 {"ok": False, "err": "..."}。
+    ⚠ 登录会把同号的在线会话顶掉，调用方必须先确认这张票**不是**本机正在用的那张。
+    """
+    sid = str(sid or "").strip()
+    if not sid:
+        return {"ok": False, "err": "没填票"}
+    h, p = SERVERS.get(platform or "cn", SERVERS["cn"])
+    try:
+        with LiveClient(h, p, timeout=timeout) as c:
+            c.login(sid, platform or "cn", client_ver(ver))
+            uid = int(c.session_id or 0)
+            nick = ""
+            try:
+                nick = str(c.player_simple(uid).get("name") or "")
+            except Exception:      # noqa: BLE001
+                pass
+            return {"ok": bool(uid), "uid": uid, "nick": nick}
+    except Exception as e:         # noqa: BLE001
+        return {"ok": False, "err": str(e)}
+
+
+def sid_in_use(sid: str) -> bool:
+    """这张票是不是本机游戏**正在用**的。
+
+    判据：游戏进程在跑 + 这张是 BnSdk 日志里**最新**的一张票。
+    （只看「最近 12 小时出现过」会把历史票也算进来，太粗。）
+    """
+    sid = str(sid or "").strip()
+    if not sid:
+        return False
+    try:
+        from . import livestate as LS
+        if not LS.running():
+            return False
+    except Exception:      # noqa: BLE001
+        pass
+    try:
+        logs = log_tickets() or []
+    except Exception:      # noqa: BLE001
+        return False
+    if not logs:
+        return False
+    newest = sorted(logs, key=lambda t: str((t or {}).get("at") or ""), reverse=True)[0]
+    return str((newest or {}).get("sid") or "") == sid
+
+
+def room_all_for(uid: int, ticket_override: dict | None = None,
+                 ver: str = "", timeout: float = 10.0) -> dict | None:
+    """拿某个 UID 所在房间的**全员**手牌（先查它在哪个房间，再拉房间详情）。失败返回 None。"""
+    tk = ticket_override or ticket()
+    if not tk:
+        return None
+    h, p = SERVERS.get(tk.get("platform") or "cn", SERVERS["cn"])
+    try:
+        with LiveClient(h, p, timeout=timeout) as c:
+            c.login(tk["sid"], tk.get("platform") or "cn", client_ver(ver))
+            s = c.player_simple(uid)
+            rid, sid = int(s.get("room_id") or 0), int(s.get("room_server_id") or 0)
+            if not rid or not sid:
+                return None
+            out = c.room_all(rid, sid)
+            out["room_id"] = rid
+            out["server_id"] = sid
+            out["state"] = s.get("state")
+            return out
+    except Exception:  # noqa: BLE001
+        return None
 
 
 def room_detail_for(uid: int, room_id: int, server_id: int,

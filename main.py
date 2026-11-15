@@ -32,6 +32,7 @@ from .pkg import artlive as ALIVE
 from .pkg import landrender as LR
 from .pkg import liveapi as LV
 from .pkg import livestate as LS
+from .pkg import roomwatch as RW
 from .pkg import livecard as LC
 from .pkg import profilecache as PC
 from .pkg import account as ACC
@@ -462,12 +463,30 @@ class AstralPartyPilotPlugin(Star):
         self._push_seen: int = 0
         # /app load 的后台解包任务
         self._load_task: asyncio.Task | None = None
+        # 房间轮询已**默认禁用**：它需要周期性登录服务端（5193 房间服），
+        # 2026-11-15 实测会干扰对局（移动端 11018「动作不存于预计表里」）。
+        # 需要全员手牌时请用「手动一次性查询」，不要后台常驻。
+        logger.info("[星趴] 房间轮询已禁用（避免影响对局；需要全员手牌请手动查）")
         self._load_prog: int = 0
         self._load_umo: str = ""
         logger.info("[星趴] 插件已加载，知识库条数：" + str(kb.index().get("counts", {})))
         logger.info("[星趴] 图库目录：" + AL.describe() + " 可用=" + str(AL.available()))
 
     # ------------------------------------------------------------ /app ----
+    async def terminate(self) -> None:
+        """插件被卸载/重载时调用：停掉后台线程（否则线程会留在进程里继续轮询）。"""
+        try:
+            RW.stop()
+            logger.info("[星趴] 插件卸载：房间轮询已停")
+        except Exception:      # noqa: BLE001
+            pass
+        for t in (getattr(self, "_push_task", None), getattr(self, "_load_task", None)):
+            try:
+                if t and not t.done():
+                    t.cancel()
+            except Exception:  # noqa: BLE001
+                pass
+
     @filter.command("app")
     async def app(self, event: AstrMessageEvent):
         """图鉴总入口：/app help 看说明，子命令见 APP_HELP。"""
@@ -1501,12 +1520,21 @@ class AstralPartyPilotPlugin(Star):
         if force:
             arg = ""
         elif not arg and ACC.is_usable(qq):
+            # 本地 TTL 只说明「存过不久」，票本身可能已被服务端作废 → 真登录一次验证
+            ok, why = await asyncio.to_thread(ACC.verify, qq)
+            if ok:
+                yield event.plain_result(
+                    f"你现在登录的是：{ACC.describe(qq)}\n"
+                    "登录票已验证可用，不用重新扫码～\n"
+                    "· 看自己的档案：/app uid\n"
+                    "· 换号：/app out 退出后再 /app in\n"
+                    "· 确实要重新登录：/app in force")
+                return
+            logger.warning(f"[星趴] /app in 校验失败（{qq}）：{why}")
+            ACC.clear(qq)                      # 清掉坏票，别再对外说「已登录」
             yield event.plain_result(
-                f"你现在登录的是：{ACC.describe(qq)}\n"
-                "登录票还在有效期内，不用重新扫码～\n"
-                "· 看自己的档案：/app uid\n"
-                "· 换号：/app out 退出后再 /app in\n"
-                "· 确实要重新登录：/app in force")
+                f"⚠️ 之前的登录票已经失效（{why}）。\n"
+                "已经帮你清掉了，重新发 /app in 扫码登录即可。")
             return
 
         # 只有真要发码 / 登录时才探测客户端版本（要走 Steam 库扫描，别白跑）
@@ -2121,6 +2149,40 @@ class AstralPartyPilotPlugin(Star):
         lines.append("⚠️ sid 是登录票，拿到就能上这个号：别发到群里、别截图外传。")
         yield event.plain_result("\n".join(lines))
 
+    def _engine_line(self) -> str:
+        """陪玩引擎有没有在跑（coach.json 是否在刷新）。没跑就明确说一句。"""
+        try:
+            fp = CO.state_file(self.config)
+            if not fp or not os.path.exists(fp):
+                return "⚠️ 陪玩引擎没在跑（发 /appa on 或 /appa 重启）"
+            age = time.time() - os.path.getmtime(fp)
+            if age > 30:
+                return f"⚠️ 陪玩引擎已停 {age / 60:.0f} 分钟（发 /appa on 或 /appa 重启）"
+            return ""
+        except Exception:      # noqa: BLE001
+            return ""
+
+    async def _room_once(self, st: dict, me: dict) -> dict | None:
+        """一次性拿「房间内全员手牌」；失败返回 None（调用方退回本地快照）。
+
+        只允许用配置里的 alt_sid（小号）登录；票正被本机游戏使用、或没配，都直接放弃。
+        """
+        sid = (self._conf_str("alt_sid", "") or "").strip()
+        if not sid:
+            return None
+        target = int(me.get("pid") or 0)          # 房间详情要一个「房间里的人」当锚点
+        if not target:
+            return None
+        try:
+            if await asyncio.to_thread(LV.sid_in_use, sid):
+                logger.warning("[星趴] /appa me：alt_sid 正被游戏使用，跳过房间查询（避免顶号）")
+                return None
+            return await asyncio.to_thread(LV.room_all_for, target,
+                                           {"platform": "cn", "sid": sid})
+        except Exception as exc:      # noqa: BLE001
+            logger.warning(f"[星趴] /appa me：房间查询失败（{exc}）")
+            return None
+
     async def _appa_me(self, event: AstrMessageEvent):
         """/appa me：查本机登录账号 —— 在局出局内卡，不在局出档案卡。
 
@@ -2130,18 +2192,40 @@ class AstralPartyPilotPlugin(Star):
         全程不连服务器 —— 联机会把大厅里正在开着的号顶下线。
         """
         qq = str(event.get_sender_id() or "")
-        st = await asyncio.to_thread(LS.read)          # 20 秒内还在写 = 在局内
+        # 探针只在「局面变化」时落盘，静止时文件不涨属正常：
+        # 读的时候放宽到 90 秒，避免等别人出牌时误判成「不在局」。
+        st = await asyncio.to_thread(lambda: LS.read(90.0))
         cur = await asyncio.to_thread(CO.current, self.config)
         allow_cn = "、".join(PILOT_ACT_CN[a] for a in cur["allow"] if a in PILOT_ACT_CN)
 
+        # 数据新鲜度：探针重扫/游戏切场景时 state.json 会停更，别拿旧局面出卡
+        try:
+            _sp = LS.state_path() or ""
+            _age = (time.time() - os.path.getmtime(_sp)) if _sp and os.path.exists(_sp) else None
+        except OSError:
+            _age = None
         me = LS.me(st) if st else None
+        if st and me and _age is not None and _age > 90:
+            yield event.plain_result(
+                f"⚠️ 局面数据 {_age:.0f} 秒没更新（探针正在重扫/游戏在切场景），"
+                "下面的卡可能不是当前局面。")
+
         if st and me:
+            # 全员手牌：**只在这一条命令里查一次**（不常驻、不轮询）。
+            # 走 5193 房间详情，用 alt_sid（小号）登录；票在游戏里正用着就跳过，避免顶号。
+            # 默认不查服务端（客户端只同步自己的明细）；开了 hands_via_api 才补一次
+            room = None
+            if self._conf_bool("hands_via_api", False):
+                room = await self._room_once(st, me)
             fd, tmp = tempfile.mkstemp(suffix=".png", prefix="appa_ingame_")
             os.close(fd)
             try:
-                await asyncio.to_thread(LC.render_ingame, {}, st, me, tmp)
+                await asyncio.to_thread(LC.render_ingame, {}, st, me, tmp, room)
                 yield event.image_result(tmp)
-                yield event.plain_result(self._pilot_line(cur, allow_cn) + "\n" + self._screen_line())
+                _eng = self._engine_line()
+                yield event.plain_result(
+                    (_eng + "\n" if _eng else "") + self._pilot_line(cur, allow_cn)
+                    + "\n" + self._screen_line())
             except Exception as exc:  # noqa: BLE001
                 logger.error(f"[星趴] 渲染局内卡失败：{exc}")
                 yield event.plain_result(f"局内卡没画出来：{exc}")
