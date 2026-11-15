@@ -236,11 +236,39 @@ def _split_lines(text: str) -> list[str]:
     return [t.strip() for t in (text or "").replace("\r", "").split("\n") if t.strip()]
 
 
+_STATE_SENTS_CACHE = None
+
+
+def _kb_state_sents() -> dict:
+    """buff id -> {srcs: [...], sents: [...]}（kb/states.json 里已按来源逐句配对）。"""
+    global _STATE_SENTS_CACHE
+    if _STATE_SENTS_CACHE is not None:
+        return _STATE_SENTS_CACHE
+    out: dict[str, dict] = {}
+    try:
+        d = json.load(open(os.path.join(HERE, "kb", "states.json"), encoding="utf-8")) or {}
+        rows = d.values() if isinstance(d, dict) else d
+        for r in rows:
+            if not isinstance(r, dict):
+                continue
+            ids = [str(x) for x in (r.get("buff_ids") or [])]
+            srcs = [str(x) for x in (r.get("srcs") or [])]
+            sents = [str(x) for x in (r.get("sents") or [])]
+            if not ids or not srcs:
+                continue
+            for i in ids:
+                out.setdefault(i, {"srcs": srcs, "sents": sents})
+    except Exception:      # noqa: BLE001
+        pass
+    _STATE_SENTS_CACHE = out
+    return out
+
+
 _KB_ROWS_CACHE = None
 
 
 def _kb_buff_rows() -> list:
-    """kb/buffs.json 全量（带缓存），用于按来源分组。"""
+    """kb/buffs.json 全量（带缓存）。"""
     global _KB_ROWS_CACHE
     if _KB_ROWS_CACHE is None:
         try:
@@ -251,7 +279,7 @@ def _kb_buff_rows() -> list:
 
 
 def _kb_by_id() -> dict:
-    """id -> {context: [...], desc: [...], srcs: [...]}"""
+    """buff id -> {context: [...], desc: [...], srcs: [...]}"""
     out: dict[str, dict] = {}
     for r in _kb_buff_rows():
         k = str(r.get("id") or "")
@@ -265,19 +293,116 @@ def _kb_by_id() -> dict:
         else:
             for ln in (r.get("context") or []):
                 ln = (ln or "").strip()
-                if ln:
+                if ln and ln not in d["context"]:
                     d["context"].append(ln)
             for s2 in (r.get("srcs") or []):
                 if s2 and s2 not in d["srcs"]:
                     d["srcs"].append(s2)
     return out
 
+_KIND_CACHE = None
+
+
+def _kind_maps() -> dict:
+    """类型 → {名字: 该实体的全部文案}，用来判断某句话是哪种来源写的。"""
+    global _KIND_CACHE
+    if _KIND_CACHE is not None:
+        return _KIND_CACHE
+    from . import kb
+
+    def blob(row: dict) -> str:
+        return json.dumps({k: v for k, v in row.items() if k != "name"}, ensure_ascii=False)
+
+    maps: dict[str, dict] = {"monster": {}, "card": {}, "skill": {}, "relic": {}, "hero": {}}
+    try:
+        for m in kb.monsters():
+            maps["monster"][str(m.get("name") or "")] = blob(m)
+    except Exception:      # noqa: BLE001
+        pass
+    try:
+        for c in kb.cards():
+            maps["card"][str(c.get("name") or "")] = blob(c)
+    except Exception:      # noqa: BLE001
+        pass
+    try:
+        for v in kb.skills().values():
+            maps["skill"][str(v.get("name") or "")] = blob(v)
+    except Exception:      # noqa: BLE001
+        pass
+    try:
+        for r in kb.relics():
+            maps["relic"][str(r.get("name") or "")] = blob(r)
+    except Exception:      # noqa: BLE001
+        pass
+    try:
+        for v in kb.heroes().values():
+            maps["hero"][str(v.get("name") or "")] = blob(v)
+    except Exception:      # noqa: BLE001
+        pass
+    for k in maps:
+        maps[k].pop("", None)
+
+    # 怪物主动/被动技能的文案单独一份：这些话的「来源类型」应算 skill 而不是 monster
+    mskill: dict[str, str] = {}
+    try:
+        for m in kb.monsters():
+            nm = str(m.get("name") or "")
+            if not nm:
+                continue
+            parts = []
+            for key in ("active_desc", "passive_desc", "passive2_desc", "active", "passive", "passive2"):
+                v = m.get(key)
+                if isinstance(v, list):
+                    parts += [str(x) for x in v]
+                elif v:
+                    parts.append(str(v))
+            if parts:
+                mskill[nm] = " ".join(parts)
+    except Exception:      # noqa: BLE001
+        pass
+    maps["monster_skill"] = mskill
+
+    _KIND_CACHE = maps
+    return maps
+
+
+def _clean_src(src: str) -> str:
+    """「遗物 50061 小鲤鱼玩偶」→「小鲤鱼玩偶」，「角色 130 苍鲤」→「苍鲤」。"""
+    t = str(src or "").strip()
+    t = re.sub(r"^(遗物|角色|怪物|卡牌|技能|事件)\s*", "", t)
+    t = re.sub(r"^\d+\s*", "", t)
+    return t.strip() or str(src or "").strip()
+
+
+def _src_kind(src: str, sent: str = "") -> str:
+    """先按「这句话出现在哪张表」判，判不出来再按名字命中（relic>card>skill>monster>hero）。"""
+    name = _clean_src(src)
+    maps = _kind_maps()
+    sent = (sent or "").strip().rstrip("；;。.")
+    if sent:
+        # 怪物放的技能（眷族支援之类）也算 skill
+        mk = maps.get("monster_skill") or {}
+        b0 = mk.get(name)
+        if b0 and sent[:10] in b0:
+            return "skill"
+        for kind in ("monster", "card", "skill", "relic", "hero"):
+            b = maps[kind].get(name)
+            if b and sent and sent[:14] in b:
+                return kind
+    for kind in ("relic", "card", "skill", "monster", "hero"):
+        if name in maps[kind]:
+            return kind
+    return ""
+
 
 def _sections(entry: dict) -> list[tuple[str, list[str]]]:
-    """按「来源 + id」分段：每段 = 来源名（id） + 该来源的说明。
+    """按「来源名·类型」逐段列出，每段后面跟该来源自己的那句说明。
 
-    主人 2026-11-16 要求：说明必须跟着各自的来源走，不能把所有说明堆一段、
-    末尾再统一写「来源：A、B」——那样分不清哪句是谁的。
+    格式（主人 2026-11-16 指定）：
+        天川苍鲤·monster
+        每层使自身攻击力 +1，防御力 +1，反击时，获得 2 层【金鳞】；
+        毒牙·card
+        移除目标2层【金鳞】，本次攻击无法被反击；
     """
     ids = [str(i) for i in (entry.get("ids") or [])]
     if not ids:
@@ -285,6 +410,18 @@ def _sections(entry: dict) -> list[tuple[str, list[str]]]:
     rows = _kb_by_id()
     fallback = _split_lines(entry.get("desc") or "")
     out: list[tuple[str, list[str]]] = []
+    states = _kb_state_sents()
+
+    def _sent(lines: list[str]) -> list[str]:
+        """句子收尾统一成「；」，去重。"""
+        buf = []
+        for ln in lines:
+            t = str(ln or "").strip().rstrip("；;。.")
+            if not t or t in buf:
+                continue
+            buf.append(t + "；")
+        return buf
+
     for i in ids:
         d = rows.get(i) or {}
         lines = list(d.get("context") or [])
@@ -292,14 +429,32 @@ def _sections(entry: dict) -> list[tuple[str, list[str]]]:
             lines = list(d.get("desc") or [])
         if not lines:
             lines = list(fallback)
-        srcs = [x for x in (d.get("srcs") or []) if x]
+        srcs = [x for x in (d.get("srcs") or []) if x] or \
+               [x for x in (entry.get("srcs") or []) if x]
+
         if not srcs:
-            srcs = [x for x in (entry.get("srcs") or []) if x]
-        # 同一个 id 的说明只有一份，来源就并到段头（不再按来源重复同一段话）
-        if not srcs:
-            out.append((f"ID {i}", lines))
-        else:
-            out.append((f"{'、'.join(srcs)}（{i}）", lines))
+            out.append((f"ID {i}", _sent(lines)))
+            continue
+
+        # states.json 里有「来源 ↔ 句子」的权威配对，优先用
+        st = states.get(i) or {}
+        if st.get("srcs") and st.get("sents") and len(st["srcs"]) == len(st["sents"]):
+            srcs, lines = list(st["srcs"]), list(st["sents"])
+
+        if len(srcs) == len(lines) and len(srcs) > 1:
+            # 句数与来源数一致：一句对应一个来源
+            for src, ln in zip(srcs, lines):
+                nm = _clean_src(src)
+                kind = _src_kind(src, ln)
+                out.append((f"{nm}·{kind}" if kind else nm, _sent([ln])))
+            continue
+
+        # 否则：每个来源一段，说明共用（同一 id 的文本只有一份）
+        body = _sent(lines)
+        for src in srcs:
+            nm = _clean_src(src)
+            kind = _src_kind(src, " ".join(lines))
+            out.append((f"{nm}·{kind}" if kind else nm, body))
     return out
 
 
