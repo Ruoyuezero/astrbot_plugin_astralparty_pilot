@@ -732,10 +732,21 @@ class AstralPartyPilotPlugin(Star):
             return
 
         # 带参数：按 id 或中文名模糊匹配
-        entry = BR.find_buff(joined)
-        if not entry:
+        cands = BR.find_buffs(joined)
+        if not cands:
             yield event.plain_result(f"没有找到「{joined}」这个 buff 呢")
             return
+        if len(cands) > 1:
+            # 同名多条（比如两个「金鳞」）：列出来让主人选，不默认取第一条
+            lines = [f"「{joined}」有 {len(cands)} 条，想看哪一条？发 /app buff <id>："]
+            for i, e in enumerate(cands[:8], 1):
+                ids = "、".join(str(x) for x in (e.get("ids") or [])[:3])
+                srcs = [BR._clean_src(x) for x in (e.get("srcs") or [])[:3]]
+                tag = "、".join(s for s in srcs if s)
+                lines.append(f"{i}. {e['name']}｜{ids}" + (f"｜{tag}" if tag else ""))
+            yield event.plain_result("\n".join(lines))
+            return
+        entry = cands[0]
         try:
             fd, tmp = tempfile.mkstemp(suffix=".png", prefix="app_buff_")
             os.close(fd)

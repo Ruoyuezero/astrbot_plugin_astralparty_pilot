@@ -199,6 +199,27 @@ def list_buff_rows() -> list[tuple[str, str, str]]:
             for e in sorted(_load_meta(), key=_sort_key)]
 
 
+def find_buffs(q: str) -> list[dict]:
+    """列出全部候选（同名不同 id 的 buff 都要给出来，比如两个「金鳞」）。"""
+    q = str(q).strip()
+    if not q:
+        return []
+    entries = _load_meta()
+    exact = [e for e in entries if q == e["name"] or q in (e.get("aka") or [])]
+    by_id = [e for e in entries if any(str(i) == q for i in e.get("ids", []))]
+    fuzzy = [e for e in entries if q in e["name"] or any(q in a for a in (e.get("aka") or []))]
+    pre = [e for e in entries
+           if any(str(i).startswith(q) for i in e.get("ids", []))]
+    out, seen = [], set()
+    for e in exact + by_id + fuzzy + pre:
+        key = tuple(sorted(str(i) for i in e.get("ids", [])))
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append(e)
+    return out
+
+
 def find_buff(q: str) -> dict | None:
     """按中文名（精确/模糊）或 id 前缀定位 buff。"""
     q = str(q).strip()
