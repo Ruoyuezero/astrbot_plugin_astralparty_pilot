@@ -236,59 +236,70 @@ def _split_lines(text: str) -> list[str]:
     return [t.strip() for t in (text or "").replace("\r", "").split("\n") if t.strip()]
 
 
-def _sections(entry: dict) -> list[tuple[str, list[str]]]:
-    """一个图标挂了多个 id 时，按 id 拆成若干段：[(段头, 该段说明行)]。
+_KB_ROWS_CACHE = None
 
-    单 id 条目返回空列表，卡片照旧整段显示。多 id 时两种切法：
-    1. 说明行数刚好等于 id 数 → 一个 id 一段，一行对一段（红包 / 白泽赐福）；
-    2. 否则按「id 名字」分组（同名 id 合到一段），说明句按名字归段，
-       归不掉的句子落到最后的「效果」段（狐火 → 狐火 / 降神 / 狐光）。
+
+def _kb_buff_rows() -> list:
+    """kb/buffs.json 全量（带缓存），用于按来源分组。"""
+    global _KB_ROWS_CACHE
+    if _KB_ROWS_CACHE is None:
+        try:
+            _KB_ROWS_CACHE = json.load(open(IDS_PATH, encoding="utf-8")) or []
+        except Exception:      # noqa: BLE001
+            _KB_ROWS_CACHE = []
+    return _KB_ROWS_CACHE
+
+
+def _kb_by_id() -> dict:
+    """id -> {context: [...], desc: [...], srcs: [...]}"""
+    out: dict[str, dict] = {}
+    for r in _kb_buff_rows():
+        k = str(r.get("id") or "")
+        if not k:
+            continue
+        d = out.setdefault(k, {"context": [], "desc": [], "srcs": []})
+        if r.get("is_desc"):
+            t = (r.get("text") or "").strip()
+            if t:
+                d["desc"].append(t)
+        else:
+            for ln in (r.get("context") or []):
+                ln = (ln or "").strip()
+                if ln:
+                    d["context"].append(ln)
+            for s2 in (r.get("srcs") or []):
+                if s2 and s2 not in d["srcs"]:
+                    d["srcs"].append(s2)
+    return out
+
+
+def _sections(entry: dict) -> list[tuple[str, list[str]]]:
+    """按「来源 + id」分段：每段 = 来源名（id） + 该来源的说明。
+
+    主人 2026-11-16 要求：说明必须跟着各自的来源走，不能把所有说明堆一段、
+    末尾再统一写「来源：A、B」——那样分不清哪句是谁的。
     """
     ids = [str(i) for i in (entry.get("ids") or [])]
-    if len(ids) <= 1:
+    if not ids:
         return []
-    ids.sort(key=_num_id)
-    names = _id_names()
-    title = entry["name"]
-    lines = _split_lines(entry.get("desc") or "")
-
-    if lines and len(lines) == len(ids):
-        out = []
-        for i, ln in zip(ids, lines):
-            nm = names.get(i, "")
-            out.append((f"id {i}" + (f" · {nm}" if nm else ""), [ln]))
-        return out
-
-    groups: dict[str, list[str]] = {}
-    order: list[str] = []
+    rows = _kb_by_id()
+    fallback = _split_lines(entry.get("desc") or "")
+    out: list[tuple[str, list[str]]] = []
     for i in ids:
-        nm = names.get(i) or title
-        if nm not in groups:
-            groups[nm] = []
-            order.append(nm)
-        groups[nm].append(i)
-
-    assigned = {nm: [] for nm in order}
-    other: list[str] = []
-    last = None
-    for ln in lines:
-        hit = next((nm for nm in order if nm and nm in ln), None)
-        if hit is None:
-            hit = last          # 没提名字的句子跟着上一句走
-        if hit:
-            assigned[hit].append(ln)
-            last = hit
+        d = rows.get(i) or {}
+        lines = list(d.get("context") or [])
+        if not lines:
+            lines = list(d.get("desc") or [])
+        if not lines:
+            lines = list(fallback)
+        srcs = [x for x in (d.get("srcs") or []) if x]
+        if not srcs:
+            srcs = [x for x in (entry.get("srcs") or []) if x]
+        # 同一个 id 的说明只有一份，来源就并到段头（不再按来源重复同一段话）
+        if not srcs:
+            out.append((f"ID {i}", lines))
         else:
-            other.append(ln)
-
-    out = []
-    for nm in order:
-        head = "id " + " / ".join(groups[nm])
-        if nm:
-            head += f" · {nm}"
-        out.append((head, assigned[nm]))
-    if other:
-        out.append(("效果", other))
+            out.append((f"{'、'.join(srcs)}（{i}）", lines))
     return out
 
 
@@ -440,10 +451,8 @@ def render_buff(entry: dict, out_path: str) -> str:
         if not body_lines:
             else_lines = ["游戏内未提供额外效果描述"]
 
-    src_lines = []
-    if srcs:
-        src_text = "、".join(srcs[:8]) + ("…" if len(srcs) > 8 else "")
-        src_lines = _wrap("来源：" + src_text, small_font, W - 2 * PAD)
+    # 来源已经并进每段段头（「来源名（id）」），不再在末尾统一列
+    src_lines: list[str] = []
 
     line_h = 27
     title_h = 40
