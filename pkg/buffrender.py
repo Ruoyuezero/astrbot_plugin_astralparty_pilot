@@ -476,7 +476,30 @@ def _sections(entry: dict) -> list[tuple[str, list[str]]]:
             nm = _clean_src(src)
             kind = _src_kind(src, " ".join(lines))
             out.append((f"{nm}·{kind}" if kind else nm, body))
-    return out
+
+    # 说明完全一样就只留一份，来源并到段头（狐火 5 个来源、秘密调查多段都是这种情况）
+    merged: list[tuple[str, list[str]]] = []
+    seen: dict[tuple, int] = {}
+    for head, lines in out:
+        key = tuple(lines)
+        if key and key in seen:
+            i = seen[key]
+            h, l = merged[i]
+            if head not in h:
+                merged[i] = (h + "、" + head, l)
+        else:
+            if key:
+                seen[key] = len(merged)
+            merged.append((head, lines))
+
+    # 「ID a、ID b、ID c」→「ID a、b、c」，读起来干净些
+    final: list[tuple[str, list[str]]] = []
+    for head, lines in merged:
+        parts = head.split("、")
+        if len(parts) > 1 and all(p.startswith("ID ") for p in parts):
+            head = "ID " + "、".join(p[3:] for p in parts)
+        final.append((head, lines))
+    return final
 
 
 def _placeholder(size: int, text: str) -> Image.Image:
