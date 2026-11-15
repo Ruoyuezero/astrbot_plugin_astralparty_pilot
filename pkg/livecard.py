@@ -167,8 +167,17 @@ def _buff_name(b) -> str:
     # ② kb 的 buff 名表（精确）
     try:
         row = kb.buff(bid)
-        if row and row.get("name"):
-            return str(row["name"])
+        nm2 = str((row or {}).get("name") or "").strip()
+        # kb 里个别 id 只有效果文本（名字被填成了整句）→ 不当名字用
+        if nm2 and len(nm2) <= 12 and "【" not in nm2 and "，" not in nm2:
+            return nm2
+    except Exception:
+        pass
+    try:
+        from . import buffrender as BR
+        e = BR.find_buff(bid)
+        if e and e.get("name"):
+            return str(e["name"])
     except Exception:
         pass
     # ③ 兜底：id = 遗物编号 × 100 + 1（50060 → 5006001）时用遗物名
