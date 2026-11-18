@@ -483,6 +483,19 @@ def _flatten_conf(cfg) -> dict:
     return out
 
 
+def _kv_daily_loop() -> None:
+    """守护线程：每 24 小时清一次实时解包的 KV 临时缓存（只动 temp/kv）。"""
+    from .pkg import kvwall as KV
+    while True:
+        time.sleep(86400)
+        try:
+            n = KV.cleanup_stale()
+            if n:
+                logger.info(f"[星趴] 每日清理：删掉 {n} 个过期的 KV 临时缓存")
+        except Exception:      # noqa: BLE001
+            pass
+
+
 class AstralPartyPilotPlugin(Star):
     """把 AstralPartyPilot 的知识库与决策能力搬进 QQ。"""
 
@@ -510,6 +523,19 @@ class AstralPartyPilotPlugin(Star):
         self._load_umo: str = ""
         logger.info("[星趴] 插件已加载，知识库条数：" + str(kb.index().get("counts", {})))
         logger.info("[星趴] 图库目录：" + AL.describe() + " 可用=" + str(AL.available()))
+        # 实时解包的 KV 临时缓存：启动时清一次过期文件，并挂每日清理任务
+        try:
+            from .pkg import kvwall as _KV
+            n = _KV.cleanup_stale()
+            if n:
+                logger.info(f"[星趴] 清掉 {n} 个过期的 KV 临时缓存")
+            import threading
+            self._kv_clean_thread = threading.Thread(
+                target=_kv_daily_loop, name="kv-cache-clean", daemon=True)
+            self._kv_clean_thread.start()
+        except Exception as exc:      # noqa: BLE001
+            logger.warning(f"[星趴] KV 缓存清理线程启动失败：{exc}")
+            self._kv_clean_thread = None
 
     # ------------------------------------------------------------ /app ----
     async def terminate(self) -> None:
@@ -810,13 +836,19 @@ class AstralPartyPilotPlugin(Star):
             yield event.plain_result(note)
             return
 
-        video, wallpaper = KV.paths(kv_id)
+        v0, j0 = KV.paths(kv_id)
+        if not v0 and not j0:
+            ff = (self._conf_str("ffmpeg_path", "") or "").strip()
+            if ff:
+                os.environ["ASTRAL_FFMPEG"] = ff
+            yield event.plain_result(f"「{note}」还没缓存，塞拉这就去提取，稍等一下～ (∗´꒳`∗)")
+            video, wallpaper = await asyncio.to_thread(KV.ensure, kv_id)
+        else:
+            video, wallpaper = v0, j0
         if not video and not wallpaper:
             yield event.plain_result(
-                f"KV {kv_id}（{note}）还没提取呢～\n"
-                f"在项目里跑：\n"
-                f"  python maint/scripts/extract_kv.py --kv {kv_id}\n"
-                f"产物会放进插件数据目录的 kv_cache/，之后这条命令就能直接发。")
+                f"KV {kv_id}（{note}）提取失败：没找到对应 bundle，或本机没有 ffmpeg。\n"
+                f"可以在配置里填 ffmpeg_path 再试一次。")
             return
 
         caption = f"KV {kv_id} · {note}"
