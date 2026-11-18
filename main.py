@@ -134,7 +134,7 @@ HELP_SECTIONS = [
         ("/app achieve <名字|ID>", "单个成就详解（达成条件 + 奖励）"),
     ]),
     ("🖼️", "大厅背景", [
-        ("/app kv <名字|别名|ID>", "角色大厅背景：视频 + 静态壁纸（如 /app kv 狐狸、/app kv 恋、/app kv 124）"),
+        ("/app kv <名字|ID>", "角色大厅背景：视频 + 静态壁纸（如 /app kv 狐狸、/app kv 恋、/app kv 124）"),
     ]),
     ("🔎", "查号（实时）", [
         ("/app <UID>", "查别人：在局里→局内进度卡，不在局→档案卡"),
@@ -789,7 +789,7 @@ class AstralPartyPilotPlugin(Star):
                 if made and os.path.exists(made) and os.path.getsize(made) > 0:
                     yield event.image_result(made)
                     yield event.plain_result(
-                        "点名看某一个：/app kv <名字|别名|ID>，例：/app kv 狐狸、/app kv 恋、/app kv 124")
+                        "点名看某一个：/app kv <名字|ID>，例：/app kv 狐狸、/app kv 恋、/app kv 124")
                     return
             except Exception as exc:      # noqa: BLE001
                 logger.warning(f"[星趴] 大厅背景总览渲染失败：{exc}")
@@ -798,11 +798,11 @@ class AstralPartyPilotPlugin(Star):
                 yield event.plain_result(
                     "已缓存：" + "、".join(str(x) for x in cached[:20]) +
                     ("…" if len(cached) > 20 else "") +
-                    "\n看某一个：/app kv <名字|别名|ID>")
+                    "\n看某一个：/app kv <名字|ID>")
             else:
                 yield event.plain_result(
                     "还没提取过任何大厅背景呢～\n"
-                    "用法：/app kv <名字|别名|ID>，例：/app kv 狐狸、/app kv 恋、/app kv 124")
+                    "用法：/app kv <名字|ID>，例：/app kv 狐狸、/app kv 恋、/app kv 124")
             return
 
         kv_id, note = KV.resolve(joined)
