@@ -496,6 +496,37 @@ def _kv_daily_loop() -> None:
             pass
 
 
+def _nest_conf(cfg: dict) -> dict:
+    """把插件内部的扁平配置重新按 _conf_schema.json 分组写回。
+
+    AstrBot 面板对 object 分组配置读的是嵌套结构；__init__ 里 _flatten_conf
+    把它展开成扁平供代码使用，但 _save_conf 写回前必须再嵌套回去，否则面板
+    读不到值、下次保存就把配置冲成 {}。
+    """
+    try:
+        fp = os.path.join(os.path.dirname(os.path.abspath(__file__)), "_conf_schema.json")
+        with open(fp, encoding="utf-8") as f:
+            schema_doc = json.load(f) or {}
+    except Exception:      # noqa: BLE001
+        schema_doc = {}
+
+    # 建「扁平键 -> 组名」反向映射
+    key2group: dict[str, str] = {}
+    for group, node in schema_doc.items():
+        if isinstance(node, dict) and str(node.get("type")) == "object":
+            for k in (node.get("items") or {}):
+                key2group[k] = group
+
+    out: dict = {}
+    for k, v in cfg.items():
+        g = key2group.get(k)
+        if g:
+            out.setdefault(g, {})[k] = v
+        else:
+            out[k] = v
+    return out
+
+
 class AstralPartyPilotPlugin(Star):
     """把 AstralPartyPilot 的知识库与决策能力搬进 QQ。"""
 
@@ -2842,9 +2873,17 @@ class AstralPartyPilotPlugin(Star):
                               "_conf_schema.json")
         try:
             with open(schema, encoding="utf-8") as f:
-                valid = set(json.load(f) or {})
+                schema_doc = json.load(f) or {}
         except Exception:                               # noqa: BLE001
-            valid = set()
+            schema_doc = {}
+        # self.config 已经被 _flatten_conf 展平成扁平键；分组(object)的有效键
+        # 藏在 items 里。若拿顶层组名当有效键，会把 art_root 等全部误删。
+        valid = set()
+        for k, v in schema_doc.items():
+            if isinstance(v, dict) and str(v.get("type")) == "object":
+                valid |= set((v.get("items") or {}).keys())
+            else:
+                valid.add(k)
 
         changed = []
         if valid:
@@ -2873,7 +2912,7 @@ class AstralPartyPilotPlugin(Star):
             path = os.path.join(data, "config",
                                 "astrbot_plugin_astralparty_pilot_config.json")
             with open(path, "w", encoding="utf-8") as f:
-                json.dump(self.config, f, ensure_ascii=False, indent=2)
+                json.dump(_nest_conf(self.config), f, ensure_ascii=False, indent=2)
         except Exception as e:                          # noqa: BLE001
             logger.warning(f"[星趴] 配置回写失败（不影响使用）：{e}")
 

@@ -9,7 +9,7 @@
   "bundle 字段取自扫描结果（maint/unpacked/usm_assets.json）"
  ],
  "bundleDir": "D:\\a_ruoyue\\Game\\steam\\steamapps\\common\\Astral Party\\8vJXn6CN\\AstralParty_CN_Data\\StreamingAssets\\aa\\StandaloneWindows64",
- "count": 32,
+ "count": 33,
  "items": {
   "76001": {
    "kv": 76001,
@@ -361,6 +361,17 @@
    "bundleSFW": "12b1f097381737cce1236f8d8b7ffb22.bundle",
    "assetSize": 33373732,
    "assetSizeSFW": 26698600,
+   "assetType": "MonoBehaviour"
+  },
+  "76130": {
+   "kv": 76130,
+   "hero": 130,
+   "loadedKey": "VKVLoop_130",
+   "loadedKeySFW": "VKVLoop_130_sfw",
+   "bundle": "com.unity.addressables/AssetBundles/bda7d05a3c33479b4d397bff6c523bd5/559f36043d9dd6019c08c0507aa579bb/__data",
+   "bundleSFW": "com.unity.addressables/AssetBundles/250cb780f53781fe2bb87393fa13f6b7/a5ed2ff586faa6a07e32aa026c79366e/__data",
+   "assetSize": 100358084,
+   "assetSizeSFW": 100358084,
    "assetType": "MonoBehaviour"
   }
  }

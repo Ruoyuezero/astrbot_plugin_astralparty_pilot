@@ -330,6 +330,7 @@ logs/                 陪玩进程 pid、stdout、每日运行日志
   Nemophila & ZtyanCrany，MIT 许可。具体范围（`pkg/liveapi.py`、`pkg/feimo.py`、
   `pkg/feimo_signkeys.py`）与许可全文见 [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md)
 - 依赖 [AstrBot](https://github.com/AstrBotDevs/AstrBot)、Pillow、NetworkX
+- 大厅背景视频解包的关键线索由 **klyc空靈銀川** 指出：`@SFV` 载荷是 **MPEG-1 Video**（首帧 `00 00 01 B3` 序列头），并非 H.264 —— 因此此前搜 SPS/PPS 一直落空。按其给出的 chunk 偏移/填充解析方式，最终成功从 USM 中解出全部大厅背景视频（`/app kv`）。
 
 ---
 
