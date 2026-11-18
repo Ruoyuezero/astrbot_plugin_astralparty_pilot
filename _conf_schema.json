@@ -1,126 +1,145 @@
 {
-  "art_root": {
-    "type": "text",
-    "description": "美术素材库目录（填父目录）",
-    "hint": "留空＝不建图库，改走「实时解包」：插件自带映射表基线（6894 条，值存相对游戏目录的路径），同一游戏版本开箱即用、换机器不用重建；表对不上当前游戏时才发 /app load 重扫（约 3 分钟，游戏更新后同样靠它自动重建）。之后查哪张解哪张，不占磁盘。\n填了＝从外部图库出图：/app load 会在这个目录下建 Astral Party 文件夹并整库解包（约 1.7GB，并发按物理核与内存自动调配）。\n注意：填父目录，不要写到 Astral Party 这一层。\n填了但盘不在（移动硬盘拔了 / 盘符写错）会自动回退「实时解包」，盘插回来立刻切回外部库。",
-    "default": ""
+  "素材与外观": {
+    "type": "object",
+    "description": "图库位置与出图风格",
+    "items": {
+      "art_root": {
+        "type": "string",
+        "default": "",
+        "description": "外部美术图库根目录（解包后的 Astral Party 素材）",
+        "hint": "填图库的上一级目录，插件会在下面找 Astral Party 子目录。"
+      },
+      "card_font": {
+        "type": "string",
+        "default": "simhei",
+        "description": "卡面字体",
+        "hint": "例如 simhei / msyh"
+      },
+      "load_mem_limit": {
+        "type": "int",
+        "default": 0,
+        "description": "单张图加载内存上限（MB，0 = 不限制）"
+      },
+      "emoji_fps": {
+        "type": "int",
+        "default": 30,
+        "description": "表情包动图的帧率"
+      },
+      "emoji_transparent": {
+        "type": "bool",
+        "default": true,
+        "description": "表情包保留透明背景"
+      }
+    }
   },
-  "load_mem_limit": {
-    "type": "int",
-    "description": "解包内存上限（0＝自动）",
-    "hint": "一般不用填。自动策略：并发上限＝物理核数；再按可用内存扣 1GB 余量、每 330MB 一个进程，两者取小。每个子进程跑 60~200 个 bundle 就换新进程，内存不会越跑越高。\n填了值就当成可用内存上限，在自动结果上再压一层（例如 2048＝最多按 2GB 算并发）。",
-    "default": 0
+  "查号与登录": {
+    "type": "object",
+    "description": "查别人档案用的登录票与本地登录端口",
+    "items": {
+      "alt_sid": {
+        "type": "string",
+        "default": "",
+        "description": "查号用的小号登录票（sid）",
+        "hint": "只填一个平时不玩的小号；票在游戏里正用着会自动跳过，避免顶号。发 /appa sid 可以列出本机所有票。"
+      },
+      "live_client_ver": {
+        "type": "string",
+        "default": "",
+        "description": "客户端版本号",
+        "hint": "留空自动探测；探测不准时手填。"
+      },
+      "login_host": {
+        "type": "string",
+        "default": "",
+        "description": "扫码登录用的地址",
+        "hint": "留空自动选择。"
+      },
+      "login_port": {
+        "type": "int",
+        "default": 0,
+        "description": "扫码登录端口（0 = 自动）"
+      },
+      "login_lan": {
+        "type": "bool",
+        "default": true,
+        "description": "允许局域网扫码",
+        "hint": "手机扫码时需要打开，10 分钟后随会话失效。"
+      },
+      "admin_qqs": {
+        "type": "string",
+        "default": "",
+        "description": "管理员 QQ（逗号分隔）",
+        "hint": "只有这些号能发 /appa 与登录类指令。"
+      }
+    }
   },
-  "card_font": {
-    "type": "string",
-    "description": "卡面字体",
-    "hint": "simhei＝黑体（默认）/ yahei＝微软雅黑 / msuigothic_cn＝MS UI Gothic＋雅黑补字（插件自带）/ msuigothic / msgothic / yugothic / meiryo / dengxian＝等线 / harmony＝HarmonyOS Sans / misans＝MiSans。\n地图卡不受影响，单独走自己的字体栈。",
-    "default": "simhei"
+  "陪玩引擎": {
+    "type": "object",
+    "description": "本地陪玩进程、房间同步与大厅背景",
+    "items": {
+      "pilot_prefer": {
+        "type": "string",
+        "default": "eco",
+        "description": "出牌偏好",
+        "hint": "eco = 保守经济流；aggressive = 激进。"
+      },
+      "deploy_src": {
+        "type": "string",
+        "default": "",
+        "description": "注入包来源目录",
+        "hint": "留空使用插件自带的 payload。"
+      },
+      "room_watch": {
+        "type": "bool",
+        "default": false,
+        "description": "后台同步房间内全员手牌",
+        "hint": "默认关闭：会周期性连服务端，可能影响对局稳定性。"
+      },
+      "hands_via_api": {
+        "type": "bool",
+        "default": false,
+        "description": "查看局内卡时查一次服务端补全别人手牌",
+        "hint": "客户端只同步自己的手牌明细；开启后每条命令查一次，极小概率被判房间错误。"
+      },
+      "kv_video": {
+        "type": "bool",
+        "default": true,
+        "description": "大厅背景指令发视频",
+        "hint": "关掉只发静态壁纸（视频较大，群聊怕卡可以关）。"
+      },
+      "ffmpeg_path": {
+        "type": "string",
+        "default": "",
+        "description": "ffmpeg 可执行文件路径",
+        "hint": "留空则在系统 PATH 中查找 ffmpeg；需要处理大厅背景视频时才用得到。"
+      }
+    }
   },
-  "live_client_ver": {
-    "type": "string",
-    "description": "客户端版本号（可留空）",
-    "hint": "查号用，例如 3.3.0。留空＝自动从游戏目录读，一般不用填；游戏大更新后查号报 10012 才需要手动指定。",
-    "default": ""
-  },
-  "alt_sid": {
-    "type": "text",
-    "description": "查号用的小号 sid",
-    "hint": "填一个不玩的小号登录票，查 /app <UID> 时就不会顶掉本机在玩的主号。\n取法①（最省事）：发 /appa sid，bot 会把本机所有登录票按账号逐条列出来，复制需要的那个粘到这里（别在群里发）。\n取法②：游戏里登录小号 → 打开 %USERPROFILE%\\AppData\\LocalLow\\feimo\\<客户端>\\BnSdk\\<AppID>\\Log 下最新日志（客户端是 AstralParty_CN 或 吉星派对，AppID 会跟着客户端变，例如 110001933 / 110001957）→ 找「login success, sid:」后面那串。\n留空＝默认用本机第一个登录态（accounts.json 第一条，没有则是最新的游戏日志票，和 /appa sid 列出的 ① 同一张）；查别人时可能顶掉主号，不推荐。",
-    "default": ""
-  },
-  "deploy_src": {
-    "type": "text",
-    "description": "陪玩文件源目录（/appa 注入用）",
-    "hint": "填一个现成的 BepInEx 注入目录（含 winhttp.dll、doorstop_config.ini、BepInEx\\）。/appa 会把里面的文件同步进游戏根目录，插件本体 AstralProbe.dll 在 BepInEx/plugins 里一起带走。\r\n留空＝用插件目录下的 pkg/payload（它不随插件市场包分发，需从 Release 下载 appa-v2.4.0-beta1.0.zip 解压进来）；那里也没有时才找游戏目录同级的 game_files。\r\n只覆盖比目标新的文件，旧文件备份到游戏目录的 _pilot_backup\\时间戳\\ 下；游戏开着时被占用的 dll 会跳过，关掉游戏再发一次即可。",
-    "default": ""
-  },
-  "pilot_prefer": {
-    "type": "string",
-    "description": "陪玩默认倾向",
-    "hint": "eco＝发育 / atk＝进攻 / def＝防守",
-    "default": "eco"
-  },
-  "login_port": {
-    "type": "int",
-    "description": "扫码登录端口（0＝自动）",
-    "hint": "/app in 登录网页的端口，0＝自动挑一个空闲端口。端口只在 /app in 后短时存在（约 10 分钟），用完可 /app out 关掉，请勿映射到公网。\n监听地址由「允许局域网扫码」（login_lan）决定：关着只监听 127.0.0.1，开着才监听 0.0.0.0。",
-    "default": 0
-  },
-  "login_lan": {
-    "type": "bool",
-    "description": "允许局域网扫码（手机扫码需要）",
-    "hint": "关（默认）＝登录网页只监听 127.0.0.1，更安全：端口不对局域网暴露，但手机扫不到页面，需改用 /app in <11 位手机号> 收短信验证码登录。\n开＝监听 0.0.0.0，手机与 bot 同一局域网时可直接扫码；仅在该次登录的 10 分钟内开放，用完自动失效。\n无论开关，都不要把端口映射到公网。",
-    "default": false
-  },
-  "login_host": {
-    "type": "string",
-    "description": "二维码里的主机地址",
-    "hint": "留空＝在「允许局域网扫码」打开时自动探测本机局域网 IP（关着时固定用 127.0.0.1）。bot 跑在有公网域名/端口映射的服务器上时，填那个域名，例如 party.example.com:8720",
-    "default": ""
-  },
-  "admin_qqs": {
-    "type": "string",
-    "description": "管理员 QQ（逗号分隔）",
-    "hint": "例如 123456789,10001。/appa（看本机对局 + 整套陪玩指令）只允许这些人使用；留空＝只认 AstrBot 全局管理员。",
-    "default": ""
-  },
-  "emoji_fps": {
-    "type": "int",
-    "description": "动态表情帧率（/app emoji 出 GIF 用，5~60，默认 30）",
-    "default": 30,
-    "hint": "游戏内动态表情是一张序列图，插件按这个帧率把它拼成 GIF。觉得快了就调小（如 20），慢了调大（如 40）。"
-  },
-  "emoji_transparent": {
-    "type": "bool",
-    "description": "动态表情 GIF 用透明背景（关掉＝铺白底）",
-    "default": true,
-    "hint": "开＝背景透掉，贴到深色聊天底上不会出现白方块；关＝铺白底，边缘更柔但会带一块白色方块。"
-  },
-  "guide_rag": {
-    "type": "bool",
-    "default": true,
-    "description": "建议卡附「相关经验」（检索 docs/攻略.md）",
-    "hint": "只在玩家自主操控 / 半自动时附；全自动不显示。关掉就只出规则建议。"
-  },
-  "embed_api": {
-    "type": "text",
-    "default": "",
-    "description": "向量模型地址（OpenAI 兼容 /embeddings，留空只用 BM25）",
-    "hint": "例：Ollama → http://127.0.0.1:11434/v1  或 https://dashscope.aliyuncs.com/compatible-mode/v1。留空则纯关键词检索。"
-  },
-  "embed_model": {
-    "type": "string",
-    "default": "bge-m3",
-    "description": "向量模型名（Ollama 可填 bge-m3 / bge-large-zh）"
-  },
-  "embed_key": {
-    "type": "text",
-    "default": "",
-    "description": "向量接口的 API Key（本地 Ollama 留空）"
-  },
-  "room_watch": {
-    "type": "bool",
-    "default": false,
-    "description": "后台拉「房间内全员手牌」到 room.json（默认关；多人房才有）",
-    "hint": "会周期性登录服务端查询，属于额外风险（可能影响对局稳定性），需要时再打开。只用 alt_sid 小号票；若它正是本机在用的票会自动跳过。单人/PVE 查不到。"
-  },
-  "hands_via_api": {
-    "type": "bool",
-    "default": false,
-    "description": "/appa me 时是否额外查一次服务端，补全别人手牌明细",
-    "hint": "客户端只同步自己的手牌明细，别人的只有数量。想拿到别人明细必须查一次服务端（5193 房间详情），有极小概率被判 11018 并影响同房间客户端；仅在 alt_sid 是小号且没人用它游玩时才安全。"
-  },
-  "ffmpeg_path": {
-    "type": "string",
-    "default": "",
-    "description": "ffmpeg.exe 的完整路径（/app kv 抽帧、转码用）",
-    "hint": "留空则依次尝试 PATH、D:\\a_ruoyue\\tools\\ffmpeg\\bin\\ffmpeg.exe。例：D:\\a_ruoyue\\tools\\ffmpeg\\bin\\ffmpeg.exe"
-  },
-  "kv_video": {
-    "type": "bool",
-    "default": true,
-    "description": "/app kv 是否发送大厅背景视频（关掉只发静态壁纸）",
-    "hint": "视频较大（几 MB~几十 MB），群聊怕卡可以关掉。"
+  "攻略检索": {
+    "type": "object",
+    "description": "建议模式的经验检索（/appa off 时生效）",
+    "items": {
+      "guide_rag": {
+        "type": "bool",
+        "default": true,
+        "description": "按当前局势检索攻略经验"
+      },
+      "embed_api": {
+        "type": "string",
+        "default": "",
+        "description": "向量检索接口",
+        "hint": "留空只用 BM25 关键词检索。"
+      },
+      "embed_model": {
+        "type": "string",
+        "default": "bge-m3",
+        "description": "向量模型名"
+      },
+      "embed_key": {
+        "type": "string",
+        "default": "",
+        "description": "向量接口密钥"
+      }
+    }
   }
 }

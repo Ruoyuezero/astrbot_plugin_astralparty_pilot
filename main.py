@@ -444,6 +444,42 @@ def _hero_resolve(q: str):
     return None, ""
 
 
+_GROUP_NAMES: set[str] | None = None
+
+
+def _group_names() -> set:
+    """_conf_schema.json 里 type=object 的顶层键 = 分组名。"""
+    global _GROUP_NAMES
+    if _GROUP_NAMES is not None:
+        return _GROUP_NAMES
+    names = set()
+    try:
+        import json as _json
+        fp = os.path.join(os.path.dirname(os.path.abspath(__file__)), "_conf_schema.json")
+        with open(fp, encoding="utf-8-sig") as fh:
+            for k, v in (_json.load(fh) or {}).items():
+                if isinstance(v, dict) and str(v.get("type")) == "object":
+                    names.add(k)
+    except Exception:      # noqa: BLE001
+        names = set()
+    _GROUP_NAMES = names
+    return names
+
+
+def _flatten_conf(cfg) -> dict:
+    """把分组配置（{组: {键: 值}}）展开成扁平字典，插件内部照旧按扁平键读。"""
+    out: dict = {}
+    if not isinstance(cfg, dict):
+        return out
+    groups = _group_names()
+    for k, v in cfg.items():
+        if k in groups and isinstance(v, dict):
+            out.update(v)
+        else:
+            out[k] = v
+    return out
+
+
 class AstralPartyPilotPlugin(Star):
     """把 AstralPartyPilot 的知识库与决策能力搬进 QQ。"""
 
@@ -452,7 +488,7 @@ class AstralPartyPilotPlugin(Star):
 
     def __init__(self, context: Context, config: dict | None = None) -> None:
         super().__init__(context)
-        self.config = config or {}
+        self.config = _flatten_conf(config or {})
         self._tidy_conf()                  # 清掉旧版遗留配置 + 纠正 art_root 语义
         AL.configure(self.config)
         AS.configure(self.config)          # 素材目录（外部图库）也吃同一份配置
