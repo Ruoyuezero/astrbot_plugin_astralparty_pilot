@@ -373,6 +373,13 @@ def plan_jobs(mem_mb: int = 0, cores: int | None = None) -> tuple[int, int]:
 # 「只补缺的」模式：run(only=[...]) 时由进程池 initializer 注入到每个子进程，
 # 免得把几千条相对路径塞进每个任务参数里反复 pickle。None ＝ 正常整库解包。
 _ONLY: set | None = None
+_FFMPEG_PATH: str = ""
+
+
+def set_ffmpeg_path(path: str) -> None:
+    """主进程把配置里的 ffmpeg_path 传进来（子进程靠环境变量继承）。"""
+    global _FFMPEG_PATH
+    _FFMPEG_PATH = str(path or "").strip()
 
 
 def _init_only(only) -> None:
@@ -413,6 +420,59 @@ def _worker(job) -> tuple[int, int, list, list]:
     img = None
     t = None
     try:
+        # ---- 大厅 KV 视频：MonoBehaviour 里的 VKVLoop_*（USM/MPEG-1）----
+        try:
+            from . import kvvideo as KVV
+        except Exception:      # noqa: BLE001
+            KVV = None
+        if KVV:
+            for o in env.objects:
+                if o.type.name != "MonoBehaviour":
+                    continue
+                try:
+                    nm = ""
+                    for attr in ("m_Name", "name"):
+                        nm = getattr(o, attr, "") or ""
+                        if nm:
+                            break
+                    if not nm:
+                        rd = o.read()
+                        nm = getattr(rd, "m_Name", "") or ""
+                except Exception:      # noqa: BLE001
+                    continue
+                if not KVV.is_kv_mono(nm):
+                    continue
+                rel_mp4 = "kv/video/UT_Item_KV_%d.mp4" % KVV.kv_id_of(nm)
+                rel_jpg = "kv/video/UT_Item_KV_%d.jpg" % KVV.kv_id_of(nm)
+                if _ONLY is not None and rel_mp4.lower() not in _ONLY and rel_jpg.lower() not in _ONLY:
+                    continue
+                dst_mp4 = os.path.join(out_root, rel_mp4.replace("/", os.sep))
+                dst_jpg = os.path.join(out_root, rel_jpg.replace("/", os.sep))
+                if skip_existing and os.path.exists(dst_mp4) and os.path.exists(dst_jpg):
+                    skip += 2
+                    names.append(rel_mp4)
+                    names.append(rel_jpg)
+                    continue
+                try:
+                    with contextlib.redirect_stdout(io.StringIO()), \
+                            contextlib.redirect_stderr(io.StringIO()):
+                        raw = o.get_raw_data()
+                        m1v = KVV.raw_to_m1v(raw, nm)
+                    os.makedirs(os.path.dirname(dst_mp4), exist_ok=True)
+                    if KVV.to_mp4_jpg(m1v, dst_mp4, dst_jpg):
+                        ok += 1
+                        names.append(rel_mp4)
+                        if os.path.exists(dst_jpg):
+                            ok += 1
+                            names.append(rel_jpg)
+                    else:
+                        if len(errs) < 3:
+                            errs.append("%s: ffmpeg 不可用或未产出 mp4" % nm)
+                except Exception as e:      # noqa: BLE001
+                    if len(errs) < 3:
+                        errs.append("%s: KV %s" % (nm, e))
+                continue
+
         for o in env.objects:
             if o.type.name != "Texture2D":
                 continue
@@ -475,6 +535,13 @@ def run(out_root: str, gdir: str | None = None, jobs: int = 0,
     只有名单内的图才解码落盘，其余连解码都跳过 —— 扫描量不变，但省掉最费的解码。
     """
     t0 = time.time()
+    # 大厅 KV 抽帧要用 ffmpeg：主进程探测一次，写进环境变量让 spawn 子进程继承。
+    # 配置 ffmpeg_path 由调用方写进本模块级变量（set_ffmpeg_path），这里落到 env。
+    try:
+        if _FFMPEG_PATH:
+            os.environ["ASTRAL_FFMPEG"] = _FFMPEG_PATH
+    except Exception:      # noqa: BLE001
+        pass
     gdir = gdir or game_dir()
     if not gdir:
         return {"ok": False, "why": "找不到游戏目录（Steam 里没装，或者不是默认路径）"}
@@ -725,6 +792,14 @@ def count_files(root: str) -> dict:
                 n = sum(1 for f in os.listdir(p) if f.lower().endswith(".png"))
             except OSError:
                 continue
+            if d == "kv":
+                # kv/UT_Item_KV_*.png 是 160x160 小图标；真正的大厅背景视频在 kv/video/
+                vdir = os.path.join(p, "video")
+                if os.path.isdir(vdir):
+                    v = sum(1 for f in os.listdir(vdir)
+                            if f.lower().endswith((".mp4", ".jpg", ".png")))
+                    if v:
+                        out["kv_video"] = v
             if n:
                 out[d] = n
     except OSError:

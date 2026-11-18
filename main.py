@@ -133,6 +133,9 @@ HELP_SECTIONS = [
         ("/app achieve", "列出全部成就（一张图：图 + 名称 + 数字 ID）"),
         ("/app achieve <名字|ID>", "单个成就详解（达成条件 + 奖励）"),
     ]),
+    ("🖼️", "大厅背景", [
+        ("/app kv <名字|别名|ID>", "角色大厅背景：视频 + 静态壁纸（如 /app kv 狐狸、/app kv 恋、/app kv 124）"),
+    ]),
     ("🔎", "查号（实时）", [
         ("/app <UID>", "查别人：在局里→局内进度卡，不在局→档案卡"),
     ]),
@@ -778,15 +781,28 @@ class AstralPartyPilotPlugin(Star):
         from .pkg import kvwall as KV
 
         if not joined.strip():
+            # 无参：出一张「所有已缓存大厅背景」缩略图总览
+            try:
+                fd, tmp = tempfile.mkstemp(suffix=".png", prefix="app_kv_all_")
+                os.close(fd)
+                made = await asyncio.to_thread(KV.render_overview, tmp)
+                if made and os.path.exists(made) and os.path.getsize(made) > 0:
+                    yield event.image_result(made)
+                    yield event.plain_result(
+                        "点名看某一个：/app kv <名字|别名|ID>，例：/app kv 狐狸、/app kv 恋、/app kv 124")
+                    return
+            except Exception as exc:      # noqa: BLE001
+                logger.warning(f"[星趴] 大厅背景总览渲染失败：{exc}")
             cached = KV.list_cached()
-            head = ("大厅背景（KV）按角色区分：KV 编号 = 76000 + 角色编号。\n"
-                    "用法：/app kv 124（狐狸） 或 /app kv 76124\n")
             if cached:
-                head += "已缓存：" + "、".join(str(x) for x in cached[:20]) + \
-                        ("…" if len(cached) > 20 else "")
+                yield event.plain_result(
+                    "已缓存：" + "、".join(str(x) for x in cached[:20]) +
+                    ("…" if len(cached) > 20 else "") +
+                    "\n看某一个：/app kv <名字|别名|ID>")
             else:
-                head += "（还没提取过任何一张；需要先跑 maint/scripts/extract_kv.py）"
-            yield event.plain_result(head)
+                yield event.plain_result(
+                    "还没提取过任何大厅背景呢～\n"
+                    "用法：/app kv <名字|别名|ID>，例：/app kv 狐狸、/app kv 恋、/app kv 124")
             return
 
         kv_id, note = KV.resolve(joined)
@@ -1232,6 +1248,7 @@ class AstralPartyPilotPlugin(Star):
                 logger.info(f"[星趴] 解包 {p}%（bundle {done}/{total}）已出图 {ok} 跳过 {skip}")
 
         try:
+            ARTL.set_ffmpeg_path(self._conf_str("ffmpeg_path", ""))
             st = await asyncio.to_thread(ARTL.run, out, gdir, 0, True, prog,
                                          self._conf_int("load_mem_limit", 0), only)
         except Exception as exc:                        # noqa: BLE001
