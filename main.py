@@ -543,6 +543,10 @@ class AstralPartyPilotPlugin(Star):
             async for result in self._app_buff(event, joined):
                 yield result
             return
+        if sub in ("kv", "KV", "Kv", "大厅", "大厅背景", "壁纸"):
+            async for result in self._app_kv(event, joined):
+                yield result
+            return
         if sub in ("monster", "怪物", "怪"):
             async for result in self._app_monster(event, joined):
                 yield result
@@ -717,6 +721,63 @@ class AstralPartyPilotPlugin(Star):
             logger.error(f"[星趴] 渲染地块卡失败：{exc}")
             text = fmt_land(item) if kind == "land" else fmt_hero(item)
             yield event.plain_result("渲染地块卡出错了，先用文字版：\n" + text)
+
+    def _ffmpeg(self) -> str:
+        """ffmpeg 路径：配置优先，其次 PATH，最后本机常见位置。"""
+        cand = (self._conf_str("ffmpeg_path", "") or "").strip().strip('"')
+        if cand and os.path.exists(cand):
+            return cand
+        from shutil import which
+        for name in ("ffmpeg", "ffmpeg.exe"):
+            w = which(name)
+            if w:
+                return w
+        for p in (r"D:\a_ruoyue\tools\ffmpeg\bin\ffmpeg.exe",):
+            if os.path.exists(p):
+                return p
+        return ""
+
+    async def _app_kv(self, event: AstrMessageEvent, joined: str):
+        """/app kv <角色 101~130 | KV 76000~76130>：大厅背景视频 + 静态壁纸。"""
+        from .pkg import kvwall as KV
+
+        if not joined.strip():
+            cached = KV.list_cached()
+            head = ("大厅背景（KV）按角色区分：KV 编号 = 76000 + 角色编号。\n"
+                    "用法：/app kv 124（狐狸） 或 /app kv 76124\n")
+            if cached:
+                head += "已缓存：" + "、".join(str(x) for x in cached[:20]) + \
+                        ("…" if len(cached) > 20 else "")
+            else:
+                head += "（还没提取过任何一张；需要先跑 maint/scripts/extract_kv.py）"
+            yield event.plain_result(head)
+            return
+
+        kv_id, note = KV.resolve(joined)
+        if not kv_id:
+            yield event.plain_result(note)
+            return
+
+        video, wallpaper = KV.paths(kv_id)
+        if not video and not wallpaper:
+            yield event.plain_result(
+                f"KV {kv_id}（{note}）还没提取呢～\n"
+                f"在项目里跑：\n"
+                f"  python maint/scripts/extract_kv.py --kv {kv_id}\n"
+                f"产物会放进插件数据目录的 kv_cache/，之后这条命令就能直接发。")
+            return
+
+        caption = f"KV {kv_id} · {note}"
+        if wallpaper:
+            yield event.image_result(wallpaper)
+        if video and self._conf_bool("kv_video", True):
+            from astrbot.api.message_components import Video
+            try:
+                yield event.chain_result([Video(file=video)])
+            except Exception as exc:      # noqa: BLE001
+                logger.warning(f"[星趴] 发视频失败：{exc}")
+                self._app_kv_note = "（视频发送失败，只发了壁纸）"
+        yield event.plain_result(caption)
 
     async def _app_buff(self, event: AstrMessageEvent, joined: str):
         # 不带参数：渲染全部 buff 为一张总览图

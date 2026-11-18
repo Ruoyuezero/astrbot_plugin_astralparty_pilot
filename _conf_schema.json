@@ -110,5 +110,17 @@
     "default": false,
     "description": "/appa me 时是否额外查一次服务端，补全别人手牌明细",
     "hint": "客户端只同步自己的手牌明细，别人的只有数量。想拿到别人明细必须查一次服务端（5193 房间详情），有极小概率被判 11018 并影响同房间客户端；仅在 alt_sid 是小号且没人用它游玩时才安全。"
+  },
+  "ffmpeg_path": {
+    "type": "string",
+    "default": "",
+    "description": "ffmpeg.exe 的完整路径（/app kv 抽帧、转码用）",
+    "hint": "留空则依次尝试 PATH、D:\\a_ruoyue\\tools\\ffmpeg\\bin\\ffmpeg.exe。例：D:\\a_ruoyue\\tools\\ffmpeg\\bin\\ffmpeg.exe"
+  },
+  "kv_video": {
+    "type": "bool",
+    "default": true,
+    "description": "/app kv 是否发送大厅背景视频（关掉只发静态壁纸）",
+    "hint": "视频较大（几 MB~几十 MB），群聊怕卡可以关掉。"
   }
 }
