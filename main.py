@@ -841,7 +841,6 @@ class AstralPartyPilotPlugin(Star):
             ff = (self._conf_str("ffmpeg_path", "") or "").strip()
             if ff:
                 os.environ["ASTRAL_FFMPEG"] = ff
-            yield event.plain_result(f"「{note}」还没缓存，塞拉这就去提取，稍等一下～ (∗´꒳`∗)")
             video, wallpaper = await asyncio.to_thread(KV.ensure, kv_id)
         else:
             video, wallpaper = v0, j0
