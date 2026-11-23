@@ -11,8 +11,9 @@
 
 ### 说明
 
-- 语音/音乐素材**来自游戏本体**：按台词映射的 media_id 从 Wwise SoundBank 实时解包，用内置 vgmstream 转 WAV 发送；
-  临时音频落 `temp/audio/`，随每日缓存清理，不进图库/完整性清单。
+- 语音/音乐素材**来自游戏本体**：按台词映射的 media_id 从 Wwise SoundBank 切音频，用内置 vgmstream 转 WAV。
+  - **配了 art_root（全量解包模式）**：`/app load` 把音频解到 `<art_root>/Astral Party/audio/<bank>/<media_id>.wav`，计入完整性清单；`/app voice|bgm` 直接读图库。
+  - **没配 art_root（实时模式）**：按需解包落 `temp/audio/`，随每日缓存清理。
 - 发语音时自动把配置的 `ffmpeg_path` 加入 PATH（供 Record 转码）。
 
 ## [2.5.1] - 2026-11-18

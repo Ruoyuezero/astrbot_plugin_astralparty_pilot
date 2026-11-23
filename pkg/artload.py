@@ -407,6 +407,7 @@ def _worker(job) -> tuple[int, int, list, list]:
     import contextlib
     import gc
     import io
+    import struct
 
     try:
         import UnityPy
@@ -471,6 +472,83 @@ def _worker(job) -> tuple[int, int, list, list]:
                 except Exception as e:      # noqa: BLE001
                     if len(errs) < 3:
                         errs.append("%s: KV %s" % (nm, e))
+                continue
+
+        # ---- 角色语音 / BGM：Wwise SoundBank（MonoBehaviour，DIDX→DATA）----
+        # 只解白名单里的 bank（台词表/BGM 表用到的），全量落 audio/<bank>/<media_id>.wav，
+        # 计入完整性清单；这样配了 art_root 时 /app voice|bgm 直接读图库，不走实时解包。
+        try:
+            from . import voice as VO
+            from . import kvvideo as _KVV  # noqa: F401  （仅确保 pkg 可导入）
+            _audio_banks = VO.kb_audio_banks()
+        except Exception:      # noqa: BLE001
+            VO = None
+            _audio_banks = set()
+        if VO and _audio_banks:
+            for o in env.objects:
+                if o.type.name != "MonoBehaviour":
+                    continue
+                try:
+                    rd = o.read()
+                    nm = str(getattr(rd, "m_Name", "") or "")
+                    lg = str(getattr(rd, "language", "") or "")
+                except Exception:      # noqa: BLE001
+                    continue
+                if nm not in _audio_banks:
+                    continue
+                # 角色语音取 Japanese，BGM/音效取 SFX
+                want_lang = "Japanese" if nm.startswith("Hero_") else "SFX"
+                if lg and lg != want_lang:
+                    continue
+                raw = o.get_raw_data()
+                i = raw.find(b"BKHD")
+                if i < 0:
+                    continue
+                bnk = raw[i:]
+                didx = bnk.find(b"DIDX")
+                data = bnk.find(b"DATA")
+                if didx < 0 or data < 0:
+                    continue
+                try:
+                    n = struct.unpack_from("<I", bnk, didx + 4)[0] // 12
+                    import subprocess
+                    vgm = VO._vgmstream_cli()
+                    if not vgm:
+                        break
+                    for k in range(n):
+                        mid, off, sz = struct.unpack_from("<III", bnk, didx + 8 + k * 12)
+                        if not (0 < sz < 50 * 1024 * 1024):
+                            continue
+                        rel = "audio/%s/%d.wav" % (nm, mid)
+                        if _ONLY is not None and rel.lower() not in _ONLY:
+                            continue
+                        dst = os.path.join(out_root, rel.replace("/", os.sep))
+                        if skip_existing and os.path.exists(dst):
+                            skip += 1
+                            names.append(rel)
+                            continue
+                        blob = bnk[data + 8 + off:data + 8 + off + sz]
+                        if len(blob) != sz:
+                            continue
+                        raw_tmp = dst + ".wem"
+                        os.makedirs(os.path.dirname(dst), exist_ok=True)
+                        with open(raw_tmp, "wb") as fh:
+                            fh.write(blob)
+                        with contextlib.redirect_stdout(io.StringIO()), \
+                                contextlib.redirect_stderr(io.StringIO()):
+                            subprocess.run([vgm, "-o", dst, raw_tmp],
+                                           cwd=os.path.dirname(vgm),
+                                           capture_output=True, timeout=180)
+                        try:
+                            os.remove(raw_tmp)
+                        except OSError:
+                            pass
+                        if os.path.exists(dst) and os.path.getsize(dst) > 44:
+                            ok += 1
+                            names.append(rel)
+                except Exception as e:      # noqa: BLE001
+                    if len(errs) < 3:
+                        errs.append("%s: audio %s" % (nm, e))
                 continue
 
         for o in env.objects:

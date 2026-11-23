@@ -90,6 +90,17 @@ def kb_bgm_files() -> dict:
         return {}
 
 
+def kb_audio_banks() -> set:
+    """全量解包要解的音频 bank 白名单（kb/audio_banks.json）。"""
+    fp = _kb_file("audio_banks.json")
+    try:
+        import json
+        with open(fp, encoding="utf-8-sig") as fh:
+            return set(json.load(fh))
+    except Exception:      # noqa: BLE001
+        return set()
+
+
 def parse_wav_name(name: str) -> tuple[str, int] | None:
     """Hero_124_2747369.wav → ("Hero_124", 2747369)。"""
     m = re.match(r"(.+)_(\d+)\.wav$", str(name or ""))
