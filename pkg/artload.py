@@ -192,7 +192,32 @@ RECYCLE_FAST = 200          # 内存宽松时少回收几次，省掉重复导�
 # 4 个进程并发时每个 330MB 左右高水位，加上系统与 AstrBot 本体，
 # 有 5GB 空闲内存就能跑满并发；不够会自动降并发，慢一点但跑得完。
 MIN_FREE_MB = 5000
-# 输出磁盘余量（GB）：低于这个值只提示（图库约 1.7GB，留一倍余量给重跑）。
+# 输出磁盘余量（GB）：低于这个值只提示（图库约 2GB，留一倍余量给重跑）。
+# 全量解包参考量级（GB）：图鉴素材 + 大厅 KV 视频 + 角色语音/音乐（BGM 存 mp3）实测约 2.0~2.1GB，
+# 随游戏版本增减；只用于提示，不做硬门槛。
+EST_GB = 2.0
+
+
+def dir_gb(root: str) -> float:
+    """目录实际占用（GB）；不存在返回 -1。几千个文件，走一遍很快。"""
+    if not root or not os.path.isdir(root):
+        return -1.0
+    tot = 0
+    for dp, _dn, fn in os.walk(root):
+        for f in fn:
+            try:
+                tot += os.path.getsize(os.path.join(dp, f))
+            except OSError:
+                pass
+    return tot / 1073741824.0
+
+
+def size_hint(root: str) -> str:
+    """给提示用的体积文案：图库已存在→当前占用；否则→参考量级。"""
+    gb = dir_gb(root)
+    if gb >= 0:
+        return "当前图库 %.2f GB" % gb
+    return "整库约 %.1f GB" % EST_GB
 MIN_DISK_GB = 3.0
 # 磁盘真的见底（GB）才拒绝：连一个空图库都放不下，跑下去只会中途写满。
 HARD_MIN_DISK_GB = 1.0
@@ -655,8 +680,8 @@ def run(out_root: str, gdir: str | None = None, jobs: int = 0,
     if 0 <= disk < HARD_MIN_DISK_GB:
         return {"ok": False,
                 "why": ("输出目录所在磁盘只剩 %.1f GB，连一个空图库都放不下"
-                        "（整库约 1.7 GB）。\n清一下 %s 所在磁盘再发 /app load。"
-                        % (disk, out_root))}
+                        "（整库约 %.1f GB）。\n清一下 %s 所在磁盘再发 /app load。"
+                        % (disk, EST_GB, out_root))}
 
     os.makedirs(out_root, exist_ok=True)
 
@@ -673,8 +698,8 @@ def run(out_root: str, gdir: str | None = None, jobs: int = 0,
                 "关掉游戏/浏览器会更快。"
                 % (avail, jobs, cpu_cap, MIN_FREE_MB))
     if 0 <= disk < MIN_DISK_GB:
-        warn += ("\nℹ 输出磁盘只剩 %.1f GB，整库解包约 1.7 GB，写满会中断；"
-                 "建议先清点空间（已有素材会自动跳过）。" % disk)
+        warn += ("\nℹ 输出磁盘只剩 %.1f GB，整库解包约 %.1f GB，写满会中断；"
+                 "建议先清点空间（已有素材会自动跳过）。" % (disk, EST_GB))
     total = len(files)
     ok = skip = 0
     errs: list = []

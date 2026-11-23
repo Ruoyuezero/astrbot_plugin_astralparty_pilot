@@ -1252,8 +1252,9 @@ class AstralPartyPilotPlugin(Star):
             lines.append("自动调配：%d 个并发（物理核 %d，内存 %s MB，每进程约 %d MB）"
                          % (jobs, ARTL.physical_cores(),
                             avail if avail > 0 else "未知", ARTL.WORKER_MB))
-            lines.append("输出磁盘：%s GB 可用（整库约 1.7 GB）"
-                         % (("%.1f" % disk) if disk >= 0 else "未知"))
+            lines.append("输出磁盘：%s GB 可用（%s）"
+                         % (("%.1f" % disk) if disk >= 0 else "未知",
+                            ARTL.size_hint(home or "")))
         return "\n".join(lines)
 
     async def _app_check(self, event: AstrMessageEvent):
@@ -1335,8 +1336,8 @@ class AstralPartyPilotPlugin(Star):
         plan_line = ("· 自动调配：%d 个并发（物理核 %d，可用内存 %s MB，每进程约 %d MB）"
                      % (jobs, cores,
                         avail if avail > 0 else "未知", ARTL.WORKER_MB))
-        res_line = "· 输出磁盘：%s GB 可用（整库约 1.7 GB）" % (
-            ("%.1f" % disk) if disk >= 0 else "未知")
+        res_line = "· 输出磁盘：%s GB 可用（%s）" % (
+            ("%.1f" % disk) if disk >= 0 else "未知", ARTL.size_hint(out))
         tip = ""
         if avail > 0 and avail < ARTL.MIN_FREE_MB:
             tip += "\n· 内存偏紧，已自动降载；关掉游戏/浏览器能少等一会儿。"
