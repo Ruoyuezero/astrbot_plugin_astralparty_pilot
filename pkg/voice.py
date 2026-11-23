@@ -207,6 +207,37 @@ def trim_wav(src: str, seconds: float) -> str | None:
     return dst if os.path.exists(dst) and os.path.getsize(dst) > 44 else src
 
 
+def to_voice(src: str, max_kb: int = 3000, bitrate: str = "48k") -> str:
+    """发送前瘦身：超过 max_kb 的音频压成低码率 mp3（避免 OneBot WebSocket 载荷超限）。
+
+    长 BGM（几十 MB WAV）直接发会让 NapCat 反向 WS 报
+    `RangeError: Max payload size exceeded` 并断连，所以统一压一道。
+    产物缓存在 temp/audio/_voice/<原名>.mp3。
+    """
+    if not src or not os.path.exists(src):
+        return src or ""
+    try:
+        if os.path.getsize(src) <= max_kb * 1024:
+            return src
+    except OSError:
+        return src
+    base = os.path.splitext(os.path.basename(src))[0]
+    d = os.path.join(temp_root(), "_voice")
+    os.makedirs(d, exist_ok=True)
+    dst = os.path.join(d, f"{base}.mp3")
+    if os.path.exists(dst) and os.path.getsize(dst) > 1024:
+        return dst
+    ff = os.environ.get("ASTRAL_FFMPEG") or "ffmpeg"
+    import subprocess
+    try:
+        subprocess.run([ff, "-y", "-v", "error", "-i", src, "-ac", "1",
+                        "-c:a", "libmp3lame", "-b:a", bitrate, dst],
+                       capture_output=True, timeout=300)
+    except Exception:      # noqa: BLE001
+        return src
+    return dst if os.path.exists(dst) and os.path.getsize(dst) > 1024 else src
+
+
 def ensure_wav(wav_name: str) -> str | None:
     """确保单条语音 wav 可用：先图库，再临时缓存，最后从游戏 bundle 实时解包。
 

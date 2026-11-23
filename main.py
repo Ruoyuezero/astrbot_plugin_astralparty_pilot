@@ -956,6 +956,11 @@ class AstralPartyPilotPlugin(Star):
                     wav = await asyncio.to_thread(VOICE.trim_wav, wav, float(trim)) or wav
                 except Exception as exc:      # noqa: BLE001
                     logger.warning(f"[星趴] 语音裁剪失败（照常发原音频）：{exc}")
+            # 大文件压瘦（长音频直接发会撑爆 OneBot 反向 WS）
+            try:
+                wav = await asyncio.to_thread(VOICE.to_voice, wav)
+            except Exception as exc:      # noqa: BLE001
+                logger.warning(f"[星趴] 语音压缩失败（照常发原文件）：{exc}")
             yield event.chain_result([Record(file=wav, url=wav)])
             return
 
@@ -1017,6 +1022,11 @@ class AstralPartyPilotPlugin(Star):
         if not wav:
             yield event.plain_result(f"「{hit.get('name')}」音频解包失败（{bank}/{mid}）。")
             return
+        # BGM 动辄几十 MB WAV，压成 mp3 再发，否则 OneBot 反向 WS 载荷超限断连
+        try:
+            wav = await asyncio.to_thread(VOICE.to_voice, wav)
+        except Exception as exc:      # noqa: BLE001
+            logger.warning(f"[星趴] BGM 压缩失败（照常发原文件）：{exc}")
         yield event.chain_result([Record(file=wav, url=wav)])
 
     def _ensure_ffmpeg_path(self) -> None:
