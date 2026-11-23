@@ -184,6 +184,29 @@ def cut_by_media_id(bnk: bytes, media_id: int) -> bytes | None:
     return None
 
 
+def trim_wav(src: str, seconds: float) -> str | None:
+    """把 wav 截到前 N 秒（游戏里有些媒体把同一句连录多遍，发的时候只取一遍）。
+
+    产物缓存在 temp/audio/_trim/<原名>_<N>s.wav，重复调用直接命中。
+    """
+    if not src or not os.path.exists(src) or seconds <= 0:
+        return src or None
+    base = os.path.splitext(os.path.basename(src))[0]
+    d = os.path.join(temp_root(), "_trim")
+    os.makedirs(d, exist_ok=True)
+    dst = os.path.join(d, f"{base}_{seconds:g}s.wav")
+    if os.path.exists(dst) and os.path.getsize(dst) > 44:
+        return dst
+    ff = os.environ.get("ASTRAL_FFMPEG") or "ffmpeg"
+    import subprocess
+    try:
+        r = subprocess.run([ff, "-y", "-v", "error", "-i", src, "-t", str(seconds),
+                            "-c:a", "pcm_s16le", dst], capture_output=True, timeout=120)
+    except Exception:      # noqa: BLE001
+        return src
+    return dst if os.path.exists(dst) and os.path.getsize(dst) > 44 else src
+
+
 def ensure_wav(wav_name: str) -> str | None:
     """确保单条语音 wav 可用：先图库，再临时缓存，最后从游戏 bundle 实时解包。
 

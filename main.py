@@ -139,8 +139,8 @@ HELP_SECTIONS = [
     ("🔊", "语音与音乐", [
         ("/app voice <名字|ID>", "角色语音清单图（编号 + 日文台词，一行5条，如 /app voice 124）"),
         ("/app voice <名字|ID>-N", "发第 N 条语音（编号从1开始，如 /app voice 124-4）"),
-        ("/app BGM <地图名|ID>", "地图背景音乐；多条时列出待选"),
-        ("/app BGM <地图名|ID>-N", "发第 N 条地图音乐（如 /app BGM 游乐园-1）"),
+        ("/app BGM", "游戏音乐总览图（常规 / 地图 / 特殊皮肤 三类）"),
+        ("/app BGM <名字>", "发对应音乐，如 /app BGM 龙宫 I阶段、/app BGM 凛 永恒圣火"),
     ]),
     ("🔎", "查号（实时）", [
         ("/app <UID>", "查别人：在局里→局内进度卡，不在局→档案卡"),
@@ -949,10 +949,14 @@ class AstralPartyPilotPlugin(Star):
                     f"第 {no} 条语音解包失败（找不到对应游戏资源）。\n"
                     f"{name} · [{hit.get('scene','')}] {hit.get('ja','')}")
                 return
+            # 有些媒体把同一句连录多遍，只发第一遍
+            trim = hit.get("trim")
+            if trim:
+                try:
+                    wav = await asyncio.to_thread(VOICE.trim_wav, wav, float(trim)) or wav
+                except Exception as exc:      # noqa: BLE001
+                    logger.warning(f"[星趴] 语音裁剪失败（照常发原音频）：{exc}")
             yield event.chain_result([Record(file=wav, url=wav)])
-            yield event.plain_result(
-                f"{name} · 第 {no} 条 [{hit.get('scene','')}]\n"
-                f"日文：{hit.get('ja','')}\n中文：{hit.get('zh','')}")
             return
 
         # 清单图
@@ -976,67 +980,44 @@ class AstralPartyPilotPlugin(Star):
             yield event.plain_result(f"渲染语音清单出错了：{exc}")
 
     async def _app_bgm(self, event: AstrMessageEvent, joined: str):
-        """/app BGM <地图名/id> 返回地图音乐；多条列待选；-<N> 取第 N 条。"""
+        """/app BGM：无参出三类总览图（常规/地图/特殊皮肤）；带名字发对应音乐。"""
+        from .pkg import bgmrender as BR
         from .pkg import voice as VOICE
         from astrbot.api.message_components import Record
 
         arg = str(joined or "").strip()
-        bgm = await asyncio.to_thread(VOICE.kb_bgm)
+
+        # 无参：渲染三类总览图
         if not arg:
-            names = [f"{n}({v['id']})" for n, v in sorted(bgm.items()) if v.get("banks")]
-            yield event.plain_result(
-                "发地图名或 ID 查背景音乐，例：/app BGM 游乐园、/app BGM 81003\n"
-                "已收录地图：" + "、".join(names))
+            try:
+                fd, tmp = tempfile.mkstemp(suffix=".png", prefix="app_bgm_")
+                os.close(fd)
+                await asyncio.to_thread(BR.render, tmp)
+                yield event.image_result(tmp)
+                yield event.plain_result("发 /app BGM <名字> 听对应音乐，例：/app BGM 龙宫 I阶段")
+                return
+            except Exception as exc:      # noqa: BLE001
+                logger.warning(f"[星趴] BGM 总览渲染失败：{exc}")
+            yield event.plain_result(await asyncio.to_thread(BR.text_list))
             return
 
-        m = re.match(r"^(.+?)[-—–](\d{1,3})$", arg)
-        key, want_no = (m.group(1).strip(), int(m.group(2))) if m else (arg, 0)
-
-        # 找地图
-        hit = None
-        for name, v in bgm.items():
-            if key == name or key == str(v.get("id")) or key in name:
-                hit = (name, v)
-                break
+        # 带参：按名字找一条
+        key = re.sub(r"[-—–]\d{1,3}$", "", arg).strip() or arg
+        hit = await asyncio.to_thread(BR.find, key)
         if not hit:
-            yield event.plain_result(f"没找到地图「{key}」的 BGM 映射。")
+            yield event.plain_result(
+                f"没找到「{key}」这首音乐。\n发 /app BGM 看全部清单（常规 / 地图 / 特殊皮肤）。")
             return
-        map_name, v = hit
-        banks = v.get("banks") or []
-        if not banks:
-            yield event.plain_result(f"「{map_name}」的 BGM 映射还没补，暂不可用。")
+        bank, mid = hit.get("bank"), hit.get("mid")
+        if not bank or not mid:
+            yield event.plain_result(f"「{hit.get('name')}」缺 bank 记录，暂不可用。")
             return
-
-        # 收集该地图所有 BGM 音频（media_id），按 bank 顺序
-        entries = await asyncio.to_thread(VOICE.kb_bgm_files)
-        songs = []
-        for bank in banks:
-            for x in entries.get(bank, []):
-                wav = f"{bank}_{x}.wav"
-                songs.append((bank, x, wav))
-        if not songs:
-            yield event.plain_result(f"「{map_name}」暂无可播放的 BGM 音频（缺映射/未解包）。")
-            return
-
-        if not want_no:
-            lines = [f"「{map_name}」背景音乐（{len(songs)} 条）："]
-            for i, (bank, mid, _) in enumerate(songs, 1):
-                lines.append(f"  {i}. {bank} · {mid}")
-            lines.append(f"发 /app BGM {key}-N 听第 N 条。")
-            yield event.plain_result("\n".join(lines))
-            return
-
-        if want_no < 1 or want_no > len(songs):
-            yield event.plain_result(f"「{map_name}」只有 {len(songs)} 条 BGM，没有第 {want_no} 条。")
-            return
-        bank, mid, wav_name = songs[want_no - 1]
         self._ensure_ffmpeg_path()
-        wav = await asyncio.to_thread(VOICE.ensure_wav, wav_name)
+        wav = await asyncio.to_thread(VOICE.ensure_wav, f"{bank}_{mid}.wav")
         if not wav:
-            yield event.plain_result(f"第 {want_no} 条 BGM 解包失败（{bank} · {mid}）。")
+            yield event.plain_result(f"「{hit.get('name')}」音频解包失败（{bank}/{mid}）。")
             return
         yield event.chain_result([Record(file=wav, url=wav)])
-        yield event.plain_result(f"「{map_name}」BGM 第 {want_no} 条 · {bank}")
 
     def _ensure_ffmpeg_path(self) -> None:
         """把配置的 ffmpeg_path 目录加入 PATH（AstrBot 发 Record 转码要用）。"""

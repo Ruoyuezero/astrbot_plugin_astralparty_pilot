@@ -1,0 +1,303 @@
+[
+ {
+  "name": "120 南希露 战斗特殊BGM",
+  "category": "特殊皮肤",
+  "bank": "BGM_SkinBattle_120",
+  "mid": "612084510",
+  "dur": 73.3
+ },
+ {
+  "name": "123 姬梦朝 战斗特殊BGM",
+  "category": "特殊皮肤",
+  "bank": "BGM_SkinBattle_123",
+  "mid": "13414823",
+  "dur": 63.62
+ },
+ {
+  "name": "丛林冒险",
+  "category": "地图",
+  "bank": "BGM_Map_Jungle",
+  "mid": "499616620",
+  "dur": 240.98
+ },
+ {
+  "name": "凛 永恒圣火战斗特殊BGM",
+  "category": "特殊皮肤",
+  "bank": "BGM_SkinBattle_121",
+  "mid": "749667669",
+  "dur": 71.5
+ },
+ {
+  "name": "商店",
+  "category": "常规",
+  "bank": "BGM_HomeSystem",
+  "mid": "129229711",
+  "dur": 140.91
+ },
+ {
+  "name": "园林中庭 III阶段",
+  "category": "地图",
+  "bank": "BGM_Map_Phoenix",
+  "mid": "1064494372",
+  "dur": 256.67
+ },
+ {
+  "name": "园林中庭 II阶段",
+  "category": "地图",
+  "bank": "BGM_Map_Phoenix",
+  "mid": "784580992",
+  "dur": 256.46
+ },
+ {
+  "name": "园林中庭 I阶段",
+  "category": "地图",
+  "bank": "BGM_Map_Phoenix",
+  "mid": "679203497",
+  "dur": 126.96
+ },
+ {
+  "name": "大厅",
+  "category": "常规",
+  "bank": "BGM_HomeSystem",
+  "mid": "388375254",
+  "dur": 89.45
+ },
+ {
+  "name": "学院食堂",
+  "category": "地图",
+  "bank": "BGM_Map_School",
+  "mid": "719956280",
+  "dur": 226.67
+ },
+ {
+  "name": "幽魂暗巷 II阶段",
+  "category": "地图",
+  "bank": "BGM_Map_Concert",
+  "mid": "187864936",
+  "dur": 90.46
+ },
+ {
+  "name": "幽魂暗巷 I阶段",
+  "category": "地图",
+  "bank": "BGM_Map_Concert",
+  "mid": "187864936",
+  "dur": 90.46
+ },
+ {
+  "name": "异变图书馆 II阶段",
+  "category": "地图",
+  "bank": "BGM_Map_MoCai",
+  "mid": "399186503",
+  "dur": 317.75
+ },
+ {
+  "name": "异变图书馆 I阶段",
+  "category": "地图",
+  "bank": "BGM_Map_MoCai",
+  "mid": "799564792",
+  "dur": 320.55
+ },
+ {
+  "name": "御魂庆典",
+  "category": "地图",
+  "bank": "BGM_Map_Halloween",
+  "mid": "1032530585",
+  "dur": 183.23
+ },
+ {
+  "name": "战斗",
+  "category": "常规",
+  "bank": "BGM_CommonBattle",
+  "mid": "998841637",
+  "dur": 70.63
+ },
+ {
+  "name": "房间",
+  "category": "常规",
+  "bank": "BGM_HomeSystem",
+  "mid": "710612524",
+  "dur": 156.29
+ },
+ {
+  "name": "抽卡1",
+  "category": "常规",
+  "bank": "BGM_HomeSystem",
+  "mid": "235567479",
+  "dur": 41.74
+ },
+ {
+  "name": "抽卡2",
+  "category": "常规",
+  "bank": "BGM_HomeSystem",
+  "mid": "235567479",
+  "dur": 41.74
+ },
+ {
+  "name": "梦想号",
+  "category": "地图",
+  "bank": "BGM_Map_Dream",
+  "mid": "203374353",
+  "dur": 255.76
+ },
+ {
+  "name": "森秋幻境 II阶段",
+  "category": "地图",
+  "bank": "BGM_Map_S9Forest",
+  "mid": "111108773",
+  "dur": 92.09
+ },
+ {
+  "name": "森秋幻境 I阶段",
+  "category": "地图",
+  "bank": "BGM_Map_S9Forest",
+  "mid": "382500432",
+  "dur": 92.22
+ },
+ {
+  "name": "樱花小镇",
+  "category": "地图",
+  "bank": "BGM_Map_JapanStreet",
+  "mid": "1018328483",
+  "dur": 246.31
+ },
+ {
+  "name": "水乡古镇",
+  "category": "地图",
+  "bank": "BGM_Map_NewYear",
+  "mid": "760318378",
+  "dur": 190.0
+ },
+ {
+  "name": "甜点空间",
+  "category": "常规",
+  "bank": "BGM_Map_School",
+  "mid": "136249277",
+  "dur": 100.46
+ },
+ {
+  "name": "登录",
+  "category": "常规",
+  "bank": "BGM_Login",
+  "mid": "970399165",
+  "dur": 106.94
+ },
+ {
+  "name": "礼物广场",
+  "category": "地图",
+  "bank": "BGM_Map_Christmas",
+  "mid": "1022834288",
+  "dur": 184.55
+ },
+ {
+  "name": "糖果",
+  "category": "常规",
+  "bank": "BGM_Map_Candy",
+  "mid": "978802114",
+  "dur": 102.07
+ },
+ {
+  "name": "结算",
+  "category": "常规",
+  "bank": "BGM_CommonBattle",
+  "mid": "350133505",
+  "dur": 34.77
+ },
+ {
+  "name": "茉莉 钢羽森姬战斗特殊BGM",
+  "category": "特殊皮肤",
+  "bank": "BGM_SkinBattle_117",
+  "mid": "685617097",
+  "dur": 43.21
+ },
+ {
+  "name": "角色选择",
+  "category": "常规",
+  "bank": "BGM_HomeSystem",
+  "mid": "354551160",
+  "dur": 180.67
+ },
+ {
+  "name": "赛博朋克酒保",
+  "category": "地图",
+  "bank": "BGM_Event_VA11",
+  "mid": "284743433",
+  "dur": 220.0
+ },
+ {
+  "name": "运动会 III阶段",
+  "category": "地图",
+  "bank": "BGM_Map_Sport",
+  "mid": "46211137",
+  "dur": 202.0
+ },
+ {
+  "name": "运动会 II阶段",
+  "category": "地图",
+  "bank": "BGM_Map_Sport",
+  "mid": "46211137",
+  "dur": 202.0
+ },
+ {
+  "name": "运动会 I阶段",
+  "category": "地图",
+  "bank": "BGM_Map_Sport",
+  "mid": "661873034",
+  "dur": 181.94
+ },
+ {
+  "name": "魅影都市",
+  "category": "地图",
+  "bank": "BGM_Map_Candy",
+  "mid": "978802114",
+  "dur": 102.07
+ },
+ {
+  "name": "魔女兵器联动",
+  "category": "地图",
+  "bank": "BGM_Event_WW",
+  "mid": "456356570",
+  "dur": 66.67
+ },
+ {
+  "name": "魔女裁判联动",
+  "category": "地图",
+  "bank": "BGM_Event_MoCai",
+  "mid": "589637202",
+  "dur": 250.07
+ },
+ {
+  "name": "魔法学院",
+  "category": "地图",
+  "bank": "BGM_Map_School",
+  "mid": "120642118",
+  "dur": 228.73
+ },
+ {
+  "name": "龙宫 III阶段",
+  "category": "地图",
+  "bank": "BGM_Map_Longgong",
+  "mid": "1039751472",
+  "dur": 246.84
+ },
+ {
+  "name": "龙宫 II阶段",
+  "category": "地图",
+  "bank": "BGM_Map_Longgong",
+  "mid": "770925315",
+  "dur": 248.34
+ },
+ {
+  "name": "龙宫 I阶段",
+  "category": "地图",
+  "bank": "BGM_Map_Longgong",
+  "mid": "600087613",
+  "dur": 253.69
+ },
+ {
+  "name": "龙崎美咲 真龙御礼战斗特殊BGM",
+  "category": "特殊皮肤",
+  "bank": "BGM_SkinBattle_115",
+  "mid": "177835872",
+  "dur": 71.09
+ }
+]

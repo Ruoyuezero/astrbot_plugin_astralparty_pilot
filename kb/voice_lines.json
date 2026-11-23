@@ -145,7 +145,8 @@
     "ja": "くっ！",
     "zh": "",
     "wav": "Hero_114_765247661.wav",
-    "score": 0.3867
+    "score": 1.0,
+    "manual": "confirmed"
    },
    {
     "no": 19,
@@ -153,7 +154,8 @@
     "ja": "きゃあぁ",
     "zh": "",
     "wav": "Hero_114_965513767.wav",
-    "score": 0.0494
+    "score": 1.0,
+    "manual": "confirmed"
    },
    {
     "no": 20,
@@ -930,8 +932,10 @@
     "scene": "骰点攻击（已删除）",
     "ja": "えへい！",
     "zh": "诶嘿！",
-    "wav": "Hero_102_119298744.wav",
-    "score": 0.0561
+    "wav": "",
+    "score": 0.0,
+    "manual": "none",
+    "note": "未实装语音，角色语音包内无对应"
    }
   ]
  },
@@ -1424,6 +1428,16 @@
     "zh": "好。",
     "wav": "Hero_104_397229215.wav",
     "score": 0.9912
+   },
+   {
+    "no": 33,
+    "scene": "未实装",
+    "ja": "忍法！",
+    "zh": "",
+    "wav": "Hero_104_519387651.wav",
+    "score": 1.0,
+    "manual": "confirmed",
+    "note": "未实装语音（wiki 台词表未收录，音频来自游戏解包）"
    }
   ]
  },
@@ -2223,7 +2237,8 @@
     "ja": "くっ！",
     "zh": "比舞狮还简单呢！",
     "wav": "Hero_113_297167478.wav",
-    "score": 0.2123
+    "score": 1.0,
+    "manual": "confirmed"
    },
    {
     "no": 16,
@@ -2358,24 +2373,40 @@
     "scene": "刮刮乐（太刀使的新尝试）3",
     "ja": "えへへ",
     "zh": "太好啦！",
-    "wav": "",
-    "score": 0.0
+    "wav": "Hero_home_183635642.wav",
+    "score": 1.0,
+    "manual": "confirmed",
+    "note": "NCC 0.9987 命中 Hero_home"
    },
    {
     "no": 33,
     "scene": "刮刮乐（太刀使的新尝试）4",
     "ja": "ふふ",
     "zh": "嘿嘿～",
-    "wav": "",
-    "score": 0.0
+    "wav": "Hero_home_922903895.wav",
+    "score": 1.0,
+    "manual": "confirmed",
+    "note": "NCC 0.997 命中 Hero_home"
    },
    {
     "no": 34,
     "scene": "刮刮乐（太刀使的新尝试）5",
     "ja": "わあああ",
     "zh": "呵呵～",
-    "wav": "Hero_113_340919386.wav",
-    "score": 0.0072
+    "wav": "Hero_home_753562864.wav",
+    "score": 1.0,
+    "manual": "confirmed",
+    "note": "NCC 0.9991 命中 Hero_home"
+   },
+   {
+    "no": 35,
+    "scene": "未实装",
+    "ja": "私は隆興飯店の後継者です！応援よろしくネ！",
+    "zh": "",
+    "wav": "Hero_113_130756750.wav",
+    "score": 1.0,
+    "manual": "confirmed",
+    "note": "未实装语音（wiki 台词表未收录，音频来自游戏解包）"
    }
   ]
  },
@@ -2622,6 +2653,16 @@
     "zh": "感觉超棒！不过离我的目标还差得远呢。只要一起前进，就一定能开辟道路！",
     "wav": "Hero_119_300376716.wav",
     "score": 0.9912
+   },
+   {
+    "no": 31,
+    "scene": "未实装",
+    "ja": "うっ...",
+    "zh": "",
+    "wav": "Hero_119_836538625.wav",
+    "score": 1.0,
+    "manual": "confirmed",
+    "note": "未实装语音（wiki 台词表未收录，音频来自游戏解包）"
    }
   ]
  },
@@ -2770,8 +2811,9 @@
     "scene": "受伤2",
     "ja": "ヒャン！",
     "zh": "咻呀！",
-    "wav": "Hero_120_1038771667.wav",
-    "score": 0.0267
+    "wav": "Hero_120_645745077.wav",
+    "score": 1.0,
+    "manual": "confirmed"
    },
    {
     "no": 19,
@@ -2890,8 +2932,20 @@
     "scene": "刮刮乐（妖灵也开派对？篇）2",
     "ja": "にゃはーン！",
     "zh": "喵哈哈——！",
-    "wav": "Hero_120_311519977.wav",
-    "score": 0.0144
+    "wav": "Hero_home_885561413.wav",
+    "score": 1.0,
+    "manual": "confirmed",
+    "note": "NCC 0.9993 命中 Hero_home"
+   },
+   {
+    "no": 34,
+    "scene": "未实装",
+    "ja": "どん～",
+    "zh": "",
+    "wav": "Hero_120_251501895.wav",
+    "score": 1.0,
+    "manual": "confirmed",
+    "note": "未实装语音（wiki 台词表未收录，音频来自游戏解包）"
    }
   ]
  },
@@ -3207,7 +3261,8 @@
     "ja": "迷えるものに道を示して！",
     "zh": "为迷途之人指引道路！",
     "wav": "Hero_123_1020202502.wav",
-    "score": 0.9983
+    "score": 1.0,
+    "manual": "confirmed"
    },
    {
     "no": 6,
@@ -3367,7 +3422,8 @@
     "ja": "迷えるものに道を示して！",
     "zh": "急急如律令！！",
     "wav": "Hero_123_1020202502.wav",
-    "score": 0.6507
+    "score": 1.0,
+    "manual": "confirmed"
    },
    {
     "no": 26,
@@ -3430,16 +3486,40 @@
     "scene": "刮刮乐（欢迎光临隆兴饭店！）2",
     "ja": "いいね",
     "zh": "好开心！",
-    "wav": "Hero_123_432433302.wav",
-    "score": 0.0356
+    "wav": "Hero_home_167785832.wav",
+    "score": 1.0,
+    "manual": "confirmed",
+    "note": "NCC 0.9994 命中 Hero_home"
    },
    {
     "no": 34,
     "scene": "刮刮乐（欢迎光临隆兴饭店！）3",
     "ja": "えへへ",
     "zh": "真不错！",
-    "wav": "Hero_123_344727673.wav",
-    "score": 0.0384
+    "wav": "Hero_home_534155006.wav",
+    "score": 1.0,
+    "manual": "confirmed",
+    "note": "NCC 0.9952 命中 Hero_home"
+   },
+   {
+    "no": 35,
+    "scene": "未实装",
+    "ja": "私の店より品揃えよさそう...",
+    "zh": "",
+    "wav": "Hero_123_512829982.wav",
+    "score": 1.0,
+    "manual": "confirmed",
+    "note": "未实装语音（wiki 台词表未收录，音频来自游戏解包）"
+   },
+   {
+    "no": 36,
+    "scene": "未实装",
+    "ja": "はぁん",
+    "zh": "",
+    "wav": "Hero_123_953528509.wav",
+    "score": 1.0,
+    "manual": "confirmed",
+    "note": "未实装语音（wiki 台词表未收录，音频来自游戏解包）"
    }
   ]
  },
@@ -3588,8 +3668,9 @@
     "scene": "受伤2",
     "ja": "きゃっ！",
     "zh": "呀啊！",
-    "wav": "",
-    "score": 0.0
+    "wav": "Hero_124_868985793.wav",
+    "score": 1.0,
+    "manual": "confirmed"
    },
    {
     "no": 19,
@@ -3948,6 +4029,16 @@
     "zh": "大家都说我“做事极端”，但这只不过是种标签而已。你肯定不会如此肤浅地看待我的，对吧？",
     "wav": "Hero_127_517080025.wav",
     "score": 0.9987
+   },
+   {
+    "no": 33,
+    "scene": "未实装",
+    "ja": "はぁ！",
+    "zh": "",
+    "wav": "Hero_127_813235544.wav",
+    "score": 1.0,
+    "manual": "confirmed",
+    "note": "未实装语音（wiki 台词表未收录，音频来自游戏解包）"
    }
   ]
  },
@@ -4210,6 +4301,86 @@
     "zh": "在这个世界上，没有什么东西是能让我屈服的！",
     "wav": "Hero_128_771445814.wav",
     "score": 0.9964
+   },
+   {
+    "no": 33,
+    "scene": "未实装",
+    "ja": "行くわよ",
+    "zh": "",
+    "wav": "Hero_128_100156221.wav",
+    "score": 1.0,
+    "manual": "confirmed",
+    "note": "未实装语音（wiki 台词表未收录，音频来自游戏解包）"
+   },
+   {
+    "no": 34,
+    "scene": "未实装",
+    "ja": "せい～",
+    "zh": "",
+    "wav": "Hero_128_100862982.wav",
+    "score": 1.0,
+    "manual": "confirmed",
+    "note": "未实装语音（wiki 台词表未收录，音频来自游戏解包）"
+   },
+   {
+    "no": 35,
+    "scene": "未实装",
+    "ja": "そんな魅力刻みなさい",
+    "zh": "",
+    "wav": "Hero_128_133779304.wav",
+    "score": 1.0,
+    "manual": "confirmed",
+    "note": "未实装语音（wiki 台词表未收录，音频来自游戏解包）"
+   },
+   {
+    "no": 36,
+    "scene": "未实装",
+    "ja": "痺れるわよ",
+    "zh": "",
+    "wav": "Hero_128_298872981.wav",
+    "score": 1.0,
+    "manual": "confirmed",
+    "note": "未实装语音（wiki 台词表未收录，音频来自游戏解包）"
+   },
+   {
+    "no": 37,
+    "scene": "未实装",
+    "ja": "はぁ！",
+    "zh": "",
+    "wav": "Hero_128_574701330.wav",
+    "score": 1.0,
+    "manual": "confirmed",
+    "note": "未实装语音（wiki 台词表未收录，音频来自游戏解包）"
+   },
+   {
+    "no": 38,
+    "scene": "未实装",
+    "ja": "ルカ、遊び場に行くわよ",
+    "zh": "",
+    "wav": "Hero_128_786568171.wav",
+    "score": 1.0,
+    "manual": "confirmed",
+    "note": "未实装语音（wiki 台词表未收录，音频来自游戏解包）"
+   },
+   {
+    "no": 39,
+    "scene": "未实装",
+    "ja": "上等じゃない！受けて立つわよ。",
+    "zh": "",
+    "wav": "Hero_128_881087694.wav",
+    "score": 1.0,
+    "manual": "confirmed",
+    "note": "未实装语音（wiki 台词表未收录，音频来自游戏解包）"
+   },
+   {
+    "no": 40,
+    "scene": "未实装",
+    "ja": "粉砕してあげるわ",
+    "zh": "",
+    "wav": "Hero_128_94275167.wav",
+    "score": 1.0,
+    "manual": "confirmed",
+    "note": "未实装语音（wiki 台词表未收录，音频来自游戏解包）"
    }
   ]
  },
@@ -4536,6 +4707,56 @@
     "zh": "等我恢复原样，就收你做关门弟子！不过在那之前，还是先陪我好好玩个够吧！",
     "wav": "Hero_129_985516581.wav",
     "score": 0.9988
+   },
+   {
+    "no": 41,
+    "scene": "未实装",
+    "ja": "あっ",
+    "zh": "",
+    "wav": "Hero_129_107935104.wav",
+    "score": 1.0,
+    "manual": "confirmed",
+    "note": "未实装语音（wiki 台词表未收录，音频来自游戏解包）"
+   },
+   {
+    "no": 42,
+    "scene": "未实装",
+    "ja": "全て見えでおる",
+    "zh": "",
+    "wav": "Hero_129_383407118.wav",
+    "score": 1.0,
+    "manual": "confirmed",
+    "note": "未实装语音（wiki 台词表未收录，音频来自游戏解包）"
+   },
+   {
+    "no": 43,
+    "scene": "未实装",
+    "ja": "けんきゅういんだな、少しお疲れなんじゃなのかな",
+    "zh": "",
+    "wav": "Hero_129_758389337.wav",
+    "score": 1.0,
+    "manual": "confirmed",
+    "note": "未实装语音（wiki 台词表未收录，音频来自游戏解包）"
+   },
+   {
+    "no": 44,
+    "scene": "未实装",
+    "ja": "あらかたは無駄じゃ",
+    "zh": "",
+    "wav": "Hero_129_899211270.wav",
+    "score": 1.0,
+    "manual": "confirmed",
+    "note": "未实装语音（wiki 台词表未收录，音频来自游戏解包）"
+   },
+   {
+    "no": 45,
+    "scene": "未实装",
+    "ja": "そんな魔力いただくぞ",
+    "zh": "",
+    "wav": "Hero_129_951337939.wav",
+    "score": 1.0,
+    "manual": "confirmed",
+    "note": "未实装语音（wiki 台词表未收录，音频来自游戏解包）"
    }
   ]
  },
@@ -4862,6 +5083,56 @@
     "zh": "总觉得，在你身边就感到安心。感谢你愿意陪在这样的我身边。",
     "wav": "Hero_305_447132503.wav",
     "score": 0.9992
+   },
+   {
+    "no": 41,
+    "scene": "未实装",
+    "ja": "この～",
+    "zh": "",
+    "wav": "Hero_305_108384806.wav",
+    "score": 1.0,
+    "manual": "confirmed",
+    "note": "未实装语音（wiki 台词表未收录，音频来自游戏解包）"
+   },
+   {
+    "no": 42,
+    "scene": "未实装",
+    "ja": "負けませんわ",
+    "zh": "",
+    "wav": "Hero_305_387645537.wav",
+    "score": 1.0,
+    "manual": "confirmed",
+    "note": "未实装语音（wiki 台词表未收录，音频来自游戏解包）"
+   },
+   {
+    "no": 43,
+    "scene": "未实装",
+    "ja": "やってありますわ",
+    "zh": "",
+    "wav": "Hero_305_484952467.wav",
+    "score": 1.0,
+    "manual": "confirmed",
+    "note": "未实装语音（wiki 台词表未收录，音频来自游戏解包）"
+   },
+   {
+    "no": 44,
+    "scene": "未实装",
+    "ja": "許されですわ",
+    "zh": "",
+    "wav": "Hero_305_850965350.wav",
+    "score": 1.0,
+    "manual": "confirmed",
+    "note": "未实装语音（wiki 台词表未收录，音频来自游戏解包）"
+   },
+   {
+    "no": 45,
+    "scene": "未实装",
+    "ja": "邪魔",
+    "zh": "",
+    "wav": "Hero_305_972349139.wav",
+    "score": 1.0,
+    "manual": "confirmed",
+    "note": "未实装语音（wiki 台词表未收录，音频来自游戏解包）"
    }
   ]
  },
@@ -5212,6 +5483,56 @@
     "zh": "接下来解决什么案件好呢？我的名侦探表现，大可以再多夸夸我哦。",
     "wav": "Hero_306_989138075.wav",
     "score": 0.998
+   },
+   {
+    "no": 44,
+    "scene": "未实装",
+    "ja": "うん！",
+    "zh": "",
+    "wav": "Hero_306_1043778569.wav",
+    "score": 1.0,
+    "manual": "confirmed",
+    "note": "未实装语音（wiki 台词表未收录，音频来自游戏解包）"
+   },
+   {
+    "no": 45,
+    "scene": "未实装",
+    "ja": "ええー？",
+    "zh": "",
+    "wav": "Hero_306_321553893.wav",
+    "score": 1.0,
+    "manual": "confirmed",
+    "note": "未实装语音（wiki 台词表未收录，音频来自游戏解包）"
+   },
+   {
+    "no": 46,
+    "scene": "未实装",
+    "ja": "ひゅっ",
+    "zh": "",
+    "wav": "Hero_306_367683353.wav",
+    "score": 1.0,
+    "manual": "confirmed",
+    "note": "未实装语音（wiki 台词表未收录，音频来自游戏解包）"
+   },
+   {
+    "no": 47,
+    "scene": "未实装",
+    "ja": "やっ",
+    "zh": "",
+    "wav": "Hero_306_563494039.wav",
+    "score": 1.0,
+    "manual": "confirmed",
+    "note": "未实装语音（wiki 台词表未收录，音频来自游戏解包）"
+   },
+   {
+    "no": 48,
+    "scene": "未实装",
+    "ja": "体力勝負なら負けませんよ",
+    "zh": "",
+    "wav": "Hero_306_933749561.wav",
+    "score": 1.0,
+    "manual": "confirmed",
+    "note": "未实装语音（wiki 台词表未收录，音频来自游戏解包）"
    }
   ]
  },
@@ -6138,8 +6459,9 @@
     "scene": "攻击（钢羽森姬点数大于3）",
     "ja": "行きますよ！",
     "zh": "要上了！",
-    "wav": "Hero_117_846459908.wav",
-    "score": 0.02
+    "wav": "Hero_117_283700553.wav",
+    "score": 1.0,
+    "manual": "confirmed"
    },
    {
     "no": 28,
@@ -6164,6 +6486,26 @@
     "zh": "请看呀主人，呀哈！",
     "wav": "Hero_117_434496910.wav",
     "score": 0.9983
+   },
+   {
+    "no": 31,
+    "scene": "未实装",
+    "ja": "大きなトロフィー？すごいです！",
+    "zh": "",
+    "wav": "Hero_117_315618914.wav",
+    "score": 1.0,
+    "manual": "confirmed",
+    "note": "未实装语音（wiki 台词表未收录，音频来自游戏解包）"
+   },
+   {
+    "no": 32,
+    "scene": "未实装",
+    "ja": "はぁん！",
+    "zh": "",
+    "wav": "Hero_117_83013025.wav",
+    "score": 1.0,
+    "manual": "confirmed",
+    "note": "未实装语音（wiki 台词表未收录，音频来自游戏解包）"
    }
   ]
  },
@@ -6320,8 +6662,9 @@
     "scene": "受伤2",
     "ja": "嫌っ！",
     "zh": "讨厌！",
-    "wav": "Hero_121_476694701.wav",
-    "score": 0.006
+    "wav": "Hero_121_779389926.wav",
+    "score": 1.0,
+    "manual": "confirmed"
    },
    {
     "no": 20,
@@ -6384,16 +6727,20 @@
     "scene": "攻击（羁绊皮肤）2(1/2)",
     "ja": "わぁ...嫌っ！",
     "zh": "哇啊……讨厌！",
-    "wav": "Hero_121_476694701.wav",
-    "score": 0.9885
+    "wav": "",
+    "score": 0.0,
+    "manual": "none",
+    "note": "未实装语音，角色语音包内无对应"
    },
    {
     "no": 28,
     "scene": "攻击（羁绊皮肤）2(2/2)",
     "ja": "わぁ...嫌っ！",
     "zh": "哇啊……讨厌！",
-    "wav": "Hero_121_476694701.wav",
-    "score": 0.006
+    "wav": "",
+    "score": 0.0,
+    "manual": "none",
+    "note": "未实装语音，角色语音包内无对应"
    },
    {
     "no": 29,
