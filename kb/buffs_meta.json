@@ -1194,7 +1194,7 @@
 "ids": [
 "12702021"
 ],
-"icon": "buff/UT_Buff_ConcealedPresence.png",
+"icon": "buff/UT_Buff_127.png",
 "icon_kind": "buff",
 "desc": "指定一个敌方角色施加调查目标与2层标记。\n拥有调查目标的角色被击倒后，获得5星币。",
 "desc_src": "skill:邦妮",

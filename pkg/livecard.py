@@ -759,11 +759,12 @@ def render_ingame(d: dict, state: dict, p: dict, out_path: str, room: dict | Non
             items.append((_buff_icon_path(b) or None, label, ""))
         blocks.icon_row(items, icon=40)
 
-    # 服务端房间快照优先（客户端内存里别人的筹码/手牌会滞后，自己也可能是上一局的旧值）
+    # 服务端房间快照只用来补「血量/金币/属性」这类实时数值；
+    # 筹码(relics)保留本地 state.json —— 服务端返回的是纯 id 列表，
+    # 本地才是带名字/品质/图标的 dict，用服务端覆盖会导致筹码图标丢失。
     _rp = _room_players(room).get(int(p.get("i") if p.get("i") is not None else -1)) or {}
     if _rp:
         p = dict(p)
-        p["relics"] = [r if isinstance(r, dict) else {"id": r} for r in (_rp.get("relics") or [])] or p.get("relics")
         for k, kk in (("hp", "hp"), ("gold", "gold"), ("atk", "atk"), ("def", "def")):
             if _rp.get(k) is not None:
                 p[kk] = _rp[k]

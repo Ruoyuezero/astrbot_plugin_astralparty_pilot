@@ -1,0 +1,126 @@
+{
+ "游乐园": {
+  "id": "81003",
+  "scene": "003",
+  "banks": [
+   "BGM_Map_00"
+  ]
+ },
+ "十字路口站": {
+  "id": "81004",
+  "scene": "004",
+  "banks": [
+   "BGM_Map_PhantomCity"
+  ]
+ },
+ "樱花小镇": {
+  "id": "81005",
+  "scene": "005",
+  "banks": [
+   "BGM_Map_School"
+  ]
+ },
+ "魅影都市": {
+  "id": "81006",
+  "scene": "006",
+  "banks": [
+   "BGM_Map_PhantomCity"
+  ]
+ },
+ "梦想号-上层甲板": {
+  "id": "81007",
+  "scene": "021",
+  "banks": [
+   "BGM_Map_Dream"
+  ]
+ },
+ "丛林冒险": {
+  "id": "81011",
+  "scene": "011",
+  "banks": [
+   "BGM_Map_Jungle"
+  ]
+ },
+ "Map_010": {
+  "id": "81099",
+  "scene": "",
+  "banks": [
+   "BGM_Map_JapanStreet"
+  ]
+ },
+ "星趴·梦想号": {
+  "id": "82007",
+  "scene": "007",
+  "banks": [
+   "BGM_Map_Dream"
+  ]
+ },
+ "御魂庆典": {
+  "id": "82008",
+  "scene": "008",
+  "banks": [
+   "BGM_Map_Halloween"
+  ]
+ },
+ "礼物广场": {
+  "id": "82009",
+  "scene": "009",
+  "banks": [
+   "BGM_Map_Christmas"
+  ]
+ },
+ "水乡古镇": {
+  "id": "82010",
+  "scene": "010",
+  "banks": [
+   "BGM_Map_MoCai"
+  ]
+ },
+ "魔法学院": {
+  "id": "82012",
+  "scene": "012",
+  "banks": [
+   "BGM_Map_School"
+  ]
+ },
+ "龙宫游乐园": {
+  "id": "82013",
+  "scene": "013",
+  "banks": []
+ },
+ "幽魂暗巷": {
+  "id": "82014",
+  "scene": "014",
+  "banks": []
+ },
+ "园林中庭": {
+  "id": "82015",
+  "scene": "015",
+  "banks": []
+ },
+ "异变图书馆": {
+  "id": "82016",
+  "scene": "016",
+  "banks": []
+ },
+ "森秋幻境": {
+  "id": "82017",
+  "scene": "017",
+  "banks": []
+ },
+ "海选赛运动场": {
+  "id": "83001",
+  "scene": "019",
+  "banks": []
+ },
+ "淘汰赛运动场": {
+  "id": "83002",
+  "scene": "019",
+  "banks": []
+ },
+ "决赛大赛场": {
+  "id": "83003",
+  "scene": "020",
+  "banks": []
+ }
+}
