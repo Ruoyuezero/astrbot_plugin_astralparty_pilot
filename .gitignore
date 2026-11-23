@@ -40,6 +40,3 @@ pkg/payload/BepInEx/ErrorLog.log
 .idea/
 .DS_Store
 Thumbs.db
-
-# 本地备份
-*.bak
