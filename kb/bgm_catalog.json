@@ -81,15 +81,6 @@
   "exact": true
  },
  {
-  "name": "甜点空间",
-  "category": "常规",
-  "order": 9,
-  "bank": "BGM_Map_School",
-  "mid": "136249277",
-  "dur": 100.46,
-  "exact": true
- },
- {
   "name": "丛林冒险",
   "category": "地图",
   "order": 0,
@@ -306,9 +297,18 @@
   "exact": true
  },
  {
-  "name": "赛博朋克酒保",
+  "name": "甜点空间",
   "category": "地图",
   "order": 24,
+  "bank": "BGM_Map_School",
+  "mid": "136249277",
+  "dur": 100.46,
+  "exact": true
+ },
+ {
+  "name": "赛博朋克酒保",
+  "category": "地图",
+  "order": 25,
   "bank": "BGM_Event_VA11",
   "mid": "284743433",
   "dur": 220.0,
@@ -317,7 +317,7 @@
  {
   "name": "魔女兵器联动",
   "category": "地图",
-  "order": 25,
+  "order": 26,
   "bank": "BGM_Event_WW",
   "mid": "456356570",
   "dur": 66.67,
@@ -326,7 +326,7 @@
  {
   "name": "魔女裁判联动",
   "category": "地图",
-  "order": 26,
+  "order": 27,
   "bank": "BGM_Event_MoCai",
   "mid": "589637202",
   "dur": 250.07,
