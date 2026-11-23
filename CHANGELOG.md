@@ -16,7 +16,7 @@
   - **配了 art_root（全量解包模式）**：`/app load` 把音频解到 `<art_root>/Astral Party/audio/<bank>/<media_id>.wav`，计入完整性清单；`/app voice|bgm` 直接读图库。
   - **没配 art_root（实时模式）**：按需解包落 `temp/audio/`，随每日缓存清理。
 - 发语音时自动把配置的 `ffmpeg_path` 加入 PATH（供 Record 转码）。
-- 发语音/音乐前自动瘦身：超过 3MB 的音频压成 48kbps 单声道 mp3（47MB→1.5MB），
+- 发语音/音乐前自动瘦身：超过 2.5MB 的音频转 mp3（自适应码率 48~192kbps、保留原声道，47MB→2.0MB；
   避免 OneBot 反向 WebSocket 报 `Max payload size exceeded` 断连（NapCat 日志实测）。
 
 ## [2.5.1] - 2026-11-18

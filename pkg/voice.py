@@ -207,35 +207,64 @@ def trim_wav(src: str, seconds: float) -> str | None:
     return dst if os.path.exists(dst) and os.path.getsize(dst) > 44 else src
 
 
-def to_voice(src: str, max_kb: int = 3000, bitrate: str = "48k") -> str:
-    """发送前瘦身：超过 max_kb 的音频压成低码率 mp3（避免 OneBot WebSocket 载荷超限）。
+def to_voice(src: str, max_bytes: int = 2_500_000) -> str:
+    """发送前瘦身：超过 max_bytes 的音频转 mp3（自适应码率，保留原声道）。
 
-    长 BGM（几十 MB WAV）直接发会让 NapCat 反向 WS 报
-    `RangeError: Max payload size exceeded` 并断连，所以统一压一道。
-    产物缓存在 temp/audio/_voice/<原名>.mp3。
+    背景：AstrBot 的 OneBot 反向 WS 走 aiohttp 默认 max_msg_size = 4 MiB，
+    而音频以 base64 传输（体积 ×4/3）。47MB WAV 会直接
+    `RangeError: Max payload size exceeded` 把连接撑断。
+    所以按「目标字节数」反算码率：码率 = 目标字节×8 / 时长，钳在 48~192kbps。
+
+    mp3 是有损（原游戏音频本身也是 Wwise Vorbis 有损），但 100kbps 以上
+    对语音/BGM 基本听不出差别。产物缓存 temp/audio/_voice/<原名>.mp3。
     """
     if not src or not os.path.exists(src):
         return src or ""
     try:
-        if os.path.getsize(src) <= max_kb * 1024:
-            return src
+        size = os.path.getsize(src)
     except OSError:
         return src
+    if size <= max_bytes:
+        return src
+
+    # 时长与声道
+    dur = 0.0
+    ch = 2
+    try:
+        import wave
+        with wave.open(src, "rb") as w:
+            dur = w.getnframes() / float(w.getframerate() or 1)
+            ch = w.getnchannels()
+    except Exception:      # noqa: BLE001
+        pass
+    if dur <= 0:
+        dur = 180.0
+    kbps = int(max_bytes * 8 / dur / 1000)
+    kbps = max(48, min(192, kbps))
+    # mp3 常见档位
+    for std in (192, 160, 128, 112, 96, 80, 64, 56, 48):
+        if kbps >= std:
+            kbps = std
+            break
+
     base = os.path.splitext(os.path.basename(src))[0]
     d = os.path.join(temp_root(), "_voice")
     os.makedirs(d, exist_ok=True)
-    dst = os.path.join(d, f"{base}.mp3")
+    dst = os.path.join(d, f"{base}_{kbps}k.mp3")
     if os.path.exists(dst) and os.path.getsize(dst) > 1024:
         return dst
     ff = os.environ.get("ASTRAL_FFMPEG") or "ffmpeg"
     import subprocess
     try:
-        subprocess.run([ff, "-y", "-v", "error", "-i", src, "-ac", "1",
-                        "-c:a", "libmp3lame", "-b:a", bitrate, dst],
+        subprocess.run([ff, "-y", "-v", "error", "-i", src,
+                        "-c:a", "libmp3lame", "-b:a", f"{kbps}k",
+                        "-ac", "1" if ch == 1 else "2", dst],
                        capture_output=True, timeout=300)
     except Exception:      # noqa: BLE001
         return src
-    return dst if os.path.exists(dst) and os.path.getsize(dst) > 1024 else src
+    if os.path.exists(dst) and os.path.getsize(dst) > 1024:
+        return dst
+    return src
 
 
 def ensure_wav(wav_name: str) -> str | None:
