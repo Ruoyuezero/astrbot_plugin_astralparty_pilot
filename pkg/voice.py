@@ -280,11 +280,14 @@ def ensure_wav(wav_name: str) -> str | None:
     from . import assets
     home = str(assets.home() or "").strip()
     candidates = []
+    # 图库：BGM 存 mp3（省空间），角色语音存 wav；两种都认
     if home:
-        candidates.append(os.path.join(home, "audio", bank, f"{mid}.wav"))
+        for ext in (".wav", ".mp3"):
+            candidates.append(os.path.join(home, "audio", bank, f"{mid}{ext}"))
     # 2) 临时缓存
-    cached = os.path.join(temp_root(), bank, f"{mid}.wav")
-    candidates.append(cached)
+    tdir = temp_root()
+    for ext in (".wav", ".mp3"):
+        candidates.append(os.path.join(tdir, bank, f"{mid}{ext}"))
     for p in candidates:
         if os.path.exists(p):
             return p

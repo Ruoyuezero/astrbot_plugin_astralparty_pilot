@@ -519,7 +519,9 @@ def _worker(job) -> tuple[int, int, list, list]:
                         mid, off, sz = struct.unpack_from("<III", bnk, didx + 8 + k * 12)
                         if not (0 < sz < 50 * 1024 * 1024):
                             continue
-                        rel = "audio/%s/%d.wav" % (nm, mid)
+                        # BGM 存 mp3（省空间），角色语音存 wav
+                        _ext = ".mp3" if nm.startswith("BGM") else ".wav"
+                        rel = "audio/%s/%d%s" % (nm, mid, _ext)
                         if _ONLY is not None and rel.lower() not in _ONLY:
                             continue
                         dst = os.path.join(out_root, rel.replace("/", os.sep))
@@ -543,7 +545,26 @@ def _worker(job) -> tuple[int, int, list, list]:
                             os.remove(raw_tmp)
                         except OSError:
                             pass
-                        if os.path.exists(dst) and os.path.getsize(dst) > 44:
+                        if _ext == ".mp3" and os.path.exists(dst):
+                            # vgmstream 只能出 wav：先转 mp3 再删 wav
+                            wav_tmp = dst + ".wav"
+                            try:
+                                os.replace(dst, wav_tmp)
+                            except OSError:
+                                wav_tmp = dst
+                            ff = os.environ.get("ASTRAL_FFMPEG") or "ffmpeg"
+                            try:
+                                subprocess.run([ff, "-y", "-v", "error", "-i", wav_tmp,
+                                                "-c:a", "libmp3lame", "-b:a", "128k",
+                                                "-ac", "2", dst],
+                                               capture_output=True, timeout=600)
+                            except Exception:      # noqa: BLE001
+                                pass
+                            try:
+                                os.remove(wav_tmp)
+                            except OSError:
+                                pass
+                        if os.path.exists(dst) and os.path.getsize(dst) > 1024:
                             ok += 1
                             names.append(rel)
                 except Exception as e:      # noqa: BLE001

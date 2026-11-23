@@ -12,6 +12,11 @@
 
 ### 说明
 
+### 变更
+
+- **图库 BGM 改存 mp3**（128k 立体声）：42 首 BGM 由 1.3 GB 降到 118 MB，图库总体积 3.26 GB → 约 2.0 GB；
+  `/app load` 全量解包时 BGM 也直接落 mp3，角色语音仍存 WAV（≤1.7 MB，发出去零损失）。
+
 - 语音/音乐素材**来自游戏本体**：按台词映射的 media_id 从 Wwise SoundBank 切音频，用内置 vgmstream 转 WAV。
   - **配了 art_root（全量解包模式）**：`/app load` 把音频解到 `<art_root>/Astral Party/audio/<bank>/<media_id>.wav`，计入完整性清单；`/app voice|bgm` 直接读图库。
   - **没配 art_root（实时模式）**：按需解包落 `temp/audio/`，随每日缓存清理。
