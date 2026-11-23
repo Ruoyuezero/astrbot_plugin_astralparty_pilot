@@ -28,11 +28,17 @@ def catalog() -> list[dict]:
 
 
 def find(name: str) -> dict | None:
-    """按名字（支持部分匹配）找一条 BGM。"""
+    """按名字（支持部分匹配）或全局序号（1 起）找一条 BGM。"""
     raw = str(name or "").strip()
     if not raw:
         return None
     rows = catalog()
+    # 纯数字：全局序号（和 /app BGM 总览图上的编号一致）
+    if raw.isdigit():
+        i = int(raw)
+        if 1 <= i <= len(rows):
+            return rows[i - 1]
+        return None
     for c in rows:
         if raw == c.get("name"):
             return c
@@ -78,7 +84,7 @@ def render(out_path: str) -> str:
     draw.text((pad, pad), f"游戏音乐总览（{len(rows)} 首）", font=f_title, fill=TITLE)
 
     y = pad + 44
-    idx = 0
+    idx = 0        # 全局连续编号（跨类别不重置）
     for ci, cat in enumerate(CATS):
         items = groups[cat]
         color = CAT_COLOR[cat]
@@ -90,8 +96,8 @@ def render(out_path: str) -> str:
             x = pad + cc * cell_w
             yy = y + r * cell_h
             draw.rectangle([x, yy, x + cell_w - 8, yy + cell_h - 4], fill=PANEL, outline=RULE)
-            # 序号
-            no = str(i + 1)
+            # 序号（全局连续）
+            no = str(idx + 1)
             draw.text((x + 6, yy + 6), no, font=f_dur, fill=color)
             # 名称
             nm = str(it.get("name") or "")
@@ -104,8 +110,8 @@ def render(out_path: str) -> str:
             # 时长
             d = it.get("dur") or 0
             draw.text((x + cell_w - 44, yy + 8), f"{d:.0f}s", font=f_dur, fill=MUTE)
+            idx += 1
         y += (((len(items) + cols - 1) // cols) if items else 0) * cell_h + 10
-        idx += 1
 
     canvas.save(out_path, "PNG")
     return out_path
