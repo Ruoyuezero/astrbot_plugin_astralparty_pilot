@@ -140,7 +140,7 @@ HELP_SECTIONS = [
         ("/app voice <名字|ID>", "角色语音清单图（编号 + 日文台词，一行5条，如 /app voice 124）"),
         ("/app voice <名字|ID>-N", "发第 N 条语音（编号从1开始，如 /app voice 124-4）"),
         ("/app BGM", "游戏音乐总览图（常规 / 地图 / 特殊皮肤 三类）"),
-        ("/app BGM <编号|名字>", "发对应音乐：编号按总览图（1~42），如 /app BGM 23；也可写名字"),
+        ("/app BGM <名字|ID>", "发对应音乐：ID 见总览图（1~42），如 /app BGM 23；也可写名字"),
     ]),
     ("🔎", "查号（实时）", [
         ("/app <UID>", "查别人：在局里→局内进度卡，不在局→档案卡"),
@@ -999,7 +999,7 @@ class AstralPartyPilotPlugin(Star):
                 os.close(fd)
                 await asyncio.to_thread(BR.render, tmp)
                 yield event.image_result(tmp)
-                yield event.plain_result("发 /app BGM <名字> 听对应音乐，例：/app BGM 龙宫 I阶段")
+                yield event.plain_result("发 /app BGM <名字|ID> 听对应音乐，例：/app BGM 龙宫 I阶段、/app BGM 23")
                 return
             except Exception as exc:      # noqa: BLE001
                 logger.warning(f"[星趴] BGM 总览渲染失败：{exc}")
@@ -1011,7 +1011,7 @@ class AstralPartyPilotPlugin(Star):
         hit = await asyncio.to_thread(BR.find, key)
         if not hit:
             yield event.plain_result(
-                f"没找到「{key}」这首音乐。\n发 /app BGM 看全部清单（常规 / 地图 / 特殊皮肤）。")
+                f"没找到「{key}」这首音乐。\n发 /app BGM 看总览图（常规 / 地图 / 特殊皮肤，含 ID）。")
             return
         bank, mid = hit.get("bank"), hit.get("mid")
         if not bank or not mid:
