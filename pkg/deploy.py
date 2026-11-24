@@ -426,6 +426,55 @@ def uninstall(cfg: dict | None = None, dst: str | None = None) -> dict:
     return res
 
 
+def clear_backups(cfg: dict | None = None, dst: str | None = None) -> dict:
+    """清空 <游戏目录>/_pilot_backup 里的所有备份（/appa rm backup）。
+
+    只删 _pilot_backup 里的内容（uninstall-* / install-* 等），目录本身保留；
+    游戏目录其它位置一律不碰。
+    """
+    res = {"ok": False, "root": "", "dirs": 0, "files": 0, "bytes": 0,
+           "elapsed": 0.0, "error": ""}
+    dst = (dst or _cfg_game_dir(cfg) or "").strip()
+    if not dst or not os.path.isdir(dst):
+        res["error"] = "游戏目录不存在，先确认 game_dir 配置"
+        return res
+    root = os.path.join(dst, BACKUP_DIR)
+    res["root"] = os.path.relpath(root, dst) if os.path.isdir(root) else ""
+    if not os.path.isdir(root):
+        res["ok"] = True
+        return res
+    if game_alive():
+        res["error"] = "游戏正在运行，先完全退出游戏再清理备份"
+        return res
+
+    t0 = time.time()
+    for name in os.listdir(root):
+        p = os.path.join(root, name)
+        try:
+            if os.path.isdir(p):
+                for dp2, _dn, fn in os.walk(p):
+                    for f in fn:
+                        try:
+                            res["bytes"] += os.path.getsize(os.path.join(dp2, f))
+                            res["files"] += 1
+                        except OSError:
+                            pass
+                shutil.rmtree(p, ignore_errors=True)
+                res["dirs"] += 1
+            else:
+                try:
+                    res["bytes"] += os.path.getsize(p)
+                except OSError:
+                    pass
+                os.remove(p)
+                res["files"] += 1
+        except Exception:      # noqa: BLE001
+            pass
+    res["elapsed"] = round(time.time() - t0, 2)
+    res["ok"] = True
+    return res
+
+
 def installed(dst: str | None = None, cfg: dict | None = None) -> dict | None:
     """读安装标记；没注入过返回 None。"""
     dst = (dst or _cfg_game_dir(cfg) or "").strip()

@@ -158,6 +158,7 @@ HELP_SECTIONS = [
         ("🚧 开发中", "陪玩（/appa 系列）尚在开发，未完全实装，请静待更新"),
         ("/appa", "注入陪玩组件：dll / BepInEx 装进游戏根目录（游戏要关着）"),
         ("/appa rm", "撤回注入：按清单把注入的文件移走（先备份，清单外的一个不动）"),
+        ("/appa rm backup", "清空 _pilot_backup 里的所有备份（只删备份，游戏目录其它位置不碰）"),
         ("/appa on", "全自动陪玩：出牌、技能、移动、战斗全交给 bot"),
         ("/appa off", "玩家自主操控：bot 只推建议，鼠标不碰"),
         ("/appa me", "查本机登录账号：在局返回进度卡，否则返回档案卡；并显示当前界面（全程不联网）"),
@@ -2229,6 +2230,11 @@ class AstralPartyPilotPlugin(Star):
                 yield result
             return
         if sub in ("rm", "remove", "uninstall", "delete", "卸", "卸载", "撤销", "移除", "拆"):
+            # /appa rm backup：只清 _pilot_backup 里的备份，不动游戏目录
+            if _act_key(joined) in ("backup", "backups", "bak", "备份", "清备份", "清空备份"):
+                async for result in self._appa_rm_backup(event):
+                    yield result
+                return
             async for result in self._appa_rm(event):
                 yield result
             return
@@ -2401,6 +2407,26 @@ class AstralPartyPilotPlugin(Star):
         lines.append("✅ 清单外的文件一个没动，现在就是未注入状态，游戏可直接启动；"
                      "要再注入发 /appa")
         yield event.plain_result("\n".join(lines))
+
+    async def _appa_rm_backup(self, event: AstrMessageEvent):
+        """/appa rm backup：清空 _pilot_backup 里的备份（只删备份，游戏目录其它地方不碰）。"""
+        res = await asyncio.to_thread(DEP.clear_backups, self.config)
+        if res["error"]:
+            yield event.plain_result(f"⚠️ {res['error']}")
+            return
+        if not res["root"]:
+            yield event.plain_result(
+                "📦 还没有备份目录（_pilot_backup 不存在），没东西可清。\n"
+                "（发 /appa rm 撤注入时会自动备份到这里）")
+            return
+        if not res["files"] and not res["dirs"]:
+            yield event.plain_result(f"📦 {res['root']} 已经是空的，没东西可清。")
+            return
+        mb = res["bytes"] / 1048576
+        yield event.plain_result(
+            f"🧹 已清空 {res['root']}：删掉 {res['dirs']} 个备份批次、"
+            f"{res['files']} 个文件（{mb:.1f} MB），用时 {res['elapsed']} 秒\n"
+            "游戏目录其它位置一个没动（_pilot_backup 目录本身保留）。")
 
     async def _appa_sid(self, event: AstrMessageEvent):
         """/appa sid：把本机所有登录票（sid）列出来，按账号区分。
