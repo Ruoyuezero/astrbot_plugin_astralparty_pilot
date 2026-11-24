@@ -1234,13 +1234,12 @@ class AstralPartyPilotPlugin(Star):
                 state = chk.get("state")
                 if state == "ok":
                     lines = [f"素材根目录：{home}",
-                             f"状态：✅ 校验已通过，共 {total} 张图，目录完整",
+                             "状态：✅ 校验已通过，目录完整",
                              media_line]
                     need_unpack = False
                 elif state == "missing":
                     lines = [f"素材根目录：{home}",
-                             f"状态：❌️ 校验未通过，共 {total} 张图，目录缺失 "
-                             "（发 /app load 只补缺失的）",
+                             "状态：❌️ 校验未通过，目录缺失（发 /app load 只补缺失的）",
                              media_line]
                     need_unpack = False
                 else:
