@@ -89,6 +89,12 @@
         "description": "注入包来源目录",
         "hint": "留空使用插件自带的 payload。"
       },
+      "auto_backup": {
+        "type": "bool",
+        "default": true,
+        "description": "注入 / 移除文件时自动备份到 _pilot_backup",
+        "hint": "开启：覆盖或撤下的文件先备份（可还原）；关闭：直接覆盖/删除，不留备份、更省空间。"
+      },
       "room_watch": {
         "type": "bool",
         "default": false,

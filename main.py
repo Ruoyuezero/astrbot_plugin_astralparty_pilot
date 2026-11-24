@@ -2386,6 +2386,8 @@ class AstralPartyPilotPlugin(Star):
                      f"用时 {res['elapsed']} 秒")
         if res["backup"]:
             lines.append(f"📦 都备份在 {res['backup']}（想还原按原结构拷回游戏目录）")
+        elif not res.get("auto_backup", True):
+            lines.append("📦 未备份（配置已关闭「注入/移除自动备份」，文件是直接删的）")
         lines.append(f"📋 清单 {res['manifest_total']} 项 · 撤掉 {res['removed']}"
                      f" · 本来就没有 {res['skipped']}"
                      f" · 失败 {len(res['failed'])}")

@@ -101,6 +101,19 @@ def src_dir(cfg: dict | None = None) -> str:
     return ""
 
 
+def _cfg_auto_backup(cfg: dict | None) -> bool:
+    """配置 auto_backup：注入/移除文件时是否自动备份（默认开）。"""
+    try:
+        v = (cfg or {}).get("auto_backup", True)
+    except Exception:      # noqa: BLE001
+        return True
+    if isinstance(v, bool):
+        return v
+    if v is None or v == "":
+        return True
+    return str(v).strip().lower() in {"true", "1", "yes", "y", "on", "开", "开启"}
+
+
 def game_alive() -> bool:
     """游戏进程是否在跑（在跑就不能替换被占用的 dll）。"""
     for exe in EXES:
@@ -207,6 +220,7 @@ def run(cfg: dict | None = None, dst: str | None = None) -> dict:
     res = {
         "ok": False, "src": src, "dst": dst, "copied": 0, "same": 0,
         "bytes": 0, "locked": [], "failed": [], "backup": "", "repaired": 0,
+        "auto_backup": True,
         "elapsed": 0.0, "game_on": False, "total": 0, "error": "",
         # 清单与校核
         "manifest_total": 0, "manifest_at": "",
@@ -232,6 +246,8 @@ def run(cfg: dict | None = None, dst: str | None = None) -> dict:
         res["manifest_total"] = int(m.get("total") or len(m["files"]))
         res["manifest_at"] = str(m.get("generated_at") or "")
 
+    auto_bak = _cfg_auto_backup(cfg)
+    res["auto_backup"] = auto_bak
     t0 = time.time()
     ts = time.strftime("%Y%m%d-%H%M%S")
     bdir = os.path.join(dst, BACKUP_DIR, ts)
@@ -251,7 +267,7 @@ def run(cfg: dict | None = None, dst: str | None = None) -> dict:
         if _need_copy(sf, df):
             try:
                 os.makedirs(os.path.dirname(df) or dst, exist_ok=True)
-                if os.path.exists(df):
+                if os.path.exists(df) and auto_bak:
                     _backup(df, dst, bdir)
                     backed = True
                 shutil.copy2(sf, df)
@@ -304,7 +320,7 @@ def run(cfg: dict | None = None, dst: str | None = None) -> dict:
         not res["failed"] and not res["locked"]
         and not res["verify_bad"] and not res["missing"]
     )
-    res["backup"] = os.path.join(BACKUP_DIR, ts) if backed else ""
+    res["backup"] = bdir if backed else ""
 
     # 落一份安装标记：以后查「注入过没有、哪版、什么时候」只看这个文件
     try:
@@ -364,6 +380,8 @@ def uninstall(cfg: dict | None = None, dst: str | None = None) -> dict:
         res["error"] = "游戏正在运行，先完全退出游戏再撤（注入的 dll 正被占用）"
         return res
 
+    auto_bak = _cfg_auto_backup(cfg)
+    res["auto_backup"] = auto_bak
     t0 = time.time()
     ts = time.strftime("%Y%m%d-%H%M%S")
     bdir = os.path.join(dst, BACKUP_DIR, "uninstall-" + ts)
@@ -382,9 +400,14 @@ def uninstall(cfg: dict | None = None, dst: str | None = None) -> dict:
             if expect and sha256_of(df).lower() != expect.lower():
                 res["modified"].append(rel.replace(os.sep, "/"))
             os.makedirs(os.path.dirname(df) or dst, exist_ok=True)
-            target = os.path.join(bdir, rel)
-            os.makedirs(os.path.dirname(target), exist_ok=True)
-            shutil.move(df, target)          # 先备份（移动）再算移除，失败会抛出来
+            if auto_bak:
+                target = os.path.join(bdir, rel)
+                os.makedirs(os.path.dirname(target), exist_ok=True)
+                shutil.move(df, target)      # 先备份（移动）再算移除，失败会抛出来
+                sz = os.path.getsize(target)
+            else:
+                sz = os.path.getsize(df)
+                os.remove(df)                # 关闭自动备份：直接删，不落备份
         except PermissionError:
             res["locked"].append(rel.replace(os.sep, "/"))
             continue
@@ -393,8 +416,8 @@ def uninstall(cfg: dict | None = None, dst: str | None = None) -> dict:
             continue
         res["removed"] += 1
         try:
-            res["bytes"] += int(it.get("size") or 0) or os.path.getsize(target)
-        except OSError:
+            res["bytes"] += int(it.get("size") or 0) or sz
+        except Exception:      # noqa: BLE001
             pass
         touched.add(os.path.dirname(df))
 
@@ -422,7 +445,7 @@ def uninstall(cfg: dict | None = None, dst: str | None = None) -> dict:
 
     res["elapsed"] = round(time.time() - t0, 2)
     res["ok"] = not res["failed"] and not res["locked"]
-    res["backup"] = os.path.relpath(bdir, dst) if res["removed"] else ""
+    res["backup"] = bdir if (res["removed"] and auto_bak) else ""
     return res
 
 
