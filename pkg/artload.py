@@ -904,6 +904,43 @@ def check(out_root: str) -> dict:
             "at": doc.get("at") or ""}
 
 
+def count_media(root: str) -> dict:
+    """统计图库里的非图片素材：大厅视频 / 角色语音 / 游戏音乐。
+
+    - 视频：kv/video/*.mp4（大厅循环背景）
+    - 语音：audio/<bank>/*.wav（角色语音，按 bank 分目录）
+    - 音乐：audio/BGM*/*.mp3（BGM，存 mp3）
+    """
+    out = {"video": 0, "voice": 0, "bgm": 0}
+    if not root or not os.path.isdir(root):
+        return out
+    vdir = os.path.join(root, "kv", "video")
+    if os.path.isdir(vdir):
+        try:
+            out["video"] = sum(1 for f in os.listdir(vdir) if f.lower().endswith(".mp4"))
+        except OSError:
+            pass
+    adir = os.path.join(root, "audio")
+    if os.path.isdir(adir):
+        try:
+            banks = [d for d in os.listdir(adir) if os.path.isdir(os.path.join(adir, d))]
+        except OSError:
+            banks = []
+        for b in banks:
+            bd = os.path.join(adir, b)
+            try:
+                files = os.listdir(bd)
+            except OSError:
+                continue
+            for f in files:
+                lf = f.lower()
+                if lf.endswith(".wav"):
+                    out["voice"] += 1
+                elif lf.endswith(".mp3"):
+                    out["bgm"] += 1
+    return out
+
+
 def count_files(root: str) -> dict:
     """统计图库里各类别有多少张图（给 /app load 报结果用）。"""
     out: dict = {}
@@ -920,10 +957,13 @@ def count_files(root: str) -> dict:
                 # kv/UT_Item_KV_*.png 是 160x160 小图标；真正的大厅背景视频在 kv/video/
                 vdir = os.path.join(p, "video")
                 if os.path.isdir(vdir):
-                    v = sum(1 for f in os.listdir(vdir)
-                            if f.lower().endswith((".mp4", ".jpg", ".png")))
-                    if v:
-                        out["kv_video"] = v
+                    files = os.listdir(vdir)
+                    mp4 = sum(1 for f in files if f.lower().endswith(".mp4"))
+                    jpg = sum(1 for f in files if f.lower().endswith((".jpg", ".png")))
+                    if mp4:
+                        out["kv_video"] = mp4
+                    if jpg:
+                        out["kv_poster"] = jpg
             if n:
                 out[d] = n
     except OSError:

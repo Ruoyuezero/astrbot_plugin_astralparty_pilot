@@ -1219,7 +1219,12 @@ class AstralPartyPilotPlugin(Star):
                      "状态：❌ 目录还不存在（发 /app load 自动创建并解包）"]
         else:
             cnt = ARTL.count_files(home)
-            total = sum(cnt.values())
+            media = ARTL.count_media(home)
+            # 图片张数 = 各分类 png 之和（kv 视频/海报单列，不混进「张图」）
+            total = sum(v for k, v in cnt.items() if k not in ("kv_video", "kv_poster"))
+            media_line = ("素材构成：图片 %d 张 · 大厅视频 %d 段 · 角色语音 %d 条 · 游戏音乐 %d 首"
+                          % (total, media.get("video", 0),
+                             media.get("voice", 0), media.get("bgm", 0)))
             if not total:
                 lines = [f"已配置 art_root：{base}",
                          "状态：✅️ 目录已存在（发 /app load 自动解包）"]
@@ -1228,12 +1233,14 @@ class AstralPartyPilotPlugin(Star):
                 state = chk.get("state")
                 if state == "ok":
                     lines = [f"素材根目录：{home}",
-                             f"状态：✅ 校验已通过，共 {total} 张图，目录完整"]
+                             f"状态：✅ 校验已通过，共 {total} 张图，目录完整",
+                             media_line]
                     need_unpack = False
                 elif state == "missing":
                     lines = [f"素材根目录：{home}",
                              f"状态：❌️ 校验未通过，共 {total} 张图，目录缺失 "
-                             "（发 /app load 只补缺失的）"]
+                             "（发 /app load 只补缺失的）",
+                             media_line]
                     need_unpack = False
                 else:
                     # 有图但还没清单：等同于还没解包完，让主人跑一次 load 生成清单
