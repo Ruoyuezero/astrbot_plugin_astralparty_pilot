@@ -92,7 +92,7 @@ def _profile_text(d: dict) -> str:
 HELP_SECTIONS = [
     ("💡", "基础", [
         ("/app help", "指令一览（就是这张图）；子命令不记得时发它"),
-        ("/app load", "准备素材：外库模式按完整性解包 / 只补缺；实时模式确保映射表可用"),
+        ("/app load", "解包素材（仅管理员，会写磁盘/起多进程）：外库模式按完整性解包 / 只补缺；实时模式确保映射表可用"),
         ("/app check", "图库体检：只报目录现状和解包进度，不解包"),
         ("/app list", "素材清点：每个分类一行，报张数（图鉴在用 / 暂未接分开）"),
     ]),
@@ -1265,7 +1265,10 @@ class AstralPartyPilotPlugin(Star):
         yield event.plain_result(self._load_report(chk))
 
     async def _app_load(self, event: AstrMessageEvent, joined: str):
-        """/app load：把游戏美术素材解包到图库。"""
+        """/app load：把游戏美术素材解包到图库（仅管理员：会写本机磁盘、起多进程）。"""
+        if not self._is_admin(event):
+            yield event.plain_result(self._deny_text("/app load 解包素材"))
+            return
         if (joined or "").strip().lower() in ("check", "查", "查看", "状态", "status", "info"):
             # 旧写法 /app load check 已经改成 /app check，别让它误触发解包
             yield event.plain_result(
