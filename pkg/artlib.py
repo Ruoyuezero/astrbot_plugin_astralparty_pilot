@@ -417,9 +417,25 @@ def item_icon(filename: str) -> str | None:
 
 
 def hero_emojis(hid) -> list[tuple[str, str]]:
-    """[(表情序号, 图片路径)]，按序号升序。"""
+    """[(表情序号, 图片路径)]，按序号升序。
+
+    动态表情在图库里只存 GIF（静态 PNG 会被解包时删掉），所以这里对
+    缺失的 PNG 回落到同名 GIF，保证列表和总览图照样能出。
+    """
     h = index()["heroes"].get(str(hid)) or {}
-    return list(_ready_map(h.get("emoji") or {}).items())
+    raw = h.get("emoji") or {}
+    out = dict(_ready_map(raw))
+    # 动态表情：序号可能根本不在 emoji 映射里（游戏只给序列图），
+    # 和 kb/vemoji.json 取并集，图库里只存 GIF。
+    anim = _vemoji_map().get(str(hid)) or {}
+    for seq in list(anim.keys()) + list(raw.keys()):
+        seq = str(seq).zfill(2)
+        if seq in out:
+            continue
+        gif = emoji_gif(hid, seq)
+        if gif:
+            out[seq] = gif
+    return sorted(out.items(), key=lambda kv: str(kv[0]))
 
 
 # ------------------------------------------------------- 动态表情（VEmoji）----
@@ -451,6 +467,17 @@ def hero_emoji_anim(hid) -> dict[str, str]:
         if p:
             out[seq] = p
     return out
+
+
+def emoji_gif(hid, seq) -> str | None:
+    """图库里现成的动态表情 GIF（全量解包时生成）；没有返回 None。
+
+    路径：<图库>/emoji/UT_Item_Emoji_<角色>_<序号>.gif。
+    """
+    try:
+        return icon("emoji", "UT_Item_Emoji_%s_%s.gif" % (hid, str(seq).zfill(2)))
+    except Exception:      # noqa: BLE001
+        return None
 
 
 def is_emoji_anim(hid, seq) -> bool:

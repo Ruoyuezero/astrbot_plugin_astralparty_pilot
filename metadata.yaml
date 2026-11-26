@@ -2,7 +2,7 @@ name: astrbot_plugin_astralparty_pilot
 display_name: 星趴助手（Astral Party Pilot）
 desc: "《星引擎派对》（Astral Party）的游戏助手：查游戏账号与对局进度；全鉴赏卡牌 / 怪物 / 角色 / 地块 / 地图 / 筹码 / 成就 / 角色语音 / 游戏音乐 / 大厅背景。素材来自游戏资源解包 + 本地知识库，支持全量解包与实时解包两种模式，离线可查；陪玩引擎（全自动陪玩、半自动陪玩、玩家自主操控三种模式，含寻路与出牌决策）尚在开发中，未完全实装，请静待更新。"
 help: 发送 /app help 查看全部指令。常用：/app <UID> 查别人、/app uid 看自己、/app card|monster|hero|land|map|relic|achieve 查图鉴、/app kv 看大厅背景、/app voice 听角色语音、/app BGM 听游戏音乐、/app list 看素材张数、/app load 解包素材。注意：/appa 系列（陪玩操控）尚在开发中，未完全实装，请静待更新。有任何问题欢迎联系 1543648046@qq.com
-version: 2.6.2
+version: 2.6.3
 author: AstralPartyPilot
 repo: "https://github.com/Ruoyuezero/astrbot_plugin_astralparty_pilot"
 astrbot_version: ">=4.0.0"

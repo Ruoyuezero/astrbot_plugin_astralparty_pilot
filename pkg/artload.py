@@ -412,6 +412,60 @@ def _init_only(only) -> None:
     _ONLY = only
 
 
+EMOJI_CELL = 168          # 动态表情序列图每格尺寸（168×168）
+EMOJI_GIF_FPS = 30        # 生成 GIF 用的帧率（和配置 emoji_fps 默认值一致）
+
+
+def is_vemoji_sheet(name: str) -> tuple[str, str] | None:
+    """`VEmoji_101_05` → ("101", "05")；不是动态表情序列图返回 None。"""
+    import re as _re
+    m = _re.fullmatch(r"VEmoji_(\d+)_(\d+)", str(name or ""))
+    return (m.group(1), m.group(2)) if m else None
+
+
+def write_emoji_gif(img, out_path: str, cell: int = EMOJI_CELL,
+                    fps: int = EMOJI_GIF_FPS) -> bool:
+    """把序列图（一张大图按格切帧）写成透明 GIF；成功返回 True。
+
+    GIF 只能单色透明：先把每帧量化到 255 色，再把「几乎全透明」的像素
+    涂成保留索引 255，贴到深色聊天底上不会有白框。
+    """
+    try:
+        from PIL import Image
+    except Exception:      # noqa: BLE001
+        return False
+    try:
+        sheet = img.convert("RGBA")
+        W, H = sheet.size
+        cols, rows = max(1, W // cell), max(1, H // cell)
+        frames = []
+        for r in range(rows):
+            for c in range(cols):
+                box = (c * cell, r * cell, (c + 1) * cell, (r + 1) * cell)
+                frames.append(sheet.crop(box))
+        # 尾部补齐的空格子丢掉；中间空帧（淡入）保留
+        while frames and frames[-1].getchannel("A").getextrema()[1] == 0:
+            frames.pop()
+        if len(frames) <= 1:          # 只有一帧，说明其实不是动态图
+            return False
+        dur = max(20, int(round(1000.0 / max(1, fps))))
+        flat = []
+        for f in frames:
+            rgba = f.convert("RGBA")
+            alpha = rgba.getchannel("A")
+            pimg = Image.merge("RGB", rgba.split()[:3]).convert(
+                "P", palette=Image.ADAPTIVE, colors=255)
+            pimg.paste(255, mask=alpha.point(lambda a: 255 if a < 128 else 0))
+            flat.append(pimg)
+        os.makedirs(os.path.dirname(out_path), exist_ok=True)
+        flat[0].save(out_path, "GIF", save_all=True, append_images=flat[1:],
+                     duration=dur, loop=0, disposal=2, transparency=255,
+                     optimize=False)
+        return os.path.exists(out_path) and os.path.getsize(out_path) > 100
+    except Exception:      # noqa: BLE001
+        return False
+
+
 def _worker(job) -> tuple[int, int, list, list]:
     """解一个 bundle。返回 (成功数, 跳过数, 失败样例, 落盘的相对路径清单)。
 
@@ -633,6 +687,27 @@ def _worker(job) -> tuple[int, int, list, list]:
                 img.save(dst)
                 ok += 1
                 names.append(rel)
+                # 动态表情：顺手在 emoji/ 下生成同名 GIF（便于直接预览/取用）
+                hit = is_vemoji_sheet(name)
+                if hit and cat == "misc":
+                    hid, seq = hit
+                    rel_gif = "emoji/UT_Item_Emoji_%s_%s.gif" % (hid, seq)
+                    if _ONLY is None or rel_gif.lower() in _ONLY:
+                        dst_gif = os.path.join(out_root, rel_gif.replace("/", os.sep))
+                        if not (skip_existing and os.path.exists(dst_gif)):
+                            if write_emoji_gif(img, dst_gif):
+                                ok += 1
+                                names.append(rel_gif)
+                                # 有动态 GIF 就不留静态 PNG（同一张表情二选一）
+                                rel_png = "emoji/UT_Item_Emoji_%s_%s.png" % (hid, seq)
+                                dst_png = os.path.join(out_root, rel_png.replace("/", os.sep))
+                                if os.path.exists(dst_png):
+                                    try:
+                                        os.remove(dst_png)
+                                        ok -= 1
+                                        names[:] = [x for x in names if x != rel_png]
+                                    except OSError:
+                                        pass
             except Exception as e:                          # noqa: BLE001
                 if len(errs) < 3:
                     errs.append("%s: %s" % (name, e))

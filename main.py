@@ -1732,6 +1732,11 @@ class AstralPartyPilotPlugin(Star):
             seq = items[idx - 1][0]
             # 动态表情（序列图）直接发 GIF，静图发原图
             if AL.is_emoji_anim(h["id"], seq):
+                # 全量解包时已把动态表情存成 emoji/*.gif —— 有就直接发，省一次渲染
+                gif = await asyncio.to_thread(AL.emoji_gif, h["id"], seq)
+                if gif and os.path.exists(gif):
+                    yield event.image_result(gif)
+                    return
                 try:
                     fd, tmp = tempfile.mkstemp(suffix=".gif", prefix="app_emoji_")
                     os.close(fd)
